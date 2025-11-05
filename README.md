@@ -1,89 +1,77 @@
-# Term Project Proposal: Stimulus-Driven Behavioral Modeling
+# INDYsim
 
-This folder contains all materials for the ECS630 term project proposal on modeling Drosophila larval behavior using stimulus-response event-hazard methods.
+Behavioral simulation term project for ECS630. The repository bundles the proposal, presentation, configuration, and scripts for modeling Drosophila larval behavior with stimulus-locked event-hazard methods. The current execution plan follows a 12-day window (November 6–20, 2025).
 
-## Folder Structure
+## Repository Structure
 
 ```
-termprojectproposal/
-├── TermProject_Proposal.qmd          # Main proposal document (Quarto)
-├── README.md                          # This file
-├── scripts/                           # Supporting analysis scripts
-│   ├── fit_hazard_model.py           # GLM hazard model fitting
-│   ├── simulate_trajectories.py       # Trajectory simulation engine
-│   ├── run_doe.py                     # DOE execution script
-│   └── export_arena_format.py         # Convert results to Arena CSV format
-├── config/                            # Configuration files
-│   ├── doe_table.csv                  # Design of experiments table (27 conditions)
-│   └── model_config.json              # Model hyperparameters, CI targets
-├── data/                              # Data files (symbolic links or copies)
-│   └── [links to mechanosensation data]
-└── output/                            # Generated outputs
-    ├── fitted_models/                 # Saved model objects
-    ├── simulation_results/            # DOE simulation outputs
-    └── arena_csvs/                    # Arena-style summary CSVs
+INDYsim/
+├── README.md
+├── TermProject_Proposal.qmd        # Main proposal (Quarto → PDF)
+├── TermProject_Report.qmd          # Report scaffold
+├── Simulation_Presentation.qmd     # Reveal.js presentation deck
+├── scripts/                        # Analysis and simulation scripts
+│   ├── fit_hazard_model.py         # GLM hazard model fitting
+│   ├── simulate_trajectories.py    # Trajectory simulation engine
+│   ├── run_doe.py                  # DOE execution
+│   └── export_arena_format.py      # Arena-style CSV export
+├── config/
+│   ├── doe_table.csv               # 3 × 5 × 3 factorial design (45 conditions)
+│   └── model_config.json           # Model hyperparameters, CI targets, paths
+├── data/                           # Links or copies of mechanosensation data
+├── docs/                           # Supporting documentation (Markdown)
+├── output/
+│   ├── fitted_models/              # Saved model objects
+│   ├── simulation_results/         # DOE simulation outputs
+│   └── arena_csvs/                 # Arena-format summary CSVs
+└── styles.css                      # Shared presentation/report styles
 ```
 
 ## Quick Start
 
-1. **Review Proposal**: Open `TermProject_Proposal.qmd` in RStudio/Quarto
-2. **Install Dependencies**: 
+1. **Review Proposal** – open `TermProject_Proposal.qmd` in RStudio/Quarto.
+2. **Install Dependencies** (if needed)
    ```bash
-   pip install -r requirements.txt  # (if created)
+   pip install -r requirements.txt
    ```
-3. **Run Example Analysis**: 
+3. **Run Example Analysis**
    ```bash
    python scripts/fit_hazard_model.py --help
    ```
-4. **Generate Report**: 
+4. **Render Proposal or Presentation**
    ```bash
    quarto render TermProject_Proposal.qmd
+   quarto render Simulation_Presentation.qmd
    ```
 
 ## Key Components
 
-### Proposal Document
-- **File**: `TermProject_Proposal.qmd`
-- **Format**: Quarto markdown → PDF
-- **Style**: Matches Lab01/Lab02 formatting (Avenir Next fonts, technical terminology)
+### Proposal & Report
+- `TermProject_Proposal.qmd` renders to PDF with the full narrative.
+- `TermProject_Report.qmd` tracks results and appendices.
 
 ### Design of Experiments
-- **File**: `config/doe_table.csv`
-- **Design**: Full factorial 3³ = 27 conditions
-- **Factors**: Stimulus Intensity, Pulse Duration, Inter-Pulse Interval
-- **Replications**: 30 per condition (810 total simulations)
+- `config/doe_table.csv` encodes a full-factorial design (Intensity × Pulse Duration × Inter-Pulse Interval = 3 × 5 × 3 = 45 conditions).
+- Each condition runs 30 replications (1,350 simulations total).
 
 ### Model Implementation
-- **Core Method**: Event-hazard GLM with temporal kernels
-- **Events**: Turn starts, stop starts, reversal starts
-- **Features**: Stimulus history (kernel convolution), speed, orientation, wall distance
+- Event-hazard GLMs with raised-cosine temporal kernels.
+- Events: turn starts, stop starts, reversal starts.
+- Features: stimulus history, speed, orientation, wall distance, interaction terms.
 
 ### Output Format
-- **Arena-Style CSVs**: `AcrossReplicationsSummary.csv`, `ContinuousTimeStatsByRep.csv`, `DiscreteTimeStatsByRep.csv`
-- **Matching Lab Format**: Compatible with existing lab analysis workflows
+- Arena-style CSVs: `AcrossReplicationsSummary.csv`, `ContinuousTimeStatsByRep.csv`, `DiscreteTimeStatsByRep.csv`.
+- Compatible with the ECS630 lab analysis workflow.
 
 ## Data Requirements
 
-The project uses H5 files from `/Users/gilraitses/mechanosensation/h5tests/`:
+Primary data: H5 files in `/Users/gilraitses/mechanosensation/h5tests/` (for example `GMR61_202509051201_tier1.h5`). Backup CSVs live in `output/spatial_analysis/`. Experiment metadata is embedded in the H5 files. Data paths and confidence-interval targets are configured in `config/model_config.json`. See `DATA_SOURCES.md` for an inventory of available datasets.
 
-- **Primary**: H5 files (e.g., `GMR61_202509051201_tier1 1.h5`) containing trajectory and stimulus data
-- **Backup**: CSV files in `output/spatial_analysis/` if H5 files unavailable
-- **Experimental Metadata**: Experiment IDs embedded in H5 metadata
+## Current Timeline (12 Days)
 
-See `DATA_SOURCES.md` for detailed information about available H5 files.
-
-Data paths are configured in `config/model_config.json`.
-
-## Timeline
-
-- **Week 1**: Data preparation
-- **Week 2**: Model development
-- **Week 3**: Model fitting
-- **Week 4**: Simulation engine
-- **Week 5**: DOE execution
-- **Week 6**: Report writing
+- **Week 1: November 6 – 13** – Data preparation, feature engineering, model development, and hazard model fitting with validation (KS tests, PSTHs).
+- **Week 2: November 13 – 20** – Simulation engine completion, DOE execution across 45 conditions, results analysis, presentation/report updates, and final Quarto renders.
 
 ## Contact
 
-Questions about the proposal? See the proposal document or contact Gil Raitses.
-
+Questions or updates: Gil Raitses (`gilraitses@gmail.com`).
