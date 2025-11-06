@@ -37,7 +37,7 @@
       --text-color: var(--cinnamoroll-dark-blue);
       --primary-color: var(--cinnamoroll-blue);
       --secondary-color: var(--cinnamoroll-pink);
-      --content-bg: rgba(255, 249, 243, 0.95);
+      --content-bg: rgba(255, 249, 243, 0.9);
       --header-footer-bg: rgba(44, 74, 95, 0.9);
       --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition-speed: 0.3s;
@@ -49,7 +49,7 @@
         transition-duration: 0.001s !important;
         animation-duration: 0.001s !important;
       }
-      .content:hover, .section:hover, .kpi-card:hover {
+      .content:hover, section:hover, .kpi-card:hover {
         transform: none !important;
       }
     }
@@ -64,7 +64,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Avenir Next', sans-serif;
+      font-family: 'Avenir Next', 'Roboto', Arial, sans-serif;
       margin: 0;
       padding: 0;
       color: var(--text-color);
@@ -133,7 +133,7 @@
     }
 
     .content {
-      max-width: 1200px;
+      max-width: 1000px;
       margin: 2rem auto;
       padding: 2rem;
       background: var(--content-bg);
@@ -141,28 +141,47 @@
       box-shadow: var(--card-shadow);
       backdrop-filter: blur(10px);
       position: relative;
+      transition: transform 0.3s ease;
     }
 
-    section {
-      margin-bottom: 3rem;
+    .content:hover {
+      transform: translateY(-5px);
+    }
+
+    .content section {
+      margin-bottom: 2.5rem;
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.8s ease, transform 0.8s ease;
     }
 
-    section.visible {
+    .content section.visible {
       opacity: 1;
       transform: translateY(0);
     }
 
+    section {
+      opacity: 0.95;
+      transition: opacity 0.3s ease;
+    }
+
+    section:hover {
+      opacity: 1;
+    }
+
     h2 {
       color: var(--cinnamoroll-dark-blue);
-      border-bottom: 2px solid var(--cinnamoroll-lavender);
+      border-bottom: 3px solid var(--cinnamoroll-lavender);
       padding-bottom: 0.5rem;
       font-size: 2.2rem;
-      font-weight: 300;
+      font-weight: 400;
       font-family: 'Didot', 'Georgia', serif;
       margin-bottom: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    section:hover h2 {
+      transform: translateX(10px);
     }
 
     h3 {
@@ -194,11 +213,12 @@
 
     .abstract {
       background: var(--cinnamoroll-light-blue);
-      border-left: 3px solid var(--cinnamoroll-blue);
+      border-left: 4px solid var(--cinnamoroll-blue);
       padding: 2rem;
       margin: 3rem 0;
       border-radius: 8px;
       backdrop-filter: blur(10px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .abstract p {
@@ -316,11 +336,17 @@
       align-items: center;
       gap: 10px;
       opacity: 0.7;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.8s ease, transform 0.8s ease;
     }
 
     .keyboard-controls-hint:hover {
       opacity: 1;
+    }
+
+    .keyboard-controls-hint.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(100px);
+      pointer-events: none;
     }
 
     .key {
@@ -346,11 +372,13 @@
     a {
       color: var(--cinnamoroll-blue);
       text-decoration: none;
-      transition: color 0.3s;
+      font-weight: bold;
+      transition: all 0.3s;
     }
 
     a:hover {
       color: var(--cinnamoroll-pink);
+      transform: translateY(-2px);
     }
 
     .math-display {
@@ -372,6 +400,20 @@
     li {
       margin: 0.5rem 0;
       line-height: 1.6;
+      position: relative;
+      padding-left: 0.5rem;
+      transition: transform 0.2s ease;
+    }
+
+    li:hover {
+      transform: translateX(5px);
+    }
+
+    li:before {
+      content: "▹";
+      position: absolute;
+      left: -1rem;
+      color: var(--cinnamoroll-blue);
     }
 
     @media (max-width: 768px) {
@@ -408,6 +450,12 @@
   <div class="keyboard-controls-hint">
     <span>Rotate:</span>
     <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
+    <span>|</span>
+    <span>Zoom:</span>
+    <span><span class="key">+</span><span class="key">-</span></span>
+    <span>|</span>
+    <span>Reset:</span>
+    <span><span class="key">R</span></span>
   </div>
 
   <header>
@@ -421,21 +469,21 @@
   <div class="content">
     <div class="abstract">
       <p>
-        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed, orientation, and wall proximity. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. <span class="tech">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class="tech">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data.
+        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed, orientation, and wall proximity. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics.
       </p>
     </div>
 
-    <section id="introduction" class="visible" data-delay="0">
+    <section id="introduction">
       <h2>Introduction</h2>
       <p>
-        This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses existing trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events including turns, stops, and reversals conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>. The model simulates trajectories under different <span class="tech">experimental conditions</span> specified through a <span class="tech">design of experiments</span> framework, which produces behavioral metrics comparable to empirical observations.
+        This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses existing trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events including turns, stops, and reversals conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>.
       </p>
       <p>
-        The project connects simulation modeling methods from <span class="tech">ECS630</span> with biological data analysis. <span class="tech">Discrete-event simulation principles</span> apply to <span class="tech">behavioral systems</span> where events occur stochastically as functions of external stimuli and internal state. Results use <span class="tech">Arena-style summary statistics</span> including <span class="tech">across-replications summaries</span>, <span class="tech">confidence intervals</span>, and <span class="tech">performance metrics</span> analogous to manufacturing system analysis.
+        The project connects simulation modeling methods from <span class="tech">ECS630</span> with biological data analysis. <span class="tech">Discrete-event simulation principles</span> apply to <span class="tech">behavioral systems</span> where events occur stochastically as functions of external stimuli and internal state. Results use <span class="tech">Arena-style summary statistics</span> including <span class="tech">across-replications summaries</span>, <span class="tech">confidence intervals</span>, and <span class="tech">performance metrics</span>.
       </p>
     </section>
 
-    <section id="problem" data-delay="100">
+    <section id="problem">
       <h2>Problem Statement</h2>
       <h3>Research Question</h3>
       <p>
@@ -443,15 +491,15 @@
       </p>
       <h3>Dataset Characteristics</h3>
       <p>
-        The mechanosensation dataset contains trajectory data, stimulus data, experimental conditions, and sample size information. Trajectory data includes individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings). Stimulus data consists of LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities (0-100% LED power), pulse frequencies, and temporal patterns. Sample size includes 40+ larvae per condition with multiple replications per experimental condition.
+        The mechanosensation dataset contains trajectory data with individual larval tracks including position coordinates, speeds, orientations, and behavioral events. Stimulus data consists of LED intensity values synchronized to video frames with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities, and the dataset includes 40+ larvae per condition.
       </p>
       <h3>Modeling Challenge</h3>
       <p>
-        Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history including adaptation/habituation, and pulse timing), contextual features (current speed, orientation relative to stimulus source, and distance to arena walls), and individual heterogeneity (larva-to-larva variation in baseline activity and sensitivity). Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
+        Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history, pulse timing), contextual features (speed, orientation, wall distance), and individual heterogeneity. Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
       </p>
     </section>
 
-    <section id="methodology" data-delay="200">
+    <section id="methodology">
       <h2>Proposed Methodology</h2>
       <h3>Core Model: Stimulus-Locked Event-Hazard GLM</h3>
       <p>
@@ -461,39 +509,15 @@
         λ<sub>E</sub>(t) = exp{β<sub>0,E</sub> + φ<sub>E</sub><sup>T</sup>[s ⋆ κ](t) + x(t)<sup>T</sup>β<sub>E</sub>}
       </div>
       <p>
-        where β<sub>0,E</sub> represents the baseline log-hazard for event type <em>E</em>, <em>s</em>(t) is the stimulus feature vector (intensity, on/off state, recent history), κ is the temporal kernel (basis expansion capturing latency and adaptation), [s ⋆ κ](t) is the convolution of stimulus with kernel (stimulus history features), x(t) represents contextual features (speed, orientation, wall distance), and β<sub>E</sub> are the feature coefficients.
+        where β<sub>0,E</sub> represents the baseline log-hazard, <em>s</em>(t) is the stimulus feature vector, κ is the temporal kernel, [s ⋆ κ](t) is the convolution of stimulus with kernel, x(t) represents contextual features, and β<sub>E</sub> are the feature coefficients.
       </p>
       <h3>Temporal Kernel Design</h3>
       <p>
-        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any). Using raised cosine basis functions:
-      </p>
-      <div class="math-display">
-        κ(τ) = Σ<sub>j=1</sub><sup>J</sup> w<sub>j</sub> cos²(π(τ - τ<sub>j</sub>)/(2Δτ)) 1<sub>[τ<sub>j</sub>-Δτ, τ<sub>j</sub>+Δτ]</sub>(τ)
-      </div>
-      <p>
-        with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
-      </p>
-      <h3>Event Likelihood and Estimation</h3>
-      <p>
-        For larva <em>i</em> with observed events at times {t<sub>i,k</sub>}, the log-likelihood is:
-      </p>
-      <div class="math-display">
-        ℓ(β) = Σ<sub>i</sub> Σ<sub>k</sub> log λ<sub>E</sub>(t<sub>i,k</sub>) - ∫<sub>0</sub><sup>T<sub>i</sub></sup> λ<sub>E</sub>(t) dt
-      </div>
-      <p>
-        Estimation via <span class="tech">penalized maximum likelihood</span> with L<sub>2</sub> regularization.
-      </p>
-      <h3>Model Validation</h3>
-      <p>
-        Model validation uses three methods. The time-rescaled KS test transforms observed event times, which under the correct model should form Poisson process increments. Predictive log-likelihood evaluates holdout larvae for each experimental condition. Peri-stimulus time histograms compare model-predicted versus observed event rates around stimulus onsets.
-      </p>
-      <h3>Trajectory Simulation</h3>
-      <p>
-        Given a fitted hazard model, the simulation follows five steps: initialization samples starting position, orientation, and speed from empirical distributions; event generation samples the next event time from λ<sub>E</sub>(t) using a thinning algorithm; event execution handles turns by sampling new orientation, stops by pausing, and reversals by flipping direction; state update integrates position using forward Euler integration with current speed and orientation; the process repeats until reaching maximum simulation time.
+        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any). Using raised cosine basis functions with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
       </p>
     </section>
 
-    <section id="doe" data-delay="300">
+    <section id="doe">
       <h2>Design of Experiments</h2>
       <h3>Factors and Levels</h3>
       <table>
@@ -561,176 +585,37 @@
       <p>
         <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
       </p>
-      <h3>Run Length Determination</h3>
-      <p>
-        The replication length follows Lab04 CI methodology. Target precision uses 10% relative half-width for mean turn rate, which means when the mean equals 5 turns per minute the confidence interval width stays below 0.5 turns per minute. A pilot study runs 10 replications to estimate variance. Required replications follow n ≥ (z<sub>α/2</sub>σ/E)² where E represents the desired half-width. When n > 30 the simulation uses that calculated value, while values n ≤ 30 default to 30 replications as the minimum standard.
-      </p>
     </section>
 
-    <section id="analysis" data-delay="400">
-      <h2>Analysis Plan</h2>
-      <h3>Data Preprocessing</h3>
-      <h4>Input Data Sources</h4>
-      <p>
-        The primary data source uses H5 files containing exported MAGAT experiment data in HDF5 format such as <code>GMR61_202509051201_tier1.h5</code>. These files contain trajectory positions, LED stimulus data, and metadata located in <code>/Users/gilraitses/mechanosensation/h5tests/</code> and processed using <code>scripts/engineer_dataset_from_h5.py</code>. Backup sources include trajectory CSVs, stimulus CSVs with frame-level LED values, and experimental metadata with experiment IDs, conditions, and replication numbers.
-      </p>
-      <h4>Feature Extraction</h4>
-      <p>
-        Feature extraction involves two steps. Step 1 extracts from H5 files using <code>engineer_dataset_from_h5.py</code>, creating event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics. Step 2 implements feature engineering for each larva trajectory, extracting positions and computing derived features including speed, heading, and heading change. The process time-aligns with stimulus data, creates time bins, and generates stimulus kernel features.
-      </p>
-      <h4>Model Fitting Pipeline</h4>
-      <p>
-        The model fitting pipeline consists of five steps: event detection identifies turn starts, stop starts, and reversal starts from trajectory data; feature matrix construction creates an N × P matrix where N equals total time bins across all larvae and P equals the number of features; GLM fitting uses scikit-learn or statsmodels for Poisson GLM; cross-validation applies leave-one-larva-out CV to assess generalization; kernel visualization plots the fitted kernel to interpret temporal response.
-      </p>
-      <h3>Simulation and DOE Execution</h3>
-      <h4>Simulation Engine</h4>
-      <p>
-        The simulation engine implements a LarvalTrajectorySimulator class that initializes with hazard model, speed distribution, and arena bounds. The simulate method takes stimulus schedule, maximum time, and random seed as inputs. It initializes state with starting position, orientation, and speed, then enters a loop that computes current hazard, samples next event time using a thinning algorithm, executes the event (turn, stop, or reverse), updates position using forward Euler integration, and continues until reaching maximum simulation time.
-      </p>
-      <h4>DOE Execution</h4>
-      <p>
-        For each of 45 conditions, the DOE execution runs a loop over replications. It sets the stimulus schedule from condition parameters (intensity, pulse duration, inter-pulse interval), simulates the trajectory with maximum time of 300 seconds, computes KPIs from the trajectory, and stores results. Finally, it exports to Arena-style CSV format.
-      </p>
-      <h3>Statistical Analysis</h3>
-      <h4>Performance Metrics Calculation</h4>
-      <p>
-        For each KPI and condition, the analysis calculates four statistics: the mean, standard deviation, 95% confidence interval using t-distribution, and minimum and maximum values.
-      </p>
-      <h4>Model Validation Metrics</h4>
-      <p>
-        Model validation uses four metrics: holdout log-likelihood compares results to a null model with constant hazard; the KS test p-value evaluates whether time-rescaled event times follow a uniform distribution; PSTH correlation compares model-predicted versus observed peri-stimulus histograms; trajectory-level statistics compare simulated versus empirical distributions of KPIs.
-      </p>
-    </section>
-
-    <section id="deliverables" data-delay="500">
-      <h2>Expected Deliverables</h2>
-      <h3>Report Components</h3>
-      <p>
-        The report includes six components: model specification covers mathematical formulation, kernel design, and estimation procedure; data description presents dataset characteristics, preprocessing steps, and feature engineering; model fitting results show fitted kernels, coefficients, and validation metrics; DOE results include AcrossReplicationsSummary tables, main effects, and interaction plots; simulation validation compares simulated versus empirical KPIs; confidence intervals explain CI construction methodology and run length justification.
-      </p>
-      <h3>Supporting Files</h3>
-      <p>
-        Supporting files include four categories: model code consists of Python scripts for fitting (<code>fit_hazard_model.py</code>), simulation (<code>simulate_trajectories.py</code>), and DOE execution (<code>run_doe.py</code>); data exports produce Arena-style CSV files including AcrossReplicationsSummary, ContinuousTimeStatsByRep, and DiscreteTimeStatsByRep; the DOE table stores 45 conditions and factor levels in <code>doe_table.csv</code>; configuration uses <code>config.json</code> for model parameters, simulation settings, and CI targets.
-      </p>
-      <h3>Format Requirements</h3>
-      <p>
-        Format requirements include four elements: the Quarto report uses <code>TermProject_Report.qmd</code> rendering to PDF; style matches Lab01 and Lab02 formatting with Avenir Next body text, Didot headings, and technical terminology; figures include kernel plots, PSTHs, KPI comparisons, and interaction plots; tables include the DOE table, AcrossReplicationsSummary, and model coefficients.
-      </p>
-    </section>
-
-    <section id="timeline" data-delay="600">
+    <section id="timeline">
       <h2>Timeline and Milestones</h2>
-      <h3>Week 1: November 6-13 (Data, Model Development, and Fitting)</h3>
+      <h3>Week 1: November 6-13</h3>
       <p>
-        Week 1 covers data preparation, model development, and initial model fitting. The week loads and inspects trajectory and stimulus data, implements the feature extraction pipeline, and computes empirical KPIs for baseline conditions. It implements temporal kernel basis functions, builds the GLM fitting pipeline, and fits a baseline model with constant hazard. The week fits stimulus-locked hazard models for turns, stops, and reversals, performs cross-validation and hyperparameter tuning, and validates models using KS tests and PSTH comparisons. Deliverables include a data exploration notebook, baseline statistics, fitted models, and a validation report.
+        Data preparation, feature extraction, hazard model fitting, validation checks. Loads and inspects trajectory and stimulus data, implements the feature extraction pipeline, computes empirical KPIs, implements temporal kernel basis functions, builds the GLM fitting pipeline, fits stimulus-locked hazard models for turns, stops, and reversals, performs cross-validation and validates models using KS tests.
       </p>
-      <h3>Week 2: November 13-20 (Simulation, DOE, and Report)</h3>
+      <h3>Week 2: November 13-20</h3>
       <p>
-        Week 2 covers simulation development, DOE execution, and report completion. The week implements the trajectory simulator, tests on simple stimulus schedules, and validates that simulated KPIs match empirical values for known conditions. It runs the full factorial design with 45 conditions and 30 replications per condition, generates AcrossReplicationsSummary CSVs, computes confidence intervals, and analyzes main effects and interactions. The week writes the Quarto report with all sections, generates figures and tables, and performs final model validation against holdout data. Deliverables include a working simulator, complete DOE results and summary tables, and the final report PDF with supporting code and data.
-      </p>
-    </section>
-
-    <section id="risks" data-delay="700">
-      <h2>Risk Assessment and Mitigation</h2>
-      <h3>Technical Risks</h3>
-      <p>
-        Temporal alignment between stimulus and behavior data could be inaccurate. Mitigation uses validated synchronization methods through MAGAT addTonToff, implements unit tests for alignment, and visually inspects PSTHs for timing errors.
-      </p>
-      <p>
-        The model could overfit to training data with a complex kernel. Mitigation uses cross-validation, applies L2 regularization, limits kernel complexity by reducing basis functions, and compares AIC/BIC across models.
-      </p>
-      <p>
-        Individual heterogeneity could violate the exchangeability assumption. Mitigation includes larva-specific random effects when needed, stratifies analysis by experimental batch, and uses hierarchical models when time permits.
-      </p>
-      <p>
-        Simulation might not capture spatial constraints such as wall interactions. Mitigation includes wall distance in the feature vector, implements boundary conditions in the simulator, and validates that spatial distributions match empirical data.
-      </p>
-      <h3>Data Risks</h3>
-      <p>
-        Some experimental conditions might have insufficient data. Mitigation pools similar conditions, uses data augmentation through bootstrap resampling, and reports sample sizes per condition.
-      </p>
-      <p>
-        Trajectory segments could be missing or corrupted. Mitigation implements robust data validation, excludes problematic trajectories, and reports exclusion criteria in methods.
-      </p>
-      <h3>Timeline Risks</h3>
-      <p>
-        Model fitting could take longer than expected. Mitigation starts with a simplified model using fewer features, uses existing GLM libraries, and parallelizes over larvae when needed.
-      </p>
-      <p>
-        Simulation could be computationally expensive for 1,350 total runs across 45 conditions with 30 replications each. Mitigation optimizes simulation code, runs overnight batches, uses cloud computing when needed, and reduces replications if CI targets are still met.
+        Simulation engine execution, DOE analysis, results synthesis, proposal/report updates. Implements the trajectory simulator, tests on simple stimulus schedules, validates simulated KPIs, runs the full factorial design, generates AcrossReplicationsSummary CSVs, computes confidence intervals, analyzes main effects and interactions, writes the Quarto report, generates figures and tables, performs final model validation.
       </p>
     </section>
 
-    <section id="success" data-delay="800">
-      <h2>Success Criteria</h2>
-      <h3>Model Performance Targets</h3>
-      <p>
-        Model performance targets include three criteria: predictive accuracy requires holdout log-likelihood improvement of at least 20% over the null model; temporal fidelity requires a KS test p-value greater than 0.05, which indicates the model is not rejected; kernel interpretability requires the fitted kernel to show biologically plausible latency with peak response between 0.5 and 2 seconds.
-      </p>
-      <h3>Simulation Validation Targets</h3>
-      <p>
-        Simulation validation targets include three criteria: KPI accuracy requires simulated mean turn rates to fall within the 95% CI of empirical values for baseline conditions; distribution match requires simulated KPI distributions to pass a two-sample KS test versus empirical distributions with p-value greater than 0.05; DOE consistency requires main effects to show expected signs such as higher intensity producing higher turn rate.
-      </p>
-      <h3>Deliverable Quality Targets</h3>
-      <p>
-        Deliverable quality targets include three criteria: report completeness requires all sections present with clear figures and tables and reproducible methods; code quality requires well-documented scripts, configuration files, and unit tests where feasible; data format requires CSVs to match Arena output format and remain readable by standard tools.
-      </p>
-    </section>
-
-    <section id="conclusion" data-delay="900">
+    <section id="conclusion">
       <h2>Conclusion</h2>
       <p>
         This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, which show how simulation principles extend from manufacturing systems to biological processes.
       </p>
     </section>
-
-    <section id="appendix" data-delay="1000">
-      <h2>Appendix</h2>
-      <h3>Data Sources</h3>
-      <ul>
-        <li><strong>Primary H5 Files</strong>: <code>/Users/gilraitses/mechanosensation/h5tests/</code>
-          <ul>
-            <li><code>GMR61_202509051201_tier1.h5</code> (16 MB): Complete experiment with tracks and LED data</li>
-            <li><code>GMR61_tier2_complete.h5</code> (83 MB): Full tier2 export with contours</li>
-            <li><code>GMR61_202509051201_tier3.h5</code> (701 KB): Tier3 export with FID data</li>
-          </ul>
-        </li>
-        <li><strong>Backup CSV Data</strong>: <code>/Users/gilraitses/mechanosensation/output/spatial_analysis/</code></li>
-        <li><strong>Stimulus Data</strong>: <code>/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv</code> when needed</li>
-        <li><strong>Experimental Metadata</strong>: Experiment IDs embedded in H5 metadata or trajectory CSVs</li>
-      </ul>
-      <h3>Model Implementation References</h3>
-      <ul>
-        <li><strong>Survival Analysis</strong>: Collett (2015) <em>Modelling Survival Data in Medical Research</em></li>
-        <li><strong>Point Process GLMs</strong>: Berman & Turner (1992) "Approximating point process likelihoods with GLIM"</li>
-        <li><strong>Temporal Kernels</strong>: Pillow et al. (2008) "Spatio-temporal correlations and visual signalling"</li>
-      </ul>
-      <h3>Software Tools</h3>
-      <ul>
-        <li><strong>Python</strong>: scikit-learn, statsmodels, numpy, pandas for modeling</li>
-        <li><strong>R</strong>: ggplot2, knitr, kableExtra for report generation</li>
-        <li><strong>MATLAB</strong>: MAGAT API for data loading when needed</li>
-      </ul>
-    </section>
   </div>
 
   <footer>
-    © 2025 Gil Raitses | ECS630 Term Project
+    &copy; 2025 Gil Raitses | ECS630 Term Project
   </footer>
 
   <script>
-    // Global variables
+    // Global variable to control animations
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let neuralNetwork, larvae, backgroundGroup, foregroundGroup;
-    let cameraDistance = 30;
-    const minDistance = 15;
-    const maxDistance = 50;
-    let targetRotationX = 0;
-    let targetRotationY = 0;
-    let currentRotationX = 0;
-    let currentRotationY = 0;
-    let isDragging = false;
-
+    let neuralNetwork, larvae;
+    
     // Three.js initialization
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -739,30 +624,36 @@
       antialias: true, 
       alpha: true 
     });
-
+    
+    // Initialize renderer
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    // Create rendering groups
-    backgroundGroup = new THREE.Group();
-    foregroundGroup = new THREE.Group();
+    
+    // Create separate rendering groups for background and foreground
+    const backgroundGroup = new THREE.Group();
+    const foregroundGroup = new THREE.Group();
     scene.add(backgroundGroup);
     scene.add(foregroundGroup);
-
+    
+    let isDragging = false;
+    
+    // Set initial camera position
     camera.position.setZ(30);
+    
+    // Add Cinnamoroll-colored fog
     scene.fog = new THREE.FogExp2(0xFFF9F3, 0.005);
-
-    // Initialize Drosophila larvae background
+    
+    // Initialize Drosophila larvae simulation
     function initDrosophilaBackground() {
       const radius = 50;
       const trajectoriesGroup = new THREE.Group();
       backgroundGroup.add(trajectoriesGroup);
-
+      
       const isMobile = window.innerWidth < 768;
       const larvaeCount = isMobile ? 70 : 100;
       const larvae = [];
-
+      
       for (let i = 0; i < larvaeCount; i++) {
         const larvaLength = 0.8 + Math.random() * 0.4;
         const curve = new THREE.CatmullRomCurve3([
@@ -771,34 +662,36 @@
           new THREE.Vector3(larvaLength * 0.6, 0, 0),
           new THREE.Vector3(larvaLength, 0, 0)
         ]);
-
+        
         const points = curve.getPoints(20);
         const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
-
+        
+        // Cinnamoroll brown larvae
         const larvaMaterial = new THREE.LineBasicMaterial({
           color: 0x5F4A3F,
           linewidth: 3,
           opacity: 0.85,
           transparent: true
         });
-
+        
         const larva = new THREE.Line(larvaGeometry, larvaMaterial);
-
+        
+        // Cinnamoroll peach glow
         const glowLight = new THREE.PointLight(0xFFE5D9, 0.5, 1);
         glowLight.position.set(larvaLength/2, 0, 0);
         larva.add(glowLight);
-
+        
         const phi = Math.acos(2 * Math.random() - 1);
         const theta = Math.random() * Math.PI * 2;
-
+        
         larva.position.x = radius * Math.sin(phi) * Math.cos(theta);
         larva.position.y = radius * Math.sin(phi) * Math.sin(theta);
         larva.position.z = radius * Math.cos(phi);
-
+        
         larva.lookAt(0, 0, 0);
         const randomRotation = Math.random() * Math.PI * 2;
         larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
-
+        
         larva.userData = {
           velocity: 0.02 + Math.random() * 0.03,
           direction: randomRotation,
@@ -825,25 +718,25 @@
           phi: phi,
           theta: theta
         };
-
+        
         larva.scale.set(larva.userData.size, larva.userData.size, larva.userData.size);
         backgroundGroup.add(larva);
         larvae.push(larva);
       }
-
+      
       return larvae;
     }
-
+    
     // Update larvae positions
-    function updateLarvae(larvae, deltaTime) {
+    function updateLarvae(larvae) {
       if (!Array.isArray(larvae) || larvae.length === 0) return;
       const trajectoriesGroup = backgroundGroup.children.find(child => child.isGroup);
       if (!trajectoriesGroup) return;
-
+      
       larvae.forEach(larva => {
         const ud = larva.userData;
         if (!ud) return;
-
+        
         if (ud.headcastTimer) ud.headcastTimer++;
         if (!ud.isHeadcasting && ud.headcastTimer > ud.headcastInterval) {
           ud.isHeadcasting = true;
@@ -853,7 +746,7 @@
           ud.originalVelocity = ud.velocity;
           ud.velocity = 0;
         }
-
+        
         if (ud.isHeadcasting) {
           if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.5;
           ud.headcastDuration++;
@@ -875,16 +768,16 @@
           }
           if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.1;
           const wiggleDirection = ud.direction + (ud.wiggleAmount ? Math.sin(ud.wigglePhase) * ud.wiggleAmount : 0);
-
+          
           if (ud.velocity && wiggleDirection !== undefined && ud.phi !== undefined && ud.theta !== undefined) {
             ud.phi += Math.sin(wiggleDirection) * ud.velocity * 0.01;
             ud.theta += Math.cos(wiggleDirection) * ud.velocity * 0.01;
             ud.phi = Math.max(0.1, Math.min(Math.PI - 0.1, ud.phi));
-
+            
             larva.position.x = ud.originalRadius * Math.sin(ud.phi) * Math.cos(ud.theta);
             larva.position.y = ud.originalRadius * Math.sin(ud.phi) * Math.sin(ud.theta);
             larva.position.z = ud.originalRadius * Math.cos(ud.phi);
-
+            
             const normal = larva.position.clone().normalize();
             const tangent = new THREE.Vector3(1, 0, 0).cross(normal).normalize();
             const rotationAxis = tangent.cross(normal).normalize();
@@ -892,7 +785,7 @@
             larva.quaternion.setFromRotationMatrix(rotationMatrix);
           }
         }
-
+        
         if (ud.lastTrajectoryUpdate !== undefined && ud.trajectoryUpdateInterval) {
           ud.lastTrajectoryUpdate++;
           if (ud.lastTrajectoryUpdate >= ud.trajectoryUpdateInterval) {
@@ -929,10 +822,12 @@
         }
       });
     }
-
-    // Create neural network structure
+    
+    // Create neural network with Cinnamoroll colors
     function createNeuralNetwork() {
       const group = new THREE.Group();
+      
+      // Cinnamoroll blue nodes
       const nodeMaterial = new THREE.MeshStandardMaterial({
         color: 0x8AB4D3,
         emissive: 0xB4D7EC,
@@ -940,7 +835,7 @@
         metalness: 0.9,
         roughness: 0.1
       });
-
+      
       const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
       const nodes = [];
       const connectionMaterial = new THREE.LineBasicMaterial({
@@ -948,20 +843,20 @@
         transparent: true,
         opacity: 0.5
       });
-
+      
       const isMobile = window.innerWidth < 768;
       const nodeCount = isMobile ? 40 : 60;
-
+      
       for (let i = 0; i < nodeCount; i++) {
         const node = new THREE.Mesh(nodeGeometry, nodeMaterial.clone());
         const radius = isMobile ? 12 : 15;
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
-
+        
         node.position.x = radius * Math.sin(phi) * Math.cos(theta);
         node.position.y = radius * Math.sin(phi) * Math.sin(theta);
         node.position.z = radius * Math.cos(phi);
-
+        
         node.userData = {
           velocity: new THREE.Vector3(
             (Math.random() - 0.5) * 0.03,
@@ -976,16 +871,16 @@
           flashIntensity: 1.5 + Math.random() * 1.0,
           pulsePhase: Math.random() * Math.PI * 2
         };
-
+        
         const nodeLight = new THREE.PointLight(0x8AB4D3, 0.5, 3);
         nodeLight.position.set(0, 0, 0);
         node.add(nodeLight);
         node.userData.light = nodeLight;
-
+        
         nodes.push(node);
         group.add(node);
       }
-
+      
       const connections = [];
       for (let i = 0; i < nodes.length; i++) {
         for (let j = 0; j < 5; j++) {
@@ -1006,13 +901,13 @@
           group.add(line);
         }
       }
-
+      
       const ambientLight = new THREE.AmbientLight(0xB4D7EC, 0.6);
       group.add(ambientLight);
       const light = new THREE.PointLight(0xFFF9F3, 1, 100);
       light.position.set(0, 0, 20);
       group.add(light);
-
+      
       group.userData = {
         nodes: nodes,
         connections: connections,
@@ -1027,7 +922,7 @@
             node.userData.pulsePhase += 0.05;
             const pulseScale = 1.0 + 0.1 * Math.sin(node.userData.pulsePhase);
             node.scale.set(pulseScale, pulseScale, pulseScale);
-
+            
             node.userData.flashTimer++;
             if (!node.userData.active && node.userData.flashTimer > node.userData.flashInterval) {
               node.userData.active = true;
@@ -1035,6 +930,8 @@
               const intensity = node.userData.flashIntensity || 1.5;
               node.material.emissiveIntensity = intensity;
               node.scale.set(1.5, 1.5, 1.5);
+              
+              // Cinnamoroll colors for flashing
               const colors = [0xB4D7EC, 0xE8D7F1, 0xF5D4D8, 0xFFE5D9];
               const randomColor = colors[Math.floor(Math.random() * colors.length)];
               const color = new THREE.Color(randomColor);
@@ -1077,7 +974,7 @@
               }
             }
           }
-
+          
           for (let i = 0; i < connections.length; i++) {
             const line = connections[i];
             const nodeA = nodes[line.userData.pointA];
@@ -1102,17 +999,26 @@
           }
         }
       };
-
+      
       return group;
     }
-
+    
     // Keyboard controls
     const keyState = {
       w: false, a: false, s: false, d: false,
       arrowup: false, arrowleft: false, arrowdown: false, arrowright: false,
       plus: false, minus: false
     };
-
+    
+    // Camera parameters
+    let cameraDistance = 30;
+    const minDistance = 15;
+    const maxDistance = 50;
+    let targetRotationX = 0;
+    let targetRotationY = 0;
+    let currentRotationX = 0;
+    let currentRotationY = 0;
+    
     document.addEventListener('keydown', (event) => {
       const key = event.key.toLowerCase();
       if (key in keyState) {
@@ -1123,7 +1029,7 @@
       if (key === '=' || key === '+') keyState.plus = true;
       if (key === '-' || key === '_') keyState.minus = true;
     });
-
+    
     document.addEventListener('keyup', (event) => {
       const key = event.key.toLowerCase();
       if (key in keyState) {
@@ -1133,7 +1039,7 @@
       if (key === '=' || key === '+') keyState.plus = false;
       if (key === '-' || key === '_') keyState.minus = false;
     });
-
+    
     function resetView() {
       cameraDistance = 30;
       targetRotationX = 0;
@@ -1142,7 +1048,7 @@
       currentRotationY = 0;
       updateCameraPosition();
     }
-
+    
     function updateCameraPosition() {
       const phi = currentRotationX + Math.PI/2;
       const theta = currentRotationY;
@@ -1151,11 +1057,11 @@
       camera.position.z = cameraDistance * Math.sin(phi) * Math.sin(theta);
       camera.lookAt(0, 0, 0);
     }
-
+    
     function processKeyboardControls() {
       const rotationSpeed = 0.03;
       const zoomSpeed = 0.5;
-
+      
       if (keyState.w) targetRotationX -= rotationSpeed;
       if (keyState.s) targetRotationX += rotationSpeed;
       if (keyState.a) targetRotationY -= rotationSpeed;
@@ -1166,12 +1072,44 @@
       if (keyState.arrowright) targetRotationY += rotationSpeed;
       if (keyState.plus) cameraDistance = Math.max(minDistance, cameraDistance - zoomSpeed);
       if (keyState.minus) cameraDistance = Math.min(maxDistance, cameraDistance + zoomSpeed);
-
+      
       currentRotationX += (targetRotationX - currentRotationX) * 0.05;
       currentRotationY += (targetRotationY - currentRotationY) * 0.05;
       updateCameraPosition();
     }
-
+    
+    // Touch controls for mobile
+    function setupTouchControls() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isTouching = false;
+      
+      document.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 1) {
+          touchStartX = event.touches[0].clientX;
+          touchStartY = event.touches[0].clientY;
+          isTouching = true;
+        }
+      }, { passive: true });
+      
+      document.addEventListener('touchmove', (event) => {
+        if (isTouching && event.touches.length === 1) {
+          const touchX = event.touches[0].clientX;
+          const touchY = event.touches[0].clientY;
+          const deltaX = touchX - touchStartX;
+          const deltaY = touchY - touchStartY;
+          targetRotationY -= deltaX * 0.005;
+          targetRotationX -= deltaY * 0.005;
+          touchStartX = touchX;
+          touchStartY = touchY;
+        }
+      }, { passive: true });
+      
+      document.addEventListener('touchend', () => {
+        isTouching = false;
+      }, { passive: true });
+    }
+    
     // Animation loop
     function animate() {
       requestAnimationFrame(animate);
@@ -1194,7 +1132,7 @@
       }
       renderer.render(scene, camera);
     }
-
+    
     // Initialize
     function init() {
       neuralNetwork = createNeuralNetwork();
@@ -1203,16 +1141,17 @@
       const isMobile = window.innerWidth < 768;
       camera.position.z = isMobile ? 25 : 30;
       cameraDistance = isMobile ? 25 : 30;
+      setupTouchControls();
       setTimeout(() => {
         const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
-        if (keyboardShortcuts) keyboardShortcuts.style.opacity = '0';
+        if (keyboardShortcuts) keyboardShortcuts.classList.add('hidden');
       }, 5000);
       animate();
     }
-
+    
     // Intersection Observer for sections
     function checkElementsInView() {
-      const sections = document.querySelectorAll('section');
+      const sections = document.querySelectorAll('.content section');
       const options = { root: null, rootMargin: '0px', threshold: 0.1 };
       const callback = (entries, observer) => {
         entries.forEach(entry => {
@@ -1229,14 +1168,14 @@
         observer.observe(section);
       });
     }
-
+    
     window.addEventListener('resize', () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       checkElementsInView();
     });
-
+    
     window.addEventListener('DOMContentLoaded', () => {
       checkElementsInView();
       init();
