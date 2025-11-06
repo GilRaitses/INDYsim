@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INDYsim: Stimulus-Driven Behavioral Modeling of Drosophila Larvae</title>
+  <title>Interface Dynamics Simulation: Drosophila Larvae Behavioral Modeling</title>
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Event-hazard modeling framework for Drosophila larval behavior using stimulus-locked temporal kernels and design of experiments.">
-  <meta name="keywords" content="INDYsim, Drosophila larvae, behavioral modeling, event-hazard, simulation, ECS630">
+  <meta name="description" content="INDYsim: Event-hazard modeling framework investigating behavior as the interface between perception and adaptation in Drosophila larvae.">
+  <meta name="keywords" content="INDYsim, Interface Dynamics, Drosophila larvae, behavioral modeling, event-hazard, simulation, ECS630">
   <meta name="author" content="Gil Raitses">
   
   <!-- Open Graph / Social Media Meta Tags -->
-  <meta property="og:title" content="INDYsim: Stimulus-Driven Behavioral Modeling">
-  <meta property="og:description" content="Event-hazard modeling framework for Drosophila larval behavior.">
+  <meta property="og:title" content="Interface Dynamics Simulation">
+  <meta property="og:description" content="Investigating behavior as the interface between perception and adaptation.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gilraitses.github.io/INDYsim/">
   
@@ -21,7 +21,6 @@
   <meta name="color-scheme" content="light">
   
   <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --cinnamoroll-light-blue: #B4D7EC;
@@ -32,31 +31,17 @@
       --cinnamoroll-dark-blue: #2C4A5F;
       --cinnamoroll-brown: #5F4A3F;
       --cinnamoroll-peach: #FFE5D9;
-      
-      --bg-color: var(--cinnamoroll-cream);
-      --text-color: var(--cinnamoroll-dark-blue);
-      --primary-color: var(--cinnamoroll-blue);
-      --secondary-color: var(--cinnamoroll-pink);
-      --content-bg: rgba(255, 249, 243, 0.9);
-      --header-footer-bg: rgba(44, 74, 95, 0.9);
-      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --transition-speed: 0.3s;
     }
 
-    /* Reduced motion support */
     @media (prefers-reduced-motion: reduce) {
       * {
         transition-duration: 0.001s !important;
         animation-duration: 0.001s !important;
       }
-      .content:hover, section:hover, .kpi-card:hover {
-        transform: none !important;
-      }
     }
 
     * {
       box-sizing: border-box;
-      transition: background-color var(--transition-speed), color var(--transition-speed);
     }
 
     html {
@@ -67,9 +52,10 @@
       font-family: 'Avenir Next', 'Roboto', Arial, sans-serif;
       margin: 0;
       padding: 0;
-      color: var(--text-color);
+      color: var(--cinnamoroll-dark-blue);
       overflow-x: hidden;
-      background-color: var(--bg-color);
+      background: linear-gradient(to bottom, #FFF9F3, #FFE5D9);
+      min-height: 100vh;
     }
 
     canvas {
@@ -77,25 +63,45 @@
       top: 0;
       left: 0;
       z-index: -1;
-    }
-
-    #larvae-background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -2;
       pointer-events: none;
     }
 
+    /* Floating clouds background */
+    .cloud {
+      position: fixed;
+      background: radial-gradient(ellipse at center, rgba(245, 212, 216, 0.8) 0%, rgba(245, 212, 216, 0.4) 50%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(20px);
+      animation: float 20s infinite ease-in-out;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      33% { transform: translateY(-30px) translateX(20px); }
+      66% { transform: translateY(-15px) translateX(-20px); }
+    }
+
+    /* Fluffy larvae cursor followers */
+    .fluffy-larva {
+      position: fixed;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      z-index: 9999;
+      transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                  top 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
     header {
-      background: var(--header-footer-bg);
+      background: linear-gradient(135deg, var(--cinnamoroll-dark-blue) 0%, var(--cinnamoroll-blue) 100%);
       color: var(--cinnamoroll-cream);
-      padding: 3rem 2rem;
+      padding: 4rem 2rem;
       text-align: center;
       position: relative;
       backdrop-filter: blur(10px);
+      border-bottom: 4px solid var(--cinnamoroll-pink);
     }
 
     h1 {
@@ -104,25 +110,8 @@
       font-weight: 300;
       letter-spacing: -0.02em;
       font-family: 'Didot', 'Georgia', serif;
-      position: relative;
-      display: inline-block;
       color: var(--cinnamoroll-cream);
-    }
-
-    h1::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 3px;
-      bottom: -5px;
-      left: 50%;
-      background-color: var(--cinnamoroll-light-blue);
-      transition: all 0.5s ease;
-    }
-
-    h1:hover::after {
-      width: 100%;
-      left: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
 
     .subtitle {
@@ -134,39 +123,107 @@
 
     .content {
       max-width: 1000px;
-      margin: 2rem auto;
+      margin: 3rem auto;
       padding: 2rem;
-      background: var(--content-bg);
-      border-radius: 12px;
-      box-shadow: var(--card-shadow);
-      backdrop-filter: blur(10px);
       position: relative;
-      transition: transform 0.3s ease;
     }
 
-    .content:hover {
-      transform: translateY(-5px);
+    /* Movie trailer text fade-in */
+    .abstract {
+      background: var(--cinnamoroll-light-blue);
+      border-radius: 12px;
+      padding: 3rem;
+      margin: 3rem auto;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border: 3px solid var(--cinnamoroll-blue);
+      max-width: 900px;
     }
 
-    .content section {
-      margin-bottom: 2.5rem;
+    .trailer-text {
+      font-size: 1.2rem;
+      line-height: 2;
+      color: var(--cinnamoroll-dark-blue);
+    }
+
+    .trailer-line {
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
+      transform: translateY(10px);
+      display: block;
+      margin: 0.5rem 0;
+      animation: fadeInLine 1s ease-out forwards;
     }
 
-    .content section.visible {
+    @keyframes fadeInLine {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Cloud sections that reveal on hover */
+    .cloud-section {
+      position: relative;
+      margin: 4rem auto;
+      min-height: 300px;
+      cursor: pointer;
+      transition: all 0.5s ease;
+    }
+
+    .cloud-shape {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at center, var(--cinnamoroll-pink) 0%, rgba(245, 212, 216, 0.6) 40%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(30px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cloud-label {
+      font-size: 2.5rem;
+      font-family: 'Didot', 'Georgia', serif;
+      color: var(--cinnamoroll-dark-blue);
+      font-weight: 300;
+      z-index: 1;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+    }
+
+    .section-content {
+      opacity: 0;
+      transform: scale(0.9);
+      background: rgba(255, 249, 243, 0.95);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      border: 2px solid var(--cinnamoroll-lavender);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cloud-section:hover .cloud-shape {
+      opacity: 0;
+      transform: scale(1.2);
+    }
+
+    .cloud-section:hover .section-content {
       opacity: 1;
-      transform: translateY(0);
+      transform: scale(1);
     }
 
-    section {
-      opacity: 0.95;
-      transition: opacity 0.3s ease;
+    .cloud-section.revealed .cloud-shape {
+      opacity: 0;
     }
 
-    section:hover {
+    .cloud-section.revealed .section-content {
       opacity: 1;
+      transform: scale(1);
     }
 
     h2 {
@@ -176,12 +233,7 @@
       font-size: 2.2rem;
       font-weight: 400;
       font-family: 'Didot', 'Georgia', serif;
-      margin-bottom: 1.5rem;
-      transition: transform 0.3s ease;
-    }
-
-    section:hover h2 {
-      transform: translateX(10px);
+      margin-top: 0;
     }
 
     h3 {
@@ -209,22 +261,6 @@
     .tech {
       color: var(--cinnamoroll-dark-blue);
       font-weight: 600;
-    }
-
-    .abstract {
-      background: var(--cinnamoroll-light-blue);
-      border-left: 4px solid var(--cinnamoroll-blue);
-      padding: 2rem;
-      margin: 3rem 0;
-      border-radius: 8px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .abstract p {
-      color: var(--cinnamoroll-dark-blue);
-      font-size: 1.1rem;
-      line-height: 1.8;
     }
 
     table {
@@ -263,15 +299,15 @@
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
       margin: 2rem 0;
     }
 
     .kpi-card {
       background: var(--cinnamoroll-cream);
       padding: 1.5rem;
-      border-radius: 8px;
+      border-radius: 12px;
       border: 2px solid var(--cinnamoroll-light-blue);
       transition: all 0.3s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -280,21 +316,30 @@
     .kpi-card:hover {
       transform: translateY(-5px);
       background: var(--cinnamoroll-lavender);
-      border-color: var(--cinnamoroll-blue);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      border-color: var(--cinnamoroll-pink);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .kpi-card h4 {
       color: var(--cinnamoroll-dark-blue);
-      margin-bottom: 0.5rem;
+      margin: 0 0 0.5rem 0;
       font-size: 1.1rem;
-      margin-top: 0;
     }
 
     .kpi-card p {
       color: var(--cinnamoroll-brown);
       font-size: 0.9rem;
       margin: 0;
+    }
+
+    .math-display {
+      text-align: center;
+      margin: 2rem 0;
+      padding: 1rem;
+      background: var(--cinnamoroll-peach);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      border: 1px solid var(--cinnamoroll-pink);
     }
 
     code {
@@ -306,47 +351,83 @@
       font-size: 0.9em;
     }
 
-    pre {
-      background: var(--cinnamoroll-light-blue);
-      padding: 1.5rem;
-      border-radius: 8px;
-      overflow-x: auto;
-      margin: 1.5rem 0;
-      border: 2px solid var(--cinnamoroll-blue);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    ul, ol {
+      padding-left: 2rem;
+      color: var(--cinnamoroll-brown);
     }
 
-    pre code {
-      background: none;
-      padding: 0;
+    li {
+      margin: 0.5rem 0;
+      line-height: 1.6;
     }
 
-    .keyboard-controls-hint {
+    a {
+      color: var(--cinnamoroll-blue);
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    a:hover {
+      color: var(--cinnamoroll-pink);
+    }
+
+    /* Download PDF button */
+    .pdf-download {
       position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--cinnamoroll-dark-blue);
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, var(--cinnamoroll-pink), var(--cinnamoroll-lavender));
+      color: var(--cinnamoroll-dark-blue);
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(245, 212, 216, 0.6);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      border: 2px solid var(--cinnamoroll-pink);
+    }
+
+    .pdf-download:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(245, 212, 216, 0.8);
+      background: linear-gradient(135deg, var(--cinnamoroll-lavender), var(--cinnamoroll-pink));
+    }
+
+    .pdf-download:before {
+      content: '📄 ';
+      font-size: 1.3rem;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--cinnamoroll-cream);
+      padding: 3rem 0;
+      background: linear-gradient(135deg, var(--cinnamoroll-dark-blue), var(--cinnamoroll-blue));
+      margin-top: 6rem;
+      border-top: 4px solid var(--cinnamoroll-pink);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(44, 74, 95, 0.8);
       color: var(--cinnamoroll-cream);
       padding: 8px 16px;
       border-radius: 8px;
       font-size: 0.8rem;
       z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 10px;
       opacity: 0.7;
-      transition: opacity 0.8s ease, transform 0.8s ease;
+      transition: opacity 0.3s;
+      border: 1px solid var(--cinnamoroll-pink);
     }
 
-    .keyboard-controls-hint:hover {
+    .keyboard-hint:hover {
       opacity: 1;
-    }
-
-    .keyboard-controls-hint.hidden {
-      opacity: 0;
-      transform: translateX(-50%) translateY(100px);
-      pointer-events: none;
     }
 
     .key {
@@ -359,80 +440,28 @@
       font-family: monospace;
     }
 
-    footer {
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--cinnamoroll-cream);
-      padding: 2rem 0;
-      background: var(--header-footer-bg);
-      backdrop-filter: blur(10px);
-      margin-top: 4rem;
-    }
-
-    a {
-      color: var(--cinnamoroll-blue);
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s;
-    }
-
-    a:hover {
-      color: var(--cinnamoroll-pink);
-      transform: translateY(-2px);
-    }
-
-    .math-display {
-      text-align: center;
-      margin: 2rem 0;
-      padding: 1rem;
-      background: var(--cinnamoroll-peach);
-      border-radius: 8px;
-      font-size: 1.1rem;
-      overflow-x: auto;
-      border: 1px solid var(--cinnamoroll-pink);
-    }
-
-    ul, ol {
-      padding-left: 2rem;
-      color: var(--cinnamoroll-brown);
-    }
-
-    li {
-      margin: 0.5rem 0;
-      line-height: 1.6;
-      position: relative;
-      padding-left: 0.5rem;
-      transition: transform 0.2s ease;
-    }
-
-    li:hover {
-      transform: translateX(5px);
-    }
-
-    li:before {
-      content: "▹";
-      position: absolute;
-      left: -1rem;
-      color: var(--cinnamoroll-blue);
-    }
-
     @media (max-width: 768px) {
-      body {
-        font-size: 14px;
-      }
-      
       h1 {
         font-size: 2.5rem;
       }
       
       .content {
-        margin: 1rem auto;
         padding: 1rem;
-        width: 95%;
       }
-      
-      .keyboard-controls-hint {
+
+      .cloud-section {
+        min-height: 250px;
+      }
+
+      .keyboard-hint {
         display: none;
+      }
+
+      .pdf-download {
+        bottom: 15px;
+        right: 15px;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
       }
 
       .kpi-grid {
@@ -443,19 +472,15 @@
 </head>
 
 <body>
-  <!-- Background canvas elements -->
+  <!-- Background canvas for Three.js -->
   <canvas id="bg"></canvas>
-  <div id="larvae-background"></div>
+  
+  <!-- Floating pink clouds -->
+  <div id="floating-clouds"></div>
 
-  <div class="keyboard-controls-hint">
-    <span>Rotate:</span>
-    <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
-    <span>|</span>
-    <span>Zoom:</span>
-    <span><span class="key">+</span><span class="key">-</span></span>
-    <span>|</span>
-    <span>Reset:</span>
-    <span><span class="key">R</span></span>
+  <!-- Keyboard hint -->
+  <div class="keyboard-hint">
+    Rotate: <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
   </div>
 
   <header>
@@ -467,161 +492,223 @@
   </header>
 
   <div class="content">
+    <!-- Movie trailer style abstract -->
     <div class="abstract">
-      <p>
-        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed, orientation, and wall proximity. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics.
-      </p>
+      <div class="trailer-text" id="trailer-text">
+        <!-- Text will be inserted line by line via JavaScript -->
+      </div>
     </div>
 
-    <section id="introduction">
-      <h2>Introduction</h2>
-      <h3>Interface Dynamics Framework</h3>
-      <p>
-        <span class="tech">Interface Dynamics Simulation (INDYsim)</span> investigates behavior as the <span class="tech">interface between perception and adaptation</span>, treating behavioral transitions as both signal and medium. This framework bridges <span class="tech">computational neuroscience</span> with <span class="tech">media theory</span>, modeling how <span class="tech">sensory representation</span> translates into <span class="tech">neural activity</span> and ultimately manifests as observable behavior. The behavioral interface reveals how organisms process time-varying stimuli through <span class="tech">hierarchical dynamics</span> spanning sensory transduction, neural integration, and motor output.
-      </p>
-      <h3>Project Overview</h3>
-      <p>
-        This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses existing trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events including turns, stops, and reversals conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>.
-      </p>
-      <p>
-        The project connects simulation modeling methods from <span class="tech">ECS630</span> with biological data analysis. <span class="tech">Discrete-event simulation principles</span> apply to <span class="tech">behavioral systems</span> where events occur stochastically as functions of external stimuli and internal state. Results use <span class="tech">Arena-style summary statistics</span> including <span class="tech">across-replications summaries</span>, <span class="tech">confidence intervals</span>, and <span class="tech">performance metrics</span>.
-      </p>
-    </section>
-
-    <section id="problem">
-      <h2>Problem Statement</h2>
-      <h3>Research Question</h3>
-      <p>
-        How can <span class="tech">larval behavioral responses</span> to <span class="tech">time-varying LED stimuli</span> be modeled using <span class="tech">event-hazard methods</span> to predict <span class="tech">turn initiation rates</span>, <span class="tech">behavioral state transitions</span>, and <span class="tech">trajectory-level statistics</span>?
-      </p>
-      <h3>Dataset Characteristics</h3>
-      <p>
-        The mechanosensation dataset contains trajectory data with individual larval tracks including position coordinates, speeds, orientations, and behavioral events. Stimulus data consists of LED intensity values synchronized to video frames with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities, and the dataset includes 40+ larvae per condition.
-      </p>
-      <h3>Modeling Challenge</h3>
-      <p>
-        Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history, pulse timing), contextual features (speed, orientation, wall distance), and individual heterogeneity. Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
-      </p>
-    </section>
-
-    <section id="methodology">
-      <h2>Proposed Methodology</h2>
-      <h3>Core Model: Stimulus-Locked Event-Hazard GLM</h3>
-      <p>
-        For each behavioral event type <em>E</em> ∈ {turn, stop, reverse}, define the time-varying hazard rate:
-      </p>
-      <div class="math-display">
-        λ<sub>E</sub>(t) = exp{β<sub>0,E</sub> + φ<sub>E</sub><sup>T</sup>[s ⋆ κ](t) + x(t)<sup>T</sup>β<sub>E</sub>}
+    <!-- Cloud sections -->
+    <div class="cloud-section" data-section="introduction">
+      <div class="cloud-shape">
+        <div class="cloud-label">Introduction</div>
       </div>
-      <p>
-        where β<sub>0,E</sub> represents the baseline log-hazard, <em>s</em>(t) is the stimulus feature vector, κ is the temporal kernel, [s ⋆ κ](t) is the convolution of stimulus with kernel, x(t) represents contextual features, and β<sub>E</sub> are the feature coefficients.
-      </p>
-      <h3>Temporal Kernel Design</h3>
-      <p>
-        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any). Using raised cosine basis functions with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
-      </p>
-    </section>
-
-    <section id="doe">
-      <h2>Design of Experiments</h2>
-      <h3>Factors and Levels</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Factor</th>
-            <th>Levels</th>
-            <th>Description</th>
-            <th>Units</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Stimulus Intensity</td>
-            <td>3 (PWM 250, 500, 1000)</td>
-            <td>Threshold, moderate, and high stimulus levels</td>
-            <td>PWM percentage</td>
-          </tr>
-          <tr>
-            <td>Pulse Duration</td>
-            <td>5 (10s, 15s, 20s, 25s, 30s)</td>
-            <td>Short to extended stimulus presentations</td>
-            <td>Seconds</td>
-          </tr>
-          <tr>
-            <td>Inter-Pulse Interval</td>
-            <td>3 (5s, 10s, 20s)</td>
-            <td>Rapid, moderate, and spaced stimulus timing</td>
-            <td>Seconds</td>
-          </tr>
-        </tbody>
-      </table>
-      <h3>Response Variables (KPIs)</h3>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <h4>Turn Rate</h4>
-          <p>Reorientations per minute</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Latency to First Turn</h4>
-          <p>Time from stimulus onset to first turn (seconds)</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Stop Fraction</h4>
-          <p>Proportion of time spent stopped</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Pause Rate</h4>
-          <p>Pauses per minute</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Path Tortuosity</h4>
-          <p>Net displacement / path length</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Spatial Dispersal</h4>
-          <p>Mean distance from starting position (pixels)</p>
-        </div>
-        <div class="kpi-card">
-          <h4>Mean Spine Curve Energy</h4>
-          <p>Average curvature energy along body axis</p>
-        </div>
+      <div class="section-content">
+        <h2>Introduction</h2>
+        <h3>Interface Dynamics Framework</h3>
+        <p>
+          <span class="tech">Interface Dynamics Simulation (INDYsim)</span> investigates behavior as the <span class="tech">interface between perception and adaptation</span>, treating behavioral transitions as both signal and medium. This framework bridges <span class="tech">computational neuroscience</span> with <span class="tech">media theory</span>, modeling how <span class="tech">sensory representation</span> translates into <span class="tech">neural activity</span> and ultimately manifests as observable behavior.
+        </p>
+        <h3>Project Overview</h3>
+        <p>
+          This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>.
+        </p>
       </div>
-      <h3>Experimental Design</h3>
-      <p>
-        <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
-      </p>
-    </section>
+    </div>
 
-    <section id="timeline">
-      <h2>Timeline and Milestones</h2>
-      <h3>Week 1: November 6-13</h3>
-      <p>
-        Data preparation, feature extraction, hazard model fitting, validation checks. Loads and inspects trajectory and stimulus data, implements the feature extraction pipeline, computes empirical KPIs, implements temporal kernel basis functions, builds the GLM fitting pipeline, fits stimulus-locked hazard models for turns, stops, and reversals, performs cross-validation and validates models using KS tests.
-      </p>
-      <h3>Week 2: November 13-20</h3>
-      <p>
-        Simulation engine execution, DOE analysis, results synthesis, proposal/report updates. Implements the trajectory simulator, tests on simple stimulus schedules, validates simulated KPIs, runs the full factorial design, generates AcrossReplicationsSummary CSVs, computes confidence intervals, analyzes main effects and interactions, writes the Quarto report, generates figures and tables, performs final model validation.
-      </p>
-    </section>
+    <div class="cloud-section" data-section="problem">
+      <div class="cloud-shape">
+        <div class="cloud-label">Problem Statement</div>
+      </div>
+      <div class="section-content">
+        <h2>Problem Statement</h2>
+        <h3>Research Question</h3>
+        <p>
+          How can <span class="tech">larval behavioral responses</span> to <span class="tech">time-varying LED stimuli</span> be modeled using <span class="tech">event-hazard methods</span> to predict <span class="tech">turn initiation rates</span>, <span class="tech">behavioral state transitions</span>, and <span class="tech">trajectory-level statistics</span>?
+        </p>
+        <h3>Modeling Challenge</h3>
+        <p>
+          Behavioral events occur stochastically with rates that depend on stimulus features (intensity, temporal history, pulse timing), contextual features (speed, orientation, wall distance), and individual heterogeneity. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
+        </p>
+      </div>
+    </div>
 
-    <section id="conclusion">
-      <h2>Conclusion</h2>
-      <p>
-        This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, which show how simulation principles extend from manufacturing systems to biological processes.
-      </p>
-    </section>
+    <div class="cloud-section" data-section="methodology">
+      <div class="cloud-shape">
+        <div class="cloud-label">Methodology</div>
+      </div>
+      <div class="section-content">
+        <h2>Proposed Methodology</h2>
+        <h3>Core Model: Stimulus-Locked Event-Hazard GLM</h3>
+        <p>
+          For each behavioral event type <em>E</em> ∈ {turn, stop, reverse}, define the time-varying hazard rate:
+        </p>
+        <div class="math-display">
+          λ<sub>E</sub>(t) = exp{β<sub>0,E</sub> + φ<sub>E</sub><sup>T</sup>[s ⋆ κ](t) + x(t)<sup>T</sup>β<sub>E</sub>}
+        </div>
+        <h3>Temporal Kernel Design</h3>
+        <p>
+          The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays), and anticipation. Using raised cosine basis functions with knots spanning [-2, 20] seconds relative to stimulus onset.
+        </p>
+      </div>
+    </div>
+
+    <div class="cloud-section" data-section="doe">
+      <div class="cloud-shape">
+        <div class="cloud-label">Design of Experiments</div>
+      </div>
+      <div class="section-content">
+        <h2>Design of Experiments</h2>
+        <h3>Factors and Levels</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Factor</th>
+              <th>Levels</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Stimulus Intensity</td>
+              <td>3 (PWM 250, 500, 1000)</td>
+              <td>Threshold, moderate, and high stimulus levels</td>
+            </tr>
+            <tr>
+              <td>Pulse Duration</td>
+              <td>5 (10s, 15s, 20s, 25s, 30s)</td>
+              <td>Short to extended stimulus presentations</td>
+            </tr>
+            <tr>
+              <td>Inter-Pulse Interval</td>
+              <td>3 (5s, 10s, 20s)</td>
+              <td>Rapid, moderate, and spaced stimulus timing</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3>Key Performance Indicators</h3>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <h4>Turn Rate</h4>
+            <p>Reorientations/min</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Latency</h4>
+            <p>First turn timing (s)</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Stop Fraction</h4>
+            <p>Proportion stopped</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Pause Rate</h4>
+            <p>Pauses/min</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Tortuosity</h4>
+            <p>Net/path length</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Dispersal</h4>
+            <p>Mean distance (px)</p>
+          </div>
+          <div class="kpi-card">
+            <h4>Spine Energy</h4>
+            <p>Curvature energy</p>
+          </div>
+        </div>
+        <p>
+          <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions with 30 replications each, generating <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
+        </p>
+      </div>
+    </div>
+
+    <div class="cloud-section" data-section="timeline">
+      <div class="cloud-shape">
+        <div class="cloud-label">Timeline</div>
+      </div>
+      <div class="section-content">
+        <h2>Timeline and Milestones</h2>
+        <h3>Week 1: November 6-13</h3>
+        <p>
+          Data preparation, feature extraction, hazard model fitting, validation checks. Implements temporal kernel basis functions, builds GLM fitting pipeline, fits stimulus-locked hazard models, performs cross-validation and validates using KS tests.
+        </p>
+        <h3>Week 2: November 13-20</h3>
+        <p>
+          Simulation engine execution, DOE analysis, results synthesis. Implements trajectory simulator, runs full factorial design, generates AcrossReplicationsSummary CSVs, computes confidence intervals, analyzes main effects and interactions.
+        </p>
+      </div>
+    </div>
+
+    <div class="cloud-section" data-section="conclusion">
+      <div class="cloud-shape">
+        <div class="cloud-label">Conclusion</div>
+      </div>
+      <div class="section-content">
+        <h2>Conclusion</h2>
+        <p>
+          This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, showing how simulation principles extend from manufacturing systems to biological processes.
+        </p>
+      </div>
+    </div>
   </div>
+
+  <!-- PDF Download Button -->
+  <a href="TermProject_Proposal.pdf" class="pdf-download" download>Download PDF</a>
 
   <footer>
     &copy; 2025 Gil Raitses | ECS630 Term Project
   </footer>
 
   <script>
-    // Global variable to control animations
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let neuralNetwork, larvae;
-    
-    // Three.js initialization
+    // Abstract text for movie trailer effect
+    const abstractText = [
+      "Behavioral responses to time-varying stimuli in Drosophila larvae",
+      "show temporal dynamics with latency-dependent and intensity-dependent patterns.",
+      "This project develops a stimulus-locked event-hazard model",
+      "for turn initiation and run-stop transitions",
+      "using generalized linear models with temporal kernel bases",
+      "that capture stimulus-response relationships.",
+      "The model estimates time-varying hazard rates for behavioral events",
+      "conditioned on stimulus intensity, temporal history, and contextual features.",
+      "Using a design of experiments framework,",
+      "the analysis generates simulated trajectories",
+      "that produce key performance indicators",
+      "with confidence intervals comparable to Arena simulation replications."
+    ];
+
+    // Animate abstract text line by line
+    function animateAbstract() {
+      const container = document.getElementById('trailer-text');
+      abstractText.forEach((line, index) => {
+        const span = document.createElement('span');
+        span.className = 'trailer-line';
+        span.textContent = line;
+        span.style.animationDelay = `${index * 0.8}s`;
+        container.appendChild(span);
+      });
+    }
+
+    // Create floating pink clouds
+    function createFloatingClouds() {
+      const container = document.getElementById('floating-clouds');
+      const cloudCount = 8;
+      
+      for (let i = 0; i < cloudCount; i++) {
+        const cloud = document.createElement('div');
+        cloud.className = 'cloud';
+        cloud.style.width = `${200 + Math.random() * 300}px`;
+        cloud.style.height = `${150 + Math.random() * 200}px`;
+        cloud.style.top = `${Math.random() * 100}%`;
+        cloud.style.left = `${Math.random() * 100}%`;
+        cloud.style.animationDelay = `${Math.random() * 5}s`;
+        cloud.style.animationDuration = `${15 + Math.random() * 10}s`;
+        container.appendChild(cloud);
+      }
+    }
+
+    // Three.js setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ 
@@ -630,200 +717,119 @@
       alpha: true 
     });
     
-    // Initialize renderer
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     
-    // Create separate rendering groups for background and foreground
     const backgroundGroup = new THREE.Group();
     const foregroundGroup = new THREE.Group();
     scene.add(backgroundGroup);
     scene.add(foregroundGroup);
     
-    let isDragging = false;
-    
-    // Set initial camera position
     camera.position.setZ(30);
+    scene.fog = new THREE.FogExp2(0xFFF9F3, 0.003);
     
-    // Add Cinnamoroll-colored fog
-    scene.fog = new THREE.FogExp2(0xFFF9F3, 0.005);
-    
-    // Initialize Drosophila larvae simulation
-    function initDrosophilaBackground() {
+    // Create fluffy larvae (larger, softer, more visible)
+    function createFluffyLarvae() {
       const radius = 50;
       const trajectoriesGroup = new THREE.Group();
       backgroundGroup.add(trajectoriesGroup);
       
-      const isMobile = window.innerWidth < 768;
-      const larvaeCount = isMobile ? 70 : 100;
+      const larvaeCount = 50; // Fewer but more visible
       const larvae = [];
       
       for (let i = 0; i < larvaeCount; i++) {
-        const larvaLength = 0.8 + Math.random() * 0.4;
-        const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(0, 0, 0),
-          new THREE.Vector3(larvaLength * 0.3, 0, 0),
-          new THREE.Vector3(larvaLength * 0.6, 0, 0),
-          new THREE.Vector3(larvaLength, 0, 0)
-        ]);
+        const larvaLength = 1.2 + Math.random() * 0.6;
         
-        const points = curve.getPoints(20);
-        const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        // Create fluffy segments
+        const segments = [];
+        for (let j = 0; j < 5; j++) {
+          const segmentGeometry = new THREE.SphereGeometry(0.15 + j * 0.02, 8, 8);
+          const segmentMaterial = new THREE.MeshStandardMaterial({
+            color: 0xF5D4D8, // Cinnamoroll pink for fluffy larvae
+            emissive: 0xFFE5D9,
+            emissiveIntensity: 0.5,
+            roughness: 0.8,
+            metalness: 0.1
+          });
+          const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
+          segment.position.x = (j / 4) * larvaLength;
+          segments.push(segment);
+        }
         
-        // Cinnamoroll brown larvae
-        const larvaMaterial = new THREE.LineBasicMaterial({
-          color: 0x5F4A3F,
-          linewidth: 3,
-          opacity: 0.85,
-          transparent: true
-        });
+        const larvaGroup = new THREE.Group();
+        segments.forEach(seg => larvaGroup.add(seg));
         
-        const larva = new THREE.Line(larvaGeometry, larvaMaterial);
-        
-        // Cinnamoroll peach glow
-        const glowLight = new THREE.PointLight(0xFFE5D9, 0.5, 1);
+        // Add glow
+        const glowLight = new THREE.PointLight(0xF5D4D8, 1, 3);
         glowLight.position.set(larvaLength/2, 0, 0);
-        larva.add(glowLight);
+        larvaGroup.add(glowLight);
         
         const phi = Math.acos(2 * Math.random() - 1);
         const theta = Math.random() * Math.PI * 2;
         
-        larva.position.x = radius * Math.sin(phi) * Math.cos(theta);
-        larva.position.y = radius * Math.sin(phi) * Math.sin(theta);
-        larva.position.z = radius * Math.cos(phi);
+        larvaGroup.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        larvaGroup.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        larvaGroup.position.z = radius * Math.cos(phi);
         
-        larva.lookAt(0, 0, 0);
+        larvaGroup.lookAt(0, 0, 0);
         const randomRotation = Math.random() * Math.PI * 2;
-        larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
+        larvaGroup.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
         
-        larva.userData = {
-          velocity: 0.02 + Math.random() * 0.03,
+        larvaGroup.userData = {
+          velocity: 0.01 + Math.random() * 0.02,
           direction: randomRotation,
-          lastTurn: 0,
-          turnInterval: 20 + Math.random() * 40,
           wigglePhase: Math.random() * Math.PI * 2,
-          wiggleFrequency: 0.2 + Math.random() * 0.3,
-          wiggleAmount: 0.05 + Math.random() * 0.1,
-          size: 0.3 + Math.random() * 0.2,
-          trajectoryPoints: [],
-          trajectoryColor: new THREE.Color(
-            (0xB4 + Math.random() * 0x23) / 255,
-            (0xD7 + Math.random() * 0x28) / 255,
-            (0xEC + Math.random() * 0x13) / 255
-          ),
-          lastTrajectoryUpdate: 0,
-          trajectoryUpdateInterval: 3,
-          isHeadcasting: false,
-          headcastTimer: 0,
-          headcastInterval: 100 + Math.random() * 200,
-          headcastDuration: 0,
-          headcastMaxDuration: 0,
+          wiggleFrequency: 0.1 + Math.random() * 0.2,
+          wiggleAmount: 0.08,
+          size: 0.8 + Math.random() * 0.4,
+          segments: segments,
           originalRadius: radius,
           phi: phi,
           theta: theta
         };
         
-        larva.scale.set(larva.userData.size, larva.userData.size, larva.userData.size);
-        backgroundGroup.add(larva);
-        larvae.push(larva);
+        larvaGroup.scale.set(larvaGroup.userData.size, larvaGroup.userData.size, larvaGroup.userData.size);
+        backgroundGroup.add(larvaGroup);
+        larvae.push(larvaGroup);
       }
       
       return larvae;
     }
     
-    // Update larvae positions
-    function updateLarvae(larvae) {
-      if (!Array.isArray(larvae) || larvae.length === 0) return;
-      const trajectoriesGroup = backgroundGroup.children.find(child => child.isGroup);
-      if (!trajectoriesGroup) return;
+    // Update fluffy larvae
+    function updateFluffyLarvae(larvae) {
+      if (!Array.isArray(larvae)) return;
       
       larvae.forEach(larva => {
         const ud = larva.userData;
         if (!ud) return;
         
-        if (ud.headcastTimer) ud.headcastTimer++;
-        if (!ud.isHeadcasting && ud.headcastTimer > ud.headcastInterval) {
-          ud.isHeadcasting = true;
-          ud.headcastTimer = 0;
-          ud.headcastDuration = 0;
-          ud.headcastMaxDuration = 20 + Math.floor(Math.random() * 30);
-          ud.originalVelocity = ud.velocity;
-          ud.velocity = 0;
-        }
+        ud.wigglePhase += ud.wiggleFrequency;
+        if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.05;
         
-        if (ud.isHeadcasting) {
-          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.5;
-          ud.headcastDuration++;
-          if (ud.headcastDuration > ud.headcastMaxDuration) {
-            ud.isHeadcasting = false;
-            ud.headcastTimer = 0;
-            ud.velocity = ud.originalVelocity;
-            if (ud.direction) ud.direction += (Math.random() * 2 - 1) * Math.PI * 0.7;
-          }
-        } else if (ud.wigglePhase !== undefined) {
-          ud.wigglePhase += ud.wiggleFrequency || 0.2;
-          if (ud.lastTurn !== undefined) {
-            ud.lastTurn += 1;
-            if (ud.turnInterval && ud.lastTurn > ud.turnInterval) {
-              ud.direction += (Math.random() - 0.5) * Math.PI;
-              ud.lastTurn = 0;
-              ud.turnInterval = 20 + Math.random() * 40;
-            }
-          }
-          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.1;
-          const wiggleDirection = ud.direction + (ud.wiggleAmount ? Math.sin(ud.wigglePhase) * ud.wiggleAmount : 0);
+        const wiggleDirection = ud.direction + Math.sin(ud.wigglePhase) * ud.wiggleAmount;
+        
+        if (ud.velocity && ud.phi !== undefined && ud.theta !== undefined) {
+          ud.phi += Math.sin(wiggleDirection) * ud.velocity * 0.008;
+          ud.theta += Math.cos(wiggleDirection) * ud.velocity * 0.008;
+          ud.phi = Math.max(0.1, Math.min(Math.PI - 0.1, ud.phi));
           
-          if (ud.velocity && wiggleDirection !== undefined && ud.phi !== undefined && ud.theta !== undefined) {
-            ud.phi += Math.sin(wiggleDirection) * ud.velocity * 0.01;
-            ud.theta += Math.cos(wiggleDirection) * ud.velocity * 0.01;
-            ud.phi = Math.max(0.1, Math.min(Math.PI - 0.1, ud.phi));
-            
-            larva.position.x = ud.originalRadius * Math.sin(ud.phi) * Math.cos(ud.theta);
-            larva.position.y = ud.originalRadius * Math.sin(ud.phi) * Math.sin(ud.theta);
-            larva.position.z = ud.originalRadius * Math.cos(ud.phi);
-            
-            const normal = larva.position.clone().normalize();
-            const tangent = new THREE.Vector3(1, 0, 0).cross(normal).normalize();
-            const rotationAxis = tangent.cross(normal).normalize();
-            const rotationMatrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, wiggleDirection);
-            larva.quaternion.setFromRotationMatrix(rotationMatrix);
-          }
+          larva.position.x = ud.originalRadius * Math.sin(ud.phi) * Math.cos(ud.theta);
+          larva.position.y = ud.originalRadius * Math.sin(ud.phi) * Math.sin(ud.theta);
+          larva.position.z = ud.originalRadius * Math.cos(ud.phi);
+          
+          larva.lookAt(0, 0, 0);
+          larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), wiggleDirection);
         }
         
-        if (ud.lastTrajectoryUpdate !== undefined && ud.trajectoryUpdateInterval) {
-          ud.lastTrajectoryUpdate++;
-          if (ud.lastTrajectoryUpdate >= ud.trajectoryUpdateInterval) {
-            ud.lastTrajectoryUpdate = 0;
-            if (ud.trajectoryPoints) {
-              ud.trajectoryPoints.push(larva.position.clone());
-              if (ud.trajectoryPoints.length > 30) {
-                ud.trajectoryPoints.shift();
-              }
-              if (ud.trajectoryLine) {
-                ud.trajectoryLine.geometry.dispose();
-                ud.trajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
-              } else if (ud.trajectoryPoints.length > 1 && ud.trajectoryColor) {
-                const material = new THREE.LineBasicMaterial({
-                  color: ud.trajectoryColor,
-                  transparent: true,
-                  opacity: 0.8,
-                  linewidth: 2
-                });
-                const geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
-                const line = new THREE.Line(geometry, material);
-                const trailGlow = new THREE.PointLight(ud.trajectoryColor, 0.3, 2);
-                trailGlow.position.copy(larva.position);
-                line.add(trailGlow);
-                ud.trajectoryLine = line;
-                ud.trailGlow = trailGlow;
-                if (trajectoriesGroup) trajectoriesGroup.add(line);
-              }
-              if (ud.trailGlow) {
-                ud.trailGlow.position.copy(larva.position);
-              }
-            }
-          }
+        // Animate segments
+        if (ud.segments) {
+          ud.segments.forEach((seg, idx) => {
+            const wiggle = Math.sin(ud.wigglePhase + idx * 0.5) * 0.1;
+            seg.position.y = wiggle;
+            seg.scale.set(1 + wiggle * 0.2, 1 + wiggle * 0.2, 1);
+          });
         }
       });
     }
@@ -831,30 +837,27 @@
     // Create neural network with Cinnamoroll colors
     function createNeuralNetwork() {
       const group = new THREE.Group();
-      
-      // Cinnamoroll blue nodes
       const nodeMaterial = new THREE.MeshStandardMaterial({
         color: 0x8AB4D3,
         emissive: 0xB4D7EC,
-        emissiveIntensity: 0.8,
-        metalness: 0.9,
-        roughness: 0.1
+        emissiveIntensity: 0.6,
+        metalness: 0.8,
+        roughness: 0.2
       });
       
-      const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+      const nodeGeometry = new THREE.SphereGeometry(0.2, 12, 12);
       const nodes = [];
       const connectionMaterial = new THREE.LineBasicMaterial({
         color: 0x8AB4D3,
         transparent: true,
-        opacity: 0.5
+        opacity: 0.3
       });
       
-      const isMobile = window.innerWidth < 768;
-      const nodeCount = isMobile ? 40 : 60;
+      const nodeCount = 40;
       
       for (let i = 0; i < nodeCount; i++) {
         const node = new THREE.Mesh(nodeGeometry, nodeMaterial.clone());
-        const radius = isMobile ? 12 : 15;
+        const radius = 12;
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         
@@ -864,144 +867,60 @@
         
         node.userData = {
           velocity: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.03,
-            (Math.random() - 0.5) * 0.03,
-            (Math.random() - 0.5) * 0.03
+            (Math.random() - 0.5) * 0.02,
+            (Math.random() - 0.5) * 0.02,
+            (Math.random() - 0.5) * 0.02
           ),
-          isAnchor: false,
-          active: false,
-          flashTimer: Math.random() * 100,
-          flashInterval: 30 + Math.random() * 100,
-          flashDuration: 20 + Math.random() * 20,
-          flashIntensity: 1.5 + Math.random() * 1.0,
           pulsePhase: Math.random() * Math.PI * 2
         };
         
-        const nodeLight = new THREE.PointLight(0x8AB4D3, 0.5, 3);
-        nodeLight.position.set(0, 0, 0);
+        const nodeLight = new THREE.PointLight(0xE8D7F1, 0.4, 2);
         node.add(nodeLight);
-        node.userData.light = nodeLight;
         
         nodes.push(node);
         group.add(node);
       }
       
+      // Connections
       const connections = [];
       for (let i = 0; i < nodes.length; i++) {
-        for (let j = 0; j < 5; j++) {
+        for (let j = 0; j < 3; j++) {
           const targetIndex = (i + j + 1) % nodes.length;
           const geometry = new THREE.BufferGeometry().setFromPoints([
             nodes[i].position,
             nodes[targetIndex].position
           ]);
           const line = new THREE.Line(geometry, connectionMaterial.clone());
-          line.userData = {
-            pointA: i,
-            pointB: targetIndex,
-            flashActive: false,
-            flashTimer: Math.random() * 100,
-            pulsePhase: Math.random() * Math.PI * 2
-          };
           connections.push(line);
           group.add(line);
         }
       }
       
-      const ambientLight = new THREE.AmbientLight(0xB4D7EC, 0.6);
+      const ambientLight = new THREE.AmbientLight(0xFFE5D9, 0.8);
       group.add(ambientLight);
-      const light = new THREE.PointLight(0xFFF9F3, 1, 100);
-      light.position.set(0, 0, 20);
-      group.add(light);
       
       group.userData = {
         nodes: nodes,
         connections: connections,
-        update: function(time) {
-          for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
+        update: function() {
+          nodes.forEach(node => {
             node.position.add(node.userData.velocity);
-            const distance = node.position.length();
-            if (distance > 18) {
+            if (node.position.length() > 15) {
               node.userData.velocity.multiplyScalar(-1);
             }
-            node.userData.pulsePhase += 0.05;
-            const pulseScale = 1.0 + 0.1 * Math.sin(node.userData.pulsePhase);
-            node.scale.set(pulseScale, pulseScale, pulseScale);
-            
-            node.userData.flashTimer++;
-            if (!node.userData.active && node.userData.flashTimer > node.userData.flashInterval) {
-              node.userData.active = true;
-              node.userData.flashTimer = 0;
-              const intensity = node.userData.flashIntensity || 1.5;
-              node.material.emissiveIntensity = intensity;
-              node.scale.set(1.5, 1.5, 1.5);
-              
-              // Cinnamoroll colors for flashing
-              const colors = [0xB4D7EC, 0xE8D7F1, 0xF5D4D8, 0xFFE5D9];
-              const randomColor = colors[Math.floor(Math.random() * colors.length)];
-              const color = new THREE.Color(randomColor);
-              node.material.emissive.set(color);
-              node.material.color.set(color);
-              if (node.userData.light) {
-                node.userData.light.color.set(color);
-                node.userData.light.intensity = 1.5;
-                node.userData.light.distance = 5;
-              }
-              for (let j = 0; j < connections.length; j++) {
-                const connection = connections[j];
-                if (connection.userData.pointA === i || connection.userData.pointB === i) {
-                  connection.userData.flashActive = true;
-                  connection.userData.flashTimer = 0;
-                  connection.userData.flashDuration = node.userData.flashDuration;
-                  connection.material.color.copy(color);
-                  connection.material.opacity = 0.9;
-                }
-              }
-            } else if (node.userData.active) {
-              if (node.userData.flashTimer > node.userData.flashDuration) {
-                node.userData.active = false;
-                node.userData.flashTimer = 0;
-                node.material.emissiveIntensity = 0.8;
-                node.material.emissive.set(0xB4D7EC);
-                node.material.color.set(0x8AB4D3);
-                if (node.userData.light) {
-                  node.userData.light.color.set(0x8AB4D3);
-                  node.userData.light.intensity = 0.5;
-                  node.userData.light.distance = 3;
-                }
-              } else {
-                const flashProgress = node.userData.flashTimer / node.userData.flashDuration;
-                const pulseIntensity = 1.5 * (1 - flashProgress) + 0.8 * flashProgress;
-                node.material.emissiveIntensity = pulseIntensity;
-                if (node.userData.light) {
-                  node.userData.light.intensity = pulseIntensity;
-                }
-              }
-            }
-          }
+            node.userData.pulsePhase += 0.03;
+            const pulse = 1.0 + 0.15 * Math.sin(node.userData.pulsePhase);
+            node.scale.set(pulse, pulse, pulse);
+          });
           
-          for (let i = 0; i < connections.length; i++) {
-            const line = connections[i];
-            const nodeA = nodes[line.userData.pointA];
-            const nodeB = nodes[line.userData.pointB];
-            const pointA = nodeA.position;
-            const pointB = nodeB.position;
-            line.geometry.dispose();
-            line.geometry = new THREE.BufferGeometry().setFromPoints([pointA, pointB]);
-            line.userData.pulsePhase += 0.03;
-            if (line.userData.flashActive) {
-              line.userData.flashTimer++;
-              if (line.userData.flashTimer > (line.userData.flashDuration || 20)) {
-                line.userData.flashActive = false;
-                line.material.color.set(0x8AB4D3);
-                line.material.opacity = 0.5;
-              } else {
-                const progress = line.userData.flashTimer / (line.userData.flashDuration || 20);
-                const pulse = 0.5 + 0.5 * Math.sin(line.userData.pulsePhase);
-                line.material.opacity = 0.5 + 0.4 * (1 - progress) * pulse;
-              }
+          connections.forEach((line, i) => {
+            const nodeA = nodes[line.userData?.pointA || i];
+            const nodeB = nodes[line.userData?.pointB || (i + 1) % nodes.length];
+            if (nodeA && nodeB) {
+              line.geometry.dispose();
+              line.geometry = new THREE.BufferGeometry().setFromPoints([nodeA.position, nodeB.position]);
             }
-          }
+          });
         }
       };
       
@@ -1009,52 +928,32 @@
     }
     
     // Keyboard controls
-    const keyState = {
-      w: false, a: false, s: false, d: false,
-      arrowup: false, arrowleft: false, arrowdown: false, arrowright: false,
-      plus: false, minus: false
-    };
-    
-    // Camera parameters
+    const keyState = {w: false, a: false, s: false, d: false};
+    let targetRotationX = 0, targetRotationY = 0;
+    let currentRotationX = 0, currentRotationY = 0;
     let cameraDistance = 30;
-    const minDistance = 15;
-    const maxDistance = 50;
-    let targetRotationX = 0;
-    let targetRotationY = 0;
-    let currentRotationX = 0;
-    let currentRotationY = 0;
     
-    document.addEventListener('keydown', (event) => {
-      const key = event.key.toLowerCase();
-      if (key in keyState) {
-        keyState[key] = true;
-        event.preventDefault();
-      }
-      if (key === 'r') resetView();
-      if (key === '=' || key === '+') keyState.plus = true;
-      if (key === '-' || key === '_') keyState.minus = true;
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (key in keyState) keyState[key] = true;
+      if (key === 'r') { targetRotationX = 0; targetRotationY = 0; }
     });
     
-    document.addEventListener('keyup', (event) => {
-      const key = event.key.toLowerCase();
-      if (key in keyState) {
-        keyState[key] = false;
-        event.preventDefault();
-      }
-      if (key === '=' || key === '+') keyState.plus = false;
-      if (key === '-' || key === '_') keyState.minus = false;
+    document.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      if (key in keyState) keyState[key] = false;
     });
     
-    function resetView() {
-      cameraDistance = 30;
-      targetRotationX = 0;
-      targetRotationY = 0;
-      currentRotationX = 0;
-      currentRotationY = 0;
-      updateCameraPosition();
-    }
-    
-    function updateCameraPosition() {
+    function processKeyboardControls() {
+      const speed = 0.03;
+      if (keyState.w) targetRotationX -= speed;
+      if (keyState.s) targetRotationX += speed;
+      if (keyState.a) targetRotationY -= speed;
+      if (keyState.d) targetRotationY += speed;
+      
+      currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+      currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+      
       const phi = currentRotationX + Math.PI/2;
       const theta = currentRotationY;
       camera.position.x = cameraDistance * Math.sin(phi) * Math.cos(theta);
@@ -1063,128 +962,76 @@
       camera.lookAt(0, 0, 0);
     }
     
-    function processKeyboardControls() {
-      const rotationSpeed = 0.03;
-      const zoomSpeed = 0.5;
-      
-      if (keyState.w) targetRotationX -= rotationSpeed;
-      if (keyState.s) targetRotationX += rotationSpeed;
-      if (keyState.a) targetRotationY -= rotationSpeed;
-      if (keyState.d) targetRotationY += rotationSpeed;
-      if (keyState.arrowup) targetRotationX -= rotationSpeed;
-      if (keyState.arrowdown) targetRotationX += rotationSpeed;
-      if (keyState.arrowleft) targetRotationY -= rotationSpeed;
-      if (keyState.arrowright) targetRotationY += rotationSpeed;
-      if (keyState.plus) cameraDistance = Math.max(minDistance, cameraDistance - zoomSpeed);
-      if (keyState.minus) cameraDistance = Math.min(maxDistance, cameraDistance + zoomSpeed);
-      
-      currentRotationX += (targetRotationX - currentRotationX) * 0.05;
-      currentRotationY += (targetRotationY - currentRotationY) * 0.05;
-      updateCameraPosition();
-    }
-    
-    // Touch controls for mobile
-    function setupTouchControls() {
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let isTouching = false;
-      
-      document.addEventListener('touchstart', (event) => {
-        if (event.touches.length === 1) {
-          touchStartX = event.touches[0].clientX;
-          touchStartY = event.touches[0].clientY;
-          isTouching = true;
-        }
-      }, { passive: true });
-      
-      document.addEventListener('touchmove', (event) => {
-        if (isTouching && event.touches.length === 1) {
-          const touchX = event.touches[0].clientX;
-          const touchY = event.touches[0].clientY;
-          const deltaX = touchX - touchStartX;
-          const deltaY = touchY - touchStartY;
-          targetRotationY -= deltaX * 0.005;
-          targetRotationX -= deltaY * 0.005;
-          touchStartX = touchX;
-          touchStartY = touchY;
-        }
-      }, { passive: true });
-      
-      document.addEventListener('touchend', () => {
-        isTouching = false;
-      }, { passive: true });
-    }
-    
     // Animation loop
+    let neuralNetwork, fluffyLarvae;
+    
     function animate() {
       requestAnimationFrame(animate);
       processKeyboardControls();
-      if (typeof updateLarvae === 'function' && larvae) {
-        updateLarvae(larvae);
-      }
-      if (neuralNetwork && neuralNetwork.userData && neuralNetwork.userData.update) {
-        neuralNetwork.userData.update(performance.now() * 0.001);
-      }
+      
+      if (fluffyLarvae) updateFluffyLarvae(fluffyLarvae);
+      if (neuralNetwork?.userData?.update) neuralNetwork.userData.update();
+      
       if (backgroundGroup) {
-        backgroundGroup.rotation.y += 0.0005;
-        backgroundGroup.rotation.x += 0.0002;
+        backgroundGroup.rotation.y += 0.0003;
+        backgroundGroup.rotation.x += 0.0001;
       }
-      if (neuralNetwork && !isDragging && !prefersReducedMotion && 
-          (!keyState.w && !keyState.a && !keyState.s && !keyState.d && 
-          !keyState.arrowup && !keyState.arrowleft && !keyState.arrowdown && !keyState.arrowright)) {
-        neuralNetwork.rotation.y += 0.001;
-        neuralNetwork.rotation.z += 0.0005;
+      
+      if (neuralNetwork) {
+        neuralNetwork.rotation.y += 0.0005;
+        neuralNetwork.rotation.z += 0.0002;
       }
+      
       renderer.render(scene, camera);
     }
     
-    // Initialize
+    // Initialize everything
     function init() {
       neuralNetwork = createNeuralNetwork();
       scene.add(neuralNetwork);
-      larvae = initDrosophilaBackground();
-      const isMobile = window.innerWidth < 768;
-      camera.position.z = isMobile ? 25 : 30;
-      cameraDistance = isMobile ? 25 : 30;
-      setupTouchControls();
-      setTimeout(() => {
-        const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
-        if (keyboardShortcuts) keyboardShortcuts.classList.add('hidden');
-      }, 5000);
+      fluffyLarvae = createFluffyLarvae();
+      animateAbstract();
+      createFloatingClouds();
       animate();
     }
     
-    // Intersection Observer for sections
-    function checkElementsInView() {
-      const sections = document.querySelectorAll('.content section');
-      const options = { root: null, rootMargin: '0px', threshold: 0.1 };
-      const callback = (entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const delay = entry.target.dataset.delay || 0;
-            setTimeout(() => entry.target.classList.add('visible'), delay);
-            observer.unobserve(entry.target);
-          }
-        });
-      };
-      const observer = new IntersectionObserver(callback, options);
-      sections.forEach((section, index) => {
-        section.dataset.delay = index * 100;
-        observer.observe(section);
-      });
-    }
+    // Touch controls for mobile
+    let touchStartX = 0, touchStartY = 0;
     
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        const deltaX = e.touches[0].clientX - touchStartX;
+        const deltaY = e.touches[0].clientY - touchStartY;
+        targetRotationY -= deltaX * 0.003;
+        targetRotationX -= deltaY * 0.003;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    
+    // Cloud sections reveal on click for mobile
+    document.querySelectorAll('.cloud-section').forEach(section => {
+      section.addEventListener('click', function() {
+        this.classList.toggle('revealed');
+      });
+    });
+    
+    // Handle window resize
     window.addEventListener('resize', () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      checkElementsInView();
     });
     
-    window.addEventListener('DOMContentLoaded', () => {
-      checkElementsInView();
-      init();
-    });
+    // Start when DOM loads
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
