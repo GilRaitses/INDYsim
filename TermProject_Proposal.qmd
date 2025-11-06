@@ -1,10 +1,10 @@
 ---
-title: "Term Project Proposal: Stimulus-Driven Behavioral Modeling of Drosophila Larvae"
-subtitle: "Event-Hazard Modeling of Turn Initiation and Trajectory Simulation"
+title: "Interface Dynamics Simulation (InDy-sim)"
+subtitle: "Stimulus-Driven Behavioral Modeling of Drosophila Larvae"
 author: "Gil Raitses"
 date: today
 abstract: |
-  \tech{Interface Dynamics Simulation (InDy-sim)} investigates behavior as the \tech{interface between perception and adaptation}, combining \tech{agent-based simulation} with \tech{dynamic transition modeling}. This project develops a \tech{stimulus-locked event-hazard model} for \tech{Drosophila larval behavior}, treating \tech{behavioral transitions} as both signal and medium that reveal how \tech{sensory representation} translates into \tech{neural activity} and observable behavior. The model estimates time-varying hazard rates for behavioral events conditioned on \tech{stimulus intensity}, \tech{temporal history}, and \tech{contextual features} including speed, orientation, and wall proximity. Using a \tech{design of experiments} framework with \tech{stimulus intensity}, \tech{pulse duration}, and \tech{inter-pulse interval} as factors, the analysis generates \tech{simulated trajectories} that produce \tech{key performance indicators} including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. \tech{Confidence intervals} for behavioral metrics provide statistical precision comparable to \tech{Arena simulation replications}, which supports validation of model predictions against empirical larval trajectory data.
+  \tech{Interface Dynamics Simulation (InDy-sim)} investigates behavior as the \tech{interface between perception and adaptation}, combining \tech{agent-based simulation} with \tech{dynamic transition modeling}. This project develops a \tech{stimulus-locked event-hazard model} for \tech{Drosophila larval behavior}, treating \tech{behavioral transitions} as both signal and medium that reveal how \tech{sensory representation} translates into \tech{neural activity} and observable behavior. The model estimates time-varying hazard rates for behavioral events conditioned on \tech{stimulus intensity}, \tech{temporal history}, and \tech{contextual features} including speed and orientation. Using a \tech{design of experiments} framework with \tech{stimulus intensity}, \tech{pulse duration}, and \tech{inter-pulse interval} as factors, the analysis generates \tech{simulated trajectories} that produce \tech{key performance indicators} including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. \tech{Confidence intervals} for behavioral metrics provide statistical precision comparable to \tech{Arena simulation replications}, which supports validation of model predictions against empirical larval trajectory data.
 format:
   pdf:
     documentclass: article
@@ -106,7 +106,7 @@ The mechanosensation dataset contains trajectory data with individual larval tra
 
 ## Modeling Challenge
 
-Behavioral events occur stochastically with rates that depend on stimulus features including current intensity, recent history showing adaptation and habituation, and pulse timing. Rates also depend on contextual features including current speed, orientation relative to stimulus source, and distance to arena walls. Individual heterogeneity contributes through larva-to-larva variation in baseline activity and sensitivity. Traditional approaches use simple rate averages or linear regressions. This project develops a \tech{structured hazard model} that captures temporal dependencies and supports trajectory simulation.
+Behavioral events occur stochastically with rates that depend on stimulus features including current intensity, recent history showing adaptation and habituation, and pulse timing. Rates also depend on contextual features including current speed and orientation relative to stimulus source. Individual heterogeneity contributes through larva-to-larva variation in baseline activity and sensitivity. Traditional approaches use simple rate averages or linear regressions. This project develops a \tech{structured hazard model} that captures temporal dependencies and supports trajectory simulation.
 
 # Proposed Methodology
 
@@ -116,7 +116,7 @@ For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}
 
 $$\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}$$
 
-where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector including intensity, on/off state, and recent history, $\kappa$ is the temporal kernel using basis expansion to capture latency and adaptation, $[s \star \kappa](t)$ is the convolution of stimulus with kernel producing stimulus history features, $\mathbf{x}(t)$ represents contextual features including speed, orientation, and wall distance, and $\mathbf{\beta}_E$ are the feature coefficients.
+where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector including intensity, on/off state, and recent history, $\kappa$ is the temporal kernel using basis expansion to capture latency and adaptation, $[s \star \kappa](t)$ is the convolution of stimulus with kernel producing stimulus history features, $\mathbf{x}(t)$ represents contextual features including speed and orientation, and $\mathbf{\beta}_E$ are the feature coefficients.
 
 ### Temporal Kernel Design
 
@@ -188,7 +188,7 @@ The replication length follows Lab04 CI methodology. Target precision uses \num{
 
 ### Input Data Sources
 
-The primary data source uses H5 files containing exported MAGAT experiment data in HDF5 format such as `GMR61_202509051201_tier1.h5`. These files contain trajectory positions, LED stimulus data, and metadata located in `/Users/gilraitses/mechanosensation/h5tests/` and processed using `scripts/engineer_dataset_from_h5.py`. Backup sources include trajectory CSVs at `output/spatial_analysis/runs.csv` and `reorientations.csv`, stimulus CSVs with frame-level LED values in `led_stimulus_data_*.csv`, and experimental metadata with experiment IDs, conditions, and replication numbers.
+The primary data source uses H5 files containing exported MAGAT experiment data in HDF5 format. These files contain trajectory positions, LED stimulus data, and metadata processed using the feature extraction pipeline. Backup sources include trajectory CSVs for runs and reorientations, stimulus CSVs with frame-level LED values, and experimental metadata with experiment IDs, conditions, and replication numbers.
 
 ### Feature Extraction
 
@@ -201,7 +201,7 @@ python3 scripts/engineer_dataset_from_h5.py \
     --experiment-id GMR61_202509051201
 ```
 
-This creates `{experiment_id}_events.csv` containing event records with 50ms time bins, `{experiment_id}_trajectories.csv` with full trajectory data aligned with stimulus, and `{experiment_id}_summary.json` containing summary statistics.
+This creates three output files: event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics in CSV and JSON formats.
 
 **Step 2: Feature Engineering** (implemented in `engineer_dataset_from_h5.py`)
 
@@ -226,7 +226,7 @@ for each track in h5_file['tracks']:
     for each bin:
         stimulus_history = extract_stimulus_window(time_window=[-2, 20])
         kernel_features = apply_temporal_kernel(stimulus_history, basis_functions)
-        feature_vector = [kernel_features, speed, heading, wall_dist]
+        feature_vector = [kernel_features, speed, heading]
         event_occurred = (binned['is_turn'] == True)
 ```
 
@@ -259,8 +259,7 @@ class LarvalTrajectorySimulator:
             lambda_t = self.hazard_model.predict(
                 stimulus=stimulus_schedule(t),
                 speed=speed,
-                orientation=orientation,
-                wall_dist=compute_wall_distance(position)
+                orientation=orientation
             )
             
             # Sample next event time (thinning algorithm)
@@ -361,7 +360,7 @@ The model could overfit to training data with a complex kernel. Mitigation uses 
 
 Individual heterogeneity could violate the exchangeability assumption. Mitigation includes larva-specific random effects when needed, stratifies analysis by experimental batch, and uses hierarchical models when time permits.
 
-Simulation might not capture spatial constraints such as wall interactions. Mitigation includes wall distance in the feature vector, implements boundary conditions in the simulator, and validates that spatial distributions match empirical data.
+The model could fail to capture complex spatial dynamics. Mitigation validates that spatial distributions match empirical data and includes position-dependent features when needed.
 
 ## Data Risks
 
@@ -397,7 +396,7 @@ This project applies \tech{simulation modeling methods} from \tech{ECS630} to \t
 
 ## Data Sources
 
-Primary H5 files are located in `/Users/gilraitses/mechanosensation/h5tests/` including `GMR61_202509051201_tier1.h5` (16 MB) containing complete experiment with tracks and LED data, `GMR61_tier2_complete.h5` (83 MB) containing full tier2 export with contours, and `GMR61_202509051201_tier3.h5` (701 KB) containing tier3 export with FID data. Backup CSV data resides in `/Users/gilraitses/mechanosensation/output/spatial_analysis/`. Stimulus data uses `/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv` when needed. Experimental metadata consists of experiment IDs embedded in H5 metadata or trajectory CSVs.
+Primary H5 files contain complete experiments with tracks and LED data (tier1, 16 MB), full tier2 exports with contours (83 MB), and tier3 exports with FID data (701 KB). Backup CSV data provides trajectory and spatial analysis outputs. Stimulus data contains frame-level LED values. Experimental metadata consists of experiment IDs embedded in H5 metadata or trajectory CSVs.
 
 ## Model Implementation References
 
