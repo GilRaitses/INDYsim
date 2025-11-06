@@ -17,20 +17,29 @@
   <meta property="og:url" content="https://gilraitses.github.io/INDYsim/">
   
   <!-- Accessibility & Device Compatibility -->
-  <meta name="theme-color" content="#0a0a0a">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#FFF9F3">
+  <meta name="color-scheme" content="light">
   
   <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
-      --bg-color: #0a0a0a;
-      --text-color: #e0e0e0;
-      --primary-color: #4a9eff;
-      --secondary-color: #7ab8ff;
-      --content-bg: rgba(30, 30, 30, 0.85);
-      --header-footer-bg: rgba(20, 20, 20, 0.9);
-      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --cinnamoroll-light-blue: #B4D7EC;
+      --cinnamoroll-lavender: #E8D7F1;
+      --cinnamoroll-pink: #F5D4D8;
+      --cinnamoroll-cream: #FFF9F3;
+      --cinnamoroll-blue: #8AB4D3;
+      --cinnamoroll-dark-blue: #2C4A5F;
+      --cinnamoroll-brown: #5F4A3F;
+      --cinnamoroll-peach: #FFE5D9;
+      
+      --bg-color: var(--cinnamoroll-cream);
+      --text-color: var(--cinnamoroll-dark-blue);
+      --primary-color: var(--cinnamoroll-blue);
+      --secondary-color: var(--cinnamoroll-pink);
+      --content-bg: rgba(255, 249, 243, 0.95);
+      --header-footer-bg: rgba(44, 74, 95, 0.9);
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition-speed: 0.3s;
     }
 
@@ -82,7 +91,7 @@
 
     header {
       background: var(--header-footer-bg);
-      color: white;
+      color: var(--cinnamoroll-cream);
       padding: 3rem 2rem;
       text-align: center;
       position: relative;
@@ -97,6 +106,7 @@
       font-family: 'Didot', 'Georgia', serif;
       position: relative;
       display: inline-block;
+      color: var(--cinnamoroll-dark-blue);
     }
 
     h1::after {
@@ -106,7 +116,7 @@
       height: 3px;
       bottom: -5px;
       left: 50%;
-      background-color: var(--primary-color);
+      background-color: var(--cinnamoroll-light-blue);
       transition: all 0.5s ease;
     }
 
@@ -117,7 +127,7 @@
 
     .subtitle {
       font-size: 1.3rem;
-      color: #b0b0b0;
+      color: var(--cinnamoroll-brown);
       font-weight: 300;
       margin-top: 0.5rem;
     }
@@ -146,8 +156,8 @@
     }
 
     h2 {
-      color: var(--primary-color);
-      border-bottom: 2px solid var(--primary-color);
+      color: var(--cinnamoroll-dark-blue);
+      border-bottom: 2px solid var(--cinnamoroll-lavender);
       padding-bottom: 0.5rem;
       font-size: 2.2rem;
       font-weight: 300;
@@ -159,25 +169,25 @@
       font-size: 1.6rem;
       font-weight: 400;
       margin: 2rem 0 1rem;
-      color: #e8e8e8;
+      color: var(--cinnamoroll-dark-blue);
       font-family: 'Didot', 'Georgia', serif;
     }
 
     p {
       margin: 1rem 0;
-      color: #c0c0c0;
+      color: var(--cinnamoroll-brown);
       font-size: 1rem;
       line-height: 1.8;
     }
 
     .tech {
-      color: var(--primary-color);
-      font-weight: 500;
+      color: var(--cinnamoroll-dark-blue);
+      font-weight: 600;
     }
 
     .abstract {
-      background: rgba(74, 158, 255, 0.1);
-      border-left: 3px solid var(--primary-color);
+      background: var(--cinnamoroll-light-blue);
+      border-left: 3px solid var(--cinnamoroll-blue);
       padding: 2rem;
       margin: 3rem 0;
       border-radius: 8px;
@@ -185,7 +195,7 @@
     }
 
     .abstract p {
-      color: #d0d0d0;
+      color: var(--cinnamoroll-dark-blue);
       font-size: 1.1rem;
       line-height: 1.8;
     }
@@ -194,27 +204,34 @@
       width: 100%;
       border-collapse: collapse;
       margin: 2rem 0;
-      background: rgba(255, 255, 255, 0.05);
+      background: white;
+      border: 2px solid var(--cinnamoroll-light-blue);
       border-radius: 8px;
       overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     th {
-      background: rgba(74, 158, 255, 0.2);
+      background: var(--cinnamoroll-light-blue);
       padding: 1rem;
       text-align: left;
-      color: #ffffff;
-      font-weight: 500;
+      color: var(--cinnamoroll-dark-blue);
+      font-weight: 600;
+      border-bottom: 2px solid var(--cinnamoroll-blue);
     }
 
     td {
       padding: 0.8rem 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      color: #d0d0d0;
+      border-bottom: 1px solid var(--cinnamoroll-lavender);
+      color: var(--cinnamoroll-dark-blue);
+    }
+
+    tr:nth-child(even) {
+      background: var(--cinnamoroll-cream);
     }
 
     tr:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--cinnamoroll-lavender);
     }
 
     .kpi-grid {
@@ -225,47 +242,50 @@
     }
 
     .kpi-card {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--cinnamoroll-cream);
       padding: 1.5rem;
       border-radius: 8px;
-      border: 1px solid rgba(74, 158, 255, 0.2);
+      border: 2px solid var(--cinnamoroll-light-blue);
       transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .kpi-card:hover {
       transform: translateY(-5px);
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--primary-color);
+      background: var(--cinnamoroll-lavender);
+      border-color: var(--cinnamoroll-blue);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     .kpi-card h4 {
-      color: var(--primary-color);
+      color: var(--cinnamoroll-dark-blue);
       margin-bottom: 0.5rem;
       font-size: 1.1rem;
     }
 
     .kpi-card p {
-      color: #b0b0b0;
+      color: var(--cinnamoroll-brown);
       font-size: 0.9rem;
       margin: 0;
     }
 
     code {
-      background: rgba(74, 158, 255, 0.15);
+      background: var(--cinnamoroll-light-blue);
       padding: 0.2em 0.4em;
       border-radius: 4px;
       font-family: 'Monaco', 'Courier New', monospace;
-      color: #7ab8ff;
+      color: var(--cinnamoroll-dark-blue);
       font-size: 0.9em;
     }
 
     pre {
-      background: rgba(0, 0, 0, 0.4);
+      background: var(--cinnamoroll-light-blue);
       padding: 1.5rem;
       border-radius: 8px;
       overflow-x: auto;
       margin: 1.5rem 0;
-      border: 1px solid rgba(74, 158, 255, 0.2);
+      border: 2px solid var(--cinnamoroll-blue);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     pre code {
@@ -278,8 +298,8 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
+      background: var(--cinnamoroll-dark-blue);
+      color: var(--cinnamoroll-cream);
       padding: 8px 16px;
       border-radius: 8px;
       font-size: 0.8rem;
@@ -308,7 +328,7 @@
     footer {
       text-align: center;
       font-size: 0.9rem;
-      color: white;
+      color: var(--cinnamoroll-cream);
       padding: 2rem 0;
       background: var(--header-footer-bg);
       backdrop-filter: blur(10px);
@@ -316,23 +336,24 @@
     }
 
     a {
-      color: var(--primary-color);
+      color: var(--cinnamoroll-blue);
       text-decoration: none;
       transition: color 0.3s;
     }
 
     a:hover {
-      color: var(--secondary-color);
+      color: var(--cinnamoroll-pink);
     }
 
     .math-display {
       text-align: center;
       margin: 2rem 0;
       padding: 1rem;
-      background: rgba(0, 0, 0, 0.3);
+      background: var(--cinnamoroll-peach);
       border-radius: 8px;
       font-size: 1.1rem;
       overflow-x: auto;
+      border: 1px solid var(--cinnamoroll-pink);
     }
 
     @media (max-width: 768px) {
@@ -559,7 +580,7 @@
     scene.add(foregroundGroup);
 
     camera.position.setZ(30);
-    scene.fog = new THREE.FogExp2(0x000000, 0.01);
+    scene.fog = new THREE.FogExp2(0xFFF9F3, 0.005); // cinnamoroll-cream with lighter fog
 
     // Initialize Drosophila larvae background
     function initDrosophilaBackground() {
@@ -584,7 +605,7 @@
         const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
         const larvaMaterial = new THREE.LineBasicMaterial({
-          color: 0xdddddd,
+          color: 0x5F4A3F, // cinnamoroll-brown
           linewidth: 3,
           opacity: 0.85,
           transparent: true
@@ -592,7 +613,7 @@
 
         const larva = new THREE.Line(larvaGeometry, larvaMaterial);
 
-        const glowLight = new THREE.PointLight(0xffffff, 0.5, 1);
+        const glowLight = new THREE.PointLight(0xFFE5D9, 0.5, 1); // cinnamoroll-peach
         glowLight.position.set(larvaLength/2, 0, 0);
         larva.add(glowLight);
 
@@ -618,9 +639,9 @@
           size: 0.3 + Math.random() * 0.2,
           trajectoryPoints: [],
           trajectoryColor: new THREE.Color(
-            0.7 + Math.random() * 0.3,
-            0.7 + Math.random() * 0.3,
-            0.7 + Math.random() * 0.3
+            (0xB4 + Math.random() * 0x23) / 255, // light-blue range
+            (0xD7 + Math.random() * 0x28) / 255,
+            (0xEC + Math.random() * 0x13) / 255
           ),
           lastTrajectoryUpdate: 0,
           trajectoryUpdateInterval: 3,
@@ -742,8 +763,8 @@
     function createNeuralNetwork() {
       const group = new THREE.Group();
       const nodeMaterial = new THREE.MeshStandardMaterial({
-        color: 0x4a9eff,
-        emissive: 0x4a9eff,
+        color: 0x8AB4D3, // cinnamoroll-blue
+        emissive: 0xB4D7EC, // cinnamoroll-light-blue
         emissiveIntensity: 0.8,
         metalness: 0.9,
         roughness: 0.1
@@ -752,7 +773,7 @@
       const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
       const nodes = [];
       const connectionMaterial = new THREE.LineBasicMaterial({
-        color: 0x4a9eff,
+        color: 0x8AB4D3, // cinnamoroll-blue
         transparent: true,
         opacity: 0.5
       });
@@ -785,7 +806,7 @@
           pulsePhase: Math.random() * Math.PI * 2
         };
 
-        const nodeLight = new THREE.PointLight(0x4a9eff, 0.5, 3);
+        const nodeLight = new THREE.PointLight(0x8AB4D3, 0.5, 3); // cinnamoroll-blue
         nodeLight.position.set(0, 0, 0);
         node.add(nodeLight);
         node.userData.light = nodeLight;
@@ -815,9 +836,9 @@
         }
       }
 
-      const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+      const ambientLight = new THREE.AmbientLight(0xB4D7EC, 0.6); // cinnamoroll-light-blue
       group.add(ambientLight);
-      const light = new THREE.PointLight(0xffffff, 1, 100);
+      const light = new THREE.PointLight(0xFFF9F3, 1, 100); // cinnamoroll-cream
       light.position.set(0, 0, 20);
       group.add(light);
 
@@ -843,8 +864,10 @@
               const intensity = node.userData.flashIntensity || 1.5;
               node.material.emissiveIntensity = intensity;
               node.scale.set(1.5, 1.5, 1.5);
-              const hue = Math.random();
-              const color = new THREE.Color().setHSL(hue, 0.9, 0.7);
+              // Use Cinnamoroll colors for flashing
+              const colors = [0xB4D7EC, 0xE8D7F1, 0xF5D4D8, 0xFFE5D9]; // light-blue, lavender, pink, peach
+              const randomColor = colors[Math.floor(Math.random() * colors.length)];
+              const color = new THREE.Color(randomColor);
               node.material.emissive.set(color);
               node.material.color.set(color);
               if (node.userData.light) {
@@ -867,10 +890,10 @@
                 node.userData.active = false;
                 node.userData.flashTimer = 0;
                 node.material.emissiveIntensity = 0.8;
-                node.material.emissive.set(0x4a9eff);
-                node.material.color.set(0x4a9eff);
+                node.material.emissive.set(0xB4D7EC); // cinnamoroll-light-blue
+                node.material.color.set(0x8AB4D3); // cinnamoroll-blue
                 if (node.userData.light) {
-                  node.userData.light.color.set(0x4a9eff);
+                  node.userData.light.color.set(0x8AB4D3);
                   node.userData.light.intensity = 0.5;
                   node.userData.light.distance = 3;
                 }
@@ -898,7 +921,7 @@
               line.userData.flashTimer++;
               if (line.userData.flashTimer > (line.userData.flashDuration || 20)) {
                 line.userData.flashActive = false;
-                line.material.color.set(0x4a9eff);
+                line.material.color.set(0x8AB4D3); // cinnamoroll-blue
                 line.material.opacity = 0.5;
               } else {
                 const progress = line.userData.flashTimer / (line.userData.flashDuration || 20);
