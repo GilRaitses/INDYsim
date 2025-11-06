@@ -143,18 +143,25 @@
       font-size: 1.2rem;
       line-height: 2;
       color: var(--cinnamoroll-dark-blue);
+      text-align: center;
+      padding: 1rem;
     }
 
     .trailer-line {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(20px);
       display: block;
-      margin: 0.5rem 0;
-      animation: fadeInLine 1s ease-out forwards;
+      margin: 0.8rem 0;
+      font-weight: 500;
+      animation: fadeInLine 1.2s ease-out forwards;
     }
 
     @keyframes fadeInLine {
-      to {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
         opacity: 1;
         transform: translateY(0);
       }
@@ -646,12 +653,16 @@
     // Animate abstract text line by line
     function animateAbstract() {
       const container = document.getElementById('trailer-text');
+      if (!container) return;
+      
       abstractText.forEach((line, index) => {
-        const span = document.createElement('span');
-        span.className = 'trailer-line';
-        span.textContent = line;
-        span.style.animationDelay = `${index * 0.8}s`;
-        container.appendChild(span);
+        setTimeout(() => {
+          const span = document.createElement('span');
+          span.className = 'trailer-line';
+          span.textContent = line;
+          span.style.animationDelay = '0s';
+          container.appendChild(span);
+        }, index * 1000); // 1 second between lines
       });
     }
 
