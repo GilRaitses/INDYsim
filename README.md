@@ -13,9 +13,7 @@ This project develops event-hazard models for larval behavioral responses to tim
 
 ## Documentation
 
-**[View the full project proposal →](https://gilraitses.github.io/INDYsim/)**
-
-The proposal includes methodology, model specifications, experimental design, and validation results.
+**[View the full project proposal](https://gilraitses.github.io/INDYsim/)**
 
 ## Timeline
 
