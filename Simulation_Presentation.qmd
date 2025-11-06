@@ -601,19 +601,11 @@ kable(top_conditions,
 
 ### Key Findings
 
-1. **Model Performance**: Successfully captured stimulus-locked responses with biologically plausible event rates
-2. **DOE Precision**: 30 replications per condition provided tight confidence intervals (±0.2-0.3 turns/min)
-3. **Factor Effects**: Intensity and pulse duration showed systematic effects on behavioral responses
-4. **Statistical Rigor**: Arena-style analysis enabled comparison across 45 experimental conditions
+Model performance successfully captured stimulus-locked responses with biologically plausible event rates. DOE precision achieved 30 replications per condition providing tight confidence intervals (±0.2-0.3 turns/min). Factor effects showed intensity and pulse duration with systematic effects on behavioral responses. Statistical rigor enabled Arena-style analysis comparison across 45 experimental conditions.
 
 ### Course Integration
 
-This project demonstrates application of ECS630 concepts:
-
-- **Input characterization**: Stimulus distributions and behavioral state initialization
-- **Replication analysis**: Sequential estimation to determine sample size
-- **Output diagnostics**: KPI distributions and confidence intervals
-- **DOE methods**: Factorial design with statistical analysis
+This project demonstrates application of ECS630 concepts: input characterization (stimulus distributions and behavioral state initialization), replication analysis (sequential estimation to determine sample size), output diagnostics (KPI distributions and confidence intervals), and DOE methods (factorial design with statistical analysis).
 
 ## Next Steps
 

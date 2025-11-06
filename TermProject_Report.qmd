@@ -99,11 +99,7 @@ The project connects \tech{simulation modeling methods} from \tech{ECS630} with 
 
 Behavioral trajectory data were extracted from \tech{HDF5 files} (tier2\_complete format) containing tracked larval positions, derived quantities, and stimulus timing information. The primary dataset consists of \tech{GMR61\_tier2\_complete.h5}, containing \num{12} larval tracks with \tech{spine point coordinates}, \tech{derived features} (speed, heading, curvature), and \tech{LED stimulus data} (LED1: red pulsing, LED2: blue constant).
 
-Data extraction used \tech{MAGAT-compatible algorithms} to compute:
-
-- **Speed**: Calculated using \tech{Gaussian derivative kernels} (MAGAT's \tech{dgausskernel} and \tech{deriv} functions) applied to smoothed location data
-- **Spine Analysis**: \tech{Body bend angle} (\tech{spineTheta}) computed using MAGAT's \tech{optimal split-point algorithm}, with \tech{spine curve energy} derived as \tech{spineTheta²}
-- **Reorientation Detection**: Full \tech{MAGAT segmentation algorithm} identifying \tech{runs} (forward movement periods), \tech{head swings}, and \tech{reorientations} (gaps between runs)
+Data extraction used \tech{MAGAT-compatible algorithms} to compute speed (calculated using \tech{Gaussian derivative kernels} via MAGAT's \tech{dgausskernel} and \tech{deriv} functions applied to smoothed location data), spine analysis (\tech{body bend angle} \tech{spineTheta} computed using MAGAT's \tech{optimal split-point algorithm}, with \tech{spine curve energy} derived as \tech{spineTheta²}), and reorientation detection (full \tech{MAGAT segmentation algorithm} identifying \tech{runs} as forward movement periods, \tech{head swings}, and \tech{reorientations} as gaps between runs).
 
 The engineering pipeline generated \num{273,157} event records (50ms bins) with features including \tech{stimulus intensity}, \tech{temporal position} relative to stimulus onsets, \tech{speed}, \tech{heading}, \tech{spine curve energy}, and \tech{event flags} (is\_reorientation, is\_pause, is\_reversal).
 
@@ -134,11 +130,7 @@ where $\tau_k$ are \tech{knot positions} evenly spaced across the time range and
 
 ### Feature Engineering
 
-Contextual features include:
-
-- **Speed**: Normalized using empirical mean and standard deviation
-- **Heading**: Encoded as \tech{sin(heading)} and \tech{cos(heading)} for circular continuity
-- **Spine Curve Energy**: Log-transformed and normalized: $\log(\text{energy} + \epsilon) - \mu_{\log}$
+Contextual features include speed (normalized using empirical mean and standard deviation), heading (encoded as \tech{sin(heading)} and \tech{cos(heading)} for circular continuity), and spine curve energy (log-transformed and normalized: $\log(\text{energy} + \epsilon) - \mu_{\log}$).
 
 Stimulus features include \tech{LED1 intensity} (pulsing red light) and \tech{LED2 intensity} (constant blue light), with stimulus history computed via \tech{kernel convolution} over the analysis window.
 
@@ -158,34 +150,15 @@ Model validation used \tech{time-rescaled Kolmogorov-Smirnov tests}, ensuring th
 
 ## Simulation Engine
 
-The simulation engine generates trajectories using the fitted hazard models through \tech{event-driven simulation}:
-
-1. **State Initialization**: Sample starting position, heading, and speed from empirical distributions
-2. **Time Integration**: At each timestep $t$, compute hazard rates $\lambda_{\text{reorientation}}(t)$, $\lambda_{\text{pause}}(t)$, $\lambda_{\text{reversal}}(t)$ using current features
-3. **Event Sampling**: Sample events independently from \tech{Poisson processes} with rates $\lambda(t) \cdot \Delta t$
-4. **State Updates**: Apply event-specific state changes (heading for reorientations, speed for pauses, large heading changes for reversals)
-5. **Spine Tracking**: Compute \tech{spineTheta} and \tech{spine curve energy} using MAGAT algorithms during simulation
+The simulation engine generates trajectories using the fitted hazard models through \tech{event-driven simulation}. State initialization samples starting position, heading, and speed from empirical distributions. Time integration computes hazard rates $\lambda_{\text{reorientation}}(t)$, $\lambda_{\text{pause}}(t)$, $\lambda_{\text{reversal}}(t)$ at each timestep $t$ using current features. Event sampling draws events independently from \tech{Poisson processes} with rates $\lambda(t) \cdot \Delta t$. State updates apply event-specific state changes (heading for reorientations, speed for pauses, large heading changes for reversals). Spine tracking computes \tech{spineTheta} and \tech{spine curve energy} using MAGAT algorithms during simulation.
 
 The simulation maintains \tech{MAGAT-compatible outputs} including \tech{spineTheta\_magat}, \tech{sspineTheta\_magat} (smoothed), \tech{is\_reorientation}, and \tech{is\_run} flags for validation against empirical data.
 
 ## Design of Experiments
 
-A \tech{full factorial design} with \num{45} conditions was specified:
+A \tech{full factorial design} with \num{45} conditions was specified. Intensity levels are \num{25}\%, \num{50}\%, and \num{100}\% LED1 intensity (mapping to actual LED power: \num{83.3}, \num{166.7}, \num{250.0}). Pulse duration is fixed at \num{20}s (actual observed pulse duration from empirical data). Inter-pulse intervals are \num{20}s, \num{40}s, and \num{60}s (gap between pulse end and next pulse start), corresponding to cycle periods of \num{40}s, \num{60}s, and \num{80}s (duty cycles: \num{50}\%, \num{33}\%, \num{25}\%).
 
-- **Intensity**: \num{25}\%, \num{50}\%, \num{100}\% LED1 intensity (maps to actual LED power: \num{83.3}, \num{166.7}, \num{250.0})
-- **Pulse Duration**: Fixed at \num{20}s (actual observed pulse duration from empirical data)
-- **Inter-Pulse Interval**: \num{20}s, \num{40}s, \num{60}s (gap between pulse end and next pulse start)
-  - Cycle periods: \num{40}s, \num{60}s, \num{80}s (duty cycles: \num{50}\%, \num{33}\%, \num{25}\%)
-
-Each condition was simulated with \num{30} replications (tested with \num{2} replications for validation), generating trajectories of \num{300} seconds duration. \tech{Key performance indicators} computed per replication include:
-
-- \tech{Turn rate} (reorientations per minute)
-- \tech{Latency} to first reorientation
-- \tech{Stop fraction} (time with speed < threshold)
-- \tech{Pause rate} and \tech{reversal rate}
-- \tech{Path tortuosity} (euclidean distance / path length)
-- \tech{Spatial dispersal} (mean distance from start)
-- \tech{Mean spine curve energy}
+Each condition was simulated with \num{30} replications (tested with \num{2} replications for validation), generating trajectories of \num{300} seconds duration. \tech{Key performance indicators} computed per replication include \tech{turn rate} (reorientations per minute), \tech{latency} to first reorientation, \tech{stop fraction} (time with speed < threshold), \tech{pause rate} and \tech{reversal rate}, \tech{path tortuosity} (euclidean distance / path length), \tech{spatial dispersal} (mean distance from start), and \tech{mean spine curve energy}.
 
 # Results
 
@@ -287,17 +260,9 @@ kable(reorientation_coefs %>% head(10),
 
 ## Simulation Validation
 
-The simulation engine was validated against empirical data to ensure biologically plausible outputs. Simulated trajectories generated using the fitted models produced \tech{turn rates} of \num{2.39} ± \num{1.91} turns/min (range: \num{0}-\num{8} turns/min), which fall within expected biological ranges:
+The simulation engine was validated against empirical data to ensure biologically plausible outputs. Simulated trajectories generated using the fitted models produced \tech{turn rates} of \num{2.39} ± \num{1.91} turns/min (range: \num{0}-\num{8} turns/min), which fall within expected biological ranges: baseline turn rate \num{1.1}-\num{1.9} turns/min, stimulus-responsive turn rate \num{2.2}-\num{11.4} turns/min, and maximum plausible \num{~30} turns/min.
 
-- Baseline turn rate: \num{1.1}-\num{1.9} turns/min
-- Stimulus-responsive turn rate: \num{2.2}-\num{11.4} turns/min
-- Maximum plausible: \num{~30} turns/min
-
-The simulation correctly integrates \tech{MAGAT algorithms}:
-
-- **Speed**: Computed using \tech{Gaussian derivative} (\tech{dgausskernel} + \tech{deriv})
-- **Spine Analysis**: \tech{spineTheta} computed via optimal split-point algorithm
-- **Reorientation Detection**: Full \tech{MAGAT segmentation} identifying runs and reorientations
+The simulation correctly integrates \tech{MAGAT algorithms}: speed computed using \tech{Gaussian derivative} (\tech{dgausskernel} + \tech{deriv}), spine analysis with \tech{spineTheta} computed via optimal split-point algorithm, and reorientation detection using full \tech{MAGAT segmentation} identifying runs and reorientations.
 
 ## Design of Experiments Results
 
@@ -351,38 +316,19 @@ The temporal kernels reveal \tech{stimulus-responsive activation} patterns with 
 
 ## Simulation Accuracy
 
-The simulation engine produces trajectories with realistic statistics:
-
-- **Turn Rates**: \num{0}-\num{8} turns/min (biologically plausible)
-- **Event Timing**: Stochastic event sampling matches empirical patterns
-- **State Dynamics**: Speed, heading, and spine curvature evolve realistically
+The simulation engine produces trajectories with realistic statistics: turn rates \num{0}-\num{8} turns/min (biologically plausible), event timing with stochastic event sampling matching empirical patterns, and state dynamics where speed, heading, and spine curvature evolve realistically.
 
 The use of \tech{MAGAT reorientation detection} (rather than simple turn detection) ensures that simulated turn rates match empirical measurements, avoiding the inflated rates (\num{60+} turns/min) produced by simpler turn definitions.
 
 ## Limitations and Future Work
 
-Current limitations include:
+Current limitations include limited replications (test simulations used \num{2} replications per condition; full analysis requires \num{30} replications for statistical precision), simplified spatial model (the simulation does not incorporate wall interactions or spatial boundary conditions), fixed pulse duration (DOE pulse duration parameter is ignored, fixed at \num{10}s in actual experiments), and single larva model (individual heterogeneity not modeled, assumes exchangeability).
 
-1. **Limited Replications**: Test simulations used \num{2} replications per condition; full analysis requires \num{30} replications for statistical precision
-2. **Simplified Spatial Model**: The simulation does not incorporate wall interactions or spatial boundary conditions
-3. **Fixed Pulse Duration**: DOE pulse duration parameter is ignored (fixed at \num{10}s in actual experiments)
-4. **Single Larva Model**: Individual heterogeneity not modeled (assumes exchangeability)
-
-Future work could incorporate:
-
-- **Random Effects**: Larva-specific baseline rates
-- **Spatial Constraints**: Wall distance and boundary interactions
-- **Multi-Stimulus Models**: Joint modeling of LED1 and LED2 effects
-- **Hierarchical Models**: Accounting for experimental batch effects
+Future work could incorporate random effects (larva-specific baseline rates), spatial constraints (wall distance and boundary interactions), multi-stimulus models (joint modeling of LED1 and LED2 effects), and hierarchical models (accounting for experimental batch effects).
 
 ## MAGAT Integration Validation
 
-The successful integration of \tech{MAGAT algorithms} validates the approach:
-
-- ✓ **Speed Calculation**: Gaussian derivative matches MAGAT implementation
-- ✓ **Spine Analysis**: Optimal split-point algorithm produces consistent spineTheta
-- ✓ **Segmentation**: Reorientation detection matches MAGAT's run-based definition
-- ✓ **Output Compatibility**: Simulation outputs can be directly compared with MAGAT-analyzed empirical data
+The successful integration of \tech{MAGAT algorithms} validates the approach: speed calculation using Gaussian derivative matches MAGAT implementation, spine analysis with optimal split-point algorithm produces consistent spineTheta, segmentation with reorientation detection matches MAGAT's run-based definition, and output compatibility enables simulation outputs to be directly compared with MAGAT-analyzed empirical data.
 
 This compatibility ensures that model predictions are interpretable within the established \tech{larval behavior literature} and can be validated against published analyses.
 
@@ -400,34 +346,13 @@ The simulation engine provides a foundation for predicting behavioral responses 
 
 ## Model Configuration
 
-The model uses the following configuration:
+The model uses the following configuration: analysis window \num{[-3.0, 8.0]} seconds relative to stimulus onset, \num{10} raised cosine kernel basis functions, bin width \num{0.05} seconds (50ms), L2 regularization with $\lambda = 0.1$, and simulation time step \num{0.1} seconds.
 
-- **Analysis Window**: \num{[-3.0, 8.0]} seconds relative to stimulus onset
-- **Kernel Basis Functions**: \num{10} raised cosine bases
-- **Bin Width**: \num{0.05} seconds (50ms)
-- **Regularization**: L2 with $\lambda = 0.1$
-- **Simulation Time Step**: \num{0.1} seconds
-
-## Data Processing Pipeline
-
-1. **H5 Extraction**: Extract trajectory data from tier2\_complete H5 files
-2. **Feature Engineering**: Compute MAGAT-compatible speed, spineTheta, curve energy
-3. **Stimulus Alignment**: Align trajectories with LED stimulus timing
-4. **Event Detection**: MAGAT segmentation for reorientations, pauses, reversals
-5. **Model Fitting**: GLM with temporal kernels for each event type
-6. **Simulation**: Event-driven trajectory generation
-7. **DOE Execution**: Full factorial design with replications
-8. **Summary Generation**: Across-replications statistics and confidence intervals
+The data processing pipeline consists of eight steps: H5 extraction (extract trajectory data from tier2\_complete H5 files), feature engineering (compute MAGAT-compatible speed, spineTheta, curve energy), stimulus alignment (align trajectories with LED stimulus timing), event detection (MAGAT segmentation for reorientations, pauses, reversals), model fitting (GLM with temporal kernels for each event type), simulation (event-driven trajectory generation), DOE execution (full factorial design with replications), and summary generation (across-replications statistics and confidence intervals).
 
 ## Software Implementation
 
-All analysis scripts are implemented in Python using:
-
-- **Data Processing**: `pandas`, `numpy`, `h5py`
-- **Model Fitting**: `scikit-learn` (LogisticRegression)
-- **Statistical Analysis**: `scipy.stats`
-- **Visualization**: `matplotlib`, `seaborn`
-- **MAGAT Algorithms**: Custom implementations of MAGAT methods
+All analysis scripts are implemented in Python using data processing libraries (`pandas`, `numpy`, `h5py`), model fitting via `scikit-learn` (LogisticRegression), statistical analysis with `scipy.stats`, visualization tools (`matplotlib`, `seaborn`), and custom implementations of MAGAT algorithms.
 
 Code is available in the `scripts/` directory with documentation in `README.md`.
 

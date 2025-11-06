@@ -2517,18 +2517,11 @@ border: 2px solid var(--cinnamoroll-light-blue);
 </section>
 <section id="dataset-characteristics" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="dataset-characteristics"><span class="header-section-number">2.2</span> Dataset Characteristics</h2>
-<p>The mechanosensation dataset contains:</p>
-<ul>
-<li><strong>Trajectory Data</strong>: Individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings)</li>
-<li><strong>Stimulus Data</strong>: LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals</li>
-<li><strong>Experimental Conditions</strong>: Multiple experiments with varying stimulus intensities (0-100% LED power), pulse frequencies, and temporal patterns</li>
-<li><strong>Sample Size</strong>: 40+ larvae per condition, multiple replications per experimental condition</li>
-</ul>
+<p>The mechanosensation dataset contains trajectory data, stimulus data, experimental conditions, and sample size information. Trajectory data includes individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings). Stimulus data consists of LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities (0-100% LED power), pulse frequencies, and temporal patterns. Sample size includes 40+ larvae per condition with multiple replications per experimental condition.</p>
 </section>
 <section id="modeling-challenge" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="modeling-challenge"><span class="header-section-number">2.3</span> Modeling Challenge</h2>
-<p>Behavioral events occur stochastically with rates that depend on: 1. <strong>Stimulus features</strong>: Current intensity, recent history (adaptation/habituation), pulse timing 2. <strong>Contextual features</strong>: Current speed, orientation relative to stimulus source, distance to arena walls 3. <strong>Individual heterogeneity</strong>: Larva-to-larva variation in baseline activity and sensitivity</p>
-<p>Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="\&quot;tech\&quot;">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.</p>
+<p>Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history including adaptation/habituation, and pulse timing), contextual features (current speed, orientation relative to stimulus source, and distance to arena walls), and individual heterogeneity (larva-to-larva variation in baseline activity and sensitivity). Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="\&quot;tech\&quot;">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.</p>
 </section>
 </section>
 <section id="proposed-methodology" class="level1" data-number="3">
@@ -2537,18 +2530,10 @@ border: 2px solid var(--cinnamoroll-light-blue);
 <h2 data-number="3.1" class="anchored" data-anchor-id="core-model-stimulus-locked-event-hazard-glm"><span class="header-section-number">3.1</span> Core Model: Stimulus-Locked Event-Hazard GLM</h2>
 <p>For each behavioral event type <span class="math inline">\(E \in \{\text{turn}, \text{stop}, \text{reverse}\}\)</span>, define the time-varying hazard rate:</p>
 <p><span class="math display">\[\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}\]</span></p>
-<p>where:</p>
-<ul>
-<li><span class="math inline">\(\beta_{0,E}\)</span>: Baseline log-hazard for event type <span class="math inline">\(E\)</span></li>
-<li><span class="math inline">\(s(t)\)</span>: Stimulus feature vector (intensity, on/off state, recent history)</li>
-<li><span class="math inline">\(\kappa\)</span>: Temporal kernel (basis expansion capturing latency and adaptation)</li>
-<li><span class="math inline">\([s \star \kappa](t)\)</span>: Convolution of stimulus with kernel (stimulus history features)</li>
-<li><span class="math inline">\(\mathbf{x}(t)\)</span>: Contextual features (speed, orientation, wall distance)</li>
-<li><span class="math inline">\(\mathbf{\beta}_E\)</span>: Feature coefficients</li>
-</ul>
+<p>where <span class="math inline">\(\beta_{0,E}\)</span> represents the baseline log-hazard for event type <span class="math inline">\(E\)</span>, <span class="math inline">\(s(t)\)</span> is the stimulus feature vector (intensity, on/off state, recent history), <span class="math inline">\(\kappa\)</span> is the temporal kernel (basis expansion capturing latency and adaptation), <span class="math inline">\([s \star \kappa](t)\)</span> is the convolution of stimulus with kernel (stimulus history features), <span class="math inline">\(\mathbf{x}(t)\)</span> represents contextual features (speed, orientation, wall distance), and <span class="math inline">\(\mathbf{\beta}_E\)</span> are the feature coefficients.</p>
 <section id="temporal-kernel-design" class="level3" data-number="3.1.1">
 <h3 data-number="3.1.1" class="anchored" data-anchor-id="temporal-kernel-design"><span class="header-section-number">3.1.1</span> Temporal Kernel Design</h3>
-<p>The kernel <span class="math inline">\(\kappa(\tau)\)</span> captures: - <strong>Latency effects</strong>: Peak response at delay <span class="math inline">\(\tau_0 \approx 0.5-2\)</span> seconds - <strong>Adaptation</strong>: Decay over longer delays (<span class="math inline">\(\tau &gt; 5\)</span> seconds) - <strong>Anticipation</strong>: Pre-stimulus effects (if any)</p>
+<p>The kernel <span class="math inline">\(\kappa(\tau)\)</span> captures latency effects (peak response at delay <span class="math inline">\(\tau_0 \approx 0.5-2\)</span> seconds), adaptation (decay over longer delays with <span class="math inline">\(\tau &gt; 5\)</span> seconds), and anticipation (pre-stimulus effects, if any).</p>
 <p>Using raised cosine basis functions: <span class="math display">\[\kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)\]</span></p>
 <p>with knots <span class="math inline">\(\tau_j\)</span> spanning <span class="math inline">\([-2, 20]\)</span> seconds relative to stimulus onset.</p>
 </section>
@@ -2616,19 +2601,61 @@ border: 2px solid var(--cinnamoroll-light-blue);
 </section>
 <section id="response-variables-kpis" class="level3" data-number="3.3.2">
 <h3 data-number="3.3.2" class="anchored" data-anchor-id="response-variables-kpis"><span class="header-section-number">3.3.2</span> Response Variables (KPIs)</h3>
-<ol type="1">
-<li><strong>Turn Rate</strong>: Reorientations per minute (reorientations/min)</li>
-<li><strong>Latency to First Turn</strong>: Time from stimulus onset to first turn (seconds)</li>
-<li><strong>Stop Fraction</strong>: Proportion of time spent stopped (dimensionless)</li>
-<li><strong>Pause Rate</strong>: Pauses per minute (pauses/min)</li>
-<li><strong>Path Tortuosity</strong>: Net displacement / path length (dimensionless)</li>
-<li><strong>Spatial Dispersal</strong>: Mean distance from starting position (pixels)</li>
-<li><strong>Mean Spine Curve Energy</strong>: Average curvature energy along body axis (dimensionless)</li>
-</ol>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 52%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>KPI</th>
+<th>Description</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Turn Rate</td>
+<td>Reorientations per minute</td>
+<td>reorientations/min</td>
+</tr>
+<tr class="even">
+<td>Latency to First Turn</td>
+<td>Time from stimulus onset to first turn</td>
+<td>seconds</td>
+</tr>
+<tr class="odd">
+<td>Stop Fraction</td>
+<td>Proportion of time spent stopped</td>
+<td>dimensionless</td>
+</tr>
+<tr class="even">
+<td>Pause Rate</td>
+<td>Pauses per minute</td>
+<td>pauses/min</td>
+</tr>
+<tr class="odd">
+<td>Path Tortuosity</td>
+<td>Net displacement / path length</td>
+<td>dimensionless</td>
+</tr>
+<tr class="even">
+<td>Spatial Dispersal</td>
+<td>Mean distance from starting position</td>
+<td>pixels</td>
+</tr>
+<tr class="odd">
+<td>Mean Spine Curve Energy</td>
+<td>Average curvature energy along body axis</td>
+<td>dimensionless</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="experimental-design" class="level3" data-number="3.3.3">
 <h3 data-number="3.3.3" class="anchored" data-anchor-id="experimental-design"><span class="header-section-number">3.3.3</span> Experimental Design</h3>
-<p><strong>Full factorial design</strong>: <span class="math inline">\(3 \times 5 \times 3 = 45\)</span> conditions. For each condition: - Run 30 simulation replications (each representing one larva) - Record events and compute KPIs per replication - Generate <span class="\&quot;tech\&quot;">AcrossReplicationsSummary.csv</span> with means and confidence intervals</p>
+<p><strong>Full factorial design</strong>: <span class="math inline">\(3 \times 5 \times 3 = 45\)</span> conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="\&quot;tech\&quot;">AcrossReplicationsSummary.csv</span> with means and confidence intervals.</p>
 </section>
 <section id="run-length-determination" class="level3" data-number="3.3.4">
 <h3 data-number="3.3.4" class="anchored" data-anchor-id="run-length-determination"><span class="header-section-number">3.3.4</span> Run Length Determination</h3>
@@ -2651,7 +2678,7 @@ border: 2px solid var(--cinnamoroll-light-blue);
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--h5-dir</span> /Users/gilraitses/mechanosensation/h5tests <span class="dt">\</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output-dir</span> data/engineered <span class="dt">\</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--experiment-id</span> GMR61_202509051201</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>This creates: - <code>{experiment_id}_events.csv</code>: Event records with 50ms time bins - <code>{experiment_id}_trajectories.csv</code>: Full trajectory data aligned with stimulus - <code>{experiment_id}_summary.json</code>: Summary statistics</p>
+<p>This creates <code>{experiment_id}_events.csv</code> (event records with 50ms time bins), <code>{experiment_id}_trajectories.csv</code> (full trajectory data aligned with stimulus), and <code>{experiment_id}_summary.json</code> (summary statistics).</p>
 <p><strong>Step 2: Feature Engineering</strong> (implemented in <code>engineer_dataset_from_h5.py</code>)</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each larva trajectory from H5:</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> each track <span class="kw">in</span> h5_file[<span class="st">&#39;tracks&#39;</span>]:</span>
@@ -2841,33 +2868,15 @@ border: 2px solid var(--cinnamoroll-light-blue);
 <h1 data-number="10"><span class="header-section-number">10</span> Appendix</h1>
 <section id="data-sources" class="level2" data-number="10.1">
 <h2 data-number="10.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">10.1</span> Data Sources</h2>
-<ul>
-<li><strong>Primary H5 Files</strong>: <code>/Users/gilraitses/mechanosensation/h5tests/</code>
-<ul>
-<li><code>GMR61_202509051201_tier1.h5</code> (16 MB): Complete experiment with tracks and LED data</li>
-<li><code>GMR61_tier2_complete.h5</code> (83 MB): Full tier2 export with contours</li>
-<li><code>GMR61_202509051201_tier3.h5</code> (701 KB): Tier3 export with FID data</li>
-</ul></li>
-<li><strong>Backup CSV Data</strong>: <code>/Users/gilraitses/mechanosensation/output/spatial_analysis/</code></li>
-<li><strong>Stimulus Data</strong>: <code>/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv</code> when needed</li>
-<li><strong>Experimental Metadata</strong>: Experiment IDs embedded in H5 metadata or trajectory CSVs</li>
-</ul>
+<p>Primary H5 files are located at <code>/Users/gilraitses/mechanosensation/h5tests/</code> including <code>GMR61_202509051201_tier1.h5</code> (16 MB, complete experiment with tracks and LED data), <code>GMR61_tier2_complete.h5</code> (83 MB, full tier2 export with contours), and <code>GMR61_202509051201_tier3.h5</code> (701 KB, tier3 export with FID data). Backup CSV data is available at <code>/Users/gilraitses/mechanosensation/output/spatial_analysis/</code>. Stimulus data files use the pattern <code>/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv</code> when needed. Experimental metadata includes experiment IDs embedded in H5 metadata or trajectory CSVs.</p>
 </section>
 <section id="model-implementation-references" class="level2" data-number="10.2">
 <h2 data-number="10.2" class="anchored" data-anchor-id="model-implementation-references"><span class="header-section-number">10.2</span> Model Implementation References</h2>
-<ul>
-<li><strong>Survival Analysis</strong>: Collett (2015) <em>Modelling Survival Data in Medical Research</em></li>
-<li><strong>Point Process GLMs</strong>: Berman &amp; Turner (1992) “Approximating point process likelihoods with GLIM”</li>
-<li><strong>Temporal Kernels</strong>: Pillow et al. (2008) “Spatio-temporal correlations and visual signalling”</li>
-</ul>
+<p>Modeling approaches draw from survival analysis (Collett 2015, <em>Modelling Survival Data in Medical Research</em>), point process GLMs (Berman &amp; Turner 1992, “Approximating point process likelihoods with GLIM”), and temporal kernels (Pillow et al. 2008, “Spatio-temporal correlations and visual signalling”).</p>
 </section>
 <section id="software-tools" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="software-tools"><span class="header-section-number">10.3</span> Software Tools</h2>
-<ul>
-<li><strong>Python</strong>: <code>scikit-learn</code>, <code>statsmodels</code>, <code>numpy</code>, <code>pandas</code> for modeling</li>
-<li><strong>R</strong>: <code>ggplot2</code>, <code>knitr</code>, <code>kableExtra</code> for report generation</li>
-<li><strong>MATLAB</strong>: MAGAT API for data loading when needed</li>
-</ul>
+<p>The project uses Python with <code>scikit-learn</code>, <code>statsmodels</code>, <code>numpy</code>, and <code>pandas</code> for modeling, R with <code>ggplot2</code>, <code>knitr</code>, and <code>kableExtra</code> for report generation, and MATLAB MAGAT API for data loading when needed.</p>
 </section>
 </section>
 

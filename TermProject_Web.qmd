@@ -65,21 +65,11 @@ How can <span class=\"tech\">larval behavioral responses</span> to <span class=\
 
 ## Dataset Characteristics
 
-The mechanosensation dataset contains:
-
-- **Trajectory Data**: Individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings)
-- **Stimulus Data**: LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals
-- **Experimental Conditions**: Multiple experiments with varying stimulus intensities (0-100\% LED power), pulse frequencies, and temporal patterns
-- **Sample Size**: 40+ larvae per condition, multiple replications per experimental condition
+The mechanosensation dataset contains trajectory data, stimulus data, experimental conditions, and sample size information. Trajectory data includes individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings). Stimulus data consists of LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities (0-100\% LED power), pulse frequencies, and temporal patterns. Sample size includes 40+ larvae per condition with multiple replications per experimental condition.
 
 ## Modeling Challenge
 
-Behavioral events occur stochastically with rates that depend on:
-1. **Stimulus features**: Current intensity, recent history (adaptation/habituation), pulse timing
-2. **Contextual features**: Current speed, orientation relative to stimulus source, distance to arena walls
-3. **Individual heterogeneity**: Larva-to-larva variation in baseline activity and sensitivity
-
-Traditional approaches use simple rate averages or linear regressions. This project develops a <span class=\"tech\">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
+Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history including adaptation/habituation, and pulse timing), contextual features (current speed, orientation relative to stimulus source, and distance to arena walls), and individual heterogeneity (larva-to-larva variation in baseline activity and sensitivity). Traditional approaches use simple rate averages or linear regressions. This project develops a <span class=\"tech\">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
 
 # Proposed Methodology
 
@@ -89,21 +79,11 @@ For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}
 
 $$\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}$$
 
-where:
-
-- $\beta_{0,E}$: Baseline log-hazard for event type $E$
-- $s(t)$: Stimulus feature vector (intensity, on/off state, recent history)
-- $\kappa$: Temporal kernel (basis expansion capturing latency and adaptation)
-- $[s \star \kappa](t)$: Convolution of stimulus with kernel (stimulus history features)
-- $\mathbf{x}(t)$: Contextual features (speed, orientation, wall distance)
-- $\mathbf{\beta}_E$: Feature coefficients
+where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector (intensity, on/off state, recent history), $\kappa$ is the temporal kernel (basis expansion capturing latency and adaptation), $[s \star \kappa](t)$ is the convolution of stimulus with kernel (stimulus history features), $\mathbf{x}(t)$ represents contextual features (speed, orientation, wall distance), and $\mathbf{\beta}_E$ are the feature coefficients.
 
 ### Temporal Kernel Design
 
-The kernel $\kappa(\tau)$ captures:
-- **Latency effects**: Peak response at delay $\tau_0 \approx 0.5-2$ seconds
-- **Adaptation**: Decay over longer delays ($\tau > 5$ seconds)
-- **Anticipation**: Pre-stimulus effects (if any)
+The kernel $\kappa(\tau)$ captures latency effects (peak response at delay $\tau_0 \approx 0.5-2$ seconds), adaptation (decay over longer delays with $\tau > 5$ seconds), and anticipation (pre-stimulus effects, if any).
 
 Using raised cosine basis functions:
 $$\kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)$$
@@ -147,20 +127,19 @@ where $v(t)$ is current speed and $\theta(t)$ is current heading.
 
 ### Response Variables (KPIs)
 
-1. **Turn Rate**: Reorientations per minute (reorientations/min)
-2. **Latency to First Turn**: Time from stimulus onset to first turn (seconds)
-3. **Stop Fraction**: Proportion of time spent stopped (dimensionless)
-4. **Pause Rate**: Pauses per minute (pauses/min)
-5. **Path Tortuosity**: Net displacement / path length (dimensionless)
-6. **Spatial Dispersal**: Mean distance from starting position (pixels)
-7. **Mean Spine Curve Energy**: Average curvature energy along body axis (dimensionless)
+| KPI | Description | Units |
+|-----|-------------|-------|
+| Turn Rate | Reorientations per minute | reorientations/min |
+| Latency to First Turn | Time from stimulus onset to first turn | seconds |
+| Stop Fraction | Proportion of time spent stopped | dimensionless |
+| Pause Rate | Pauses per minute | pauses/min |
+| Path Tortuosity | Net displacement / path length | dimensionless |
+| Spatial Dispersal | Mean distance from starting position | pixels |
+| Mean Spine Curve Energy | Average curvature energy along body axis | dimensionless |
 
 ### Experimental Design
 
-**Full factorial design**: $3 \times 5 \times 3 = 45$ conditions. For each condition:
-- Run 30 simulation replications (each representing one larva)
-- Record events and compute KPIs per replication
-- Generate <span class=\"tech\">AcrossReplicationsSummary.csv</span> with means and confidence intervals
+**Full factorial design**: $3 \times 5 \times 3 = 45$ conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class=\"tech\">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
 
 ### Run Length Determination
 
@@ -185,10 +164,7 @@ python3 scripts/engineer_dataset_from_h5.py \
     --experiment-id GMR61_202509051201
 ```
 
-This creates:
-- `{experiment_id}_events.csv`: Event records with 50ms time bins
-- `{experiment_id}_trajectories.csv`: Full trajectory data aligned with stimulus
-- `{experiment_id}_summary.json`: Summary statistics
+This creates `{experiment_id}_events.csv` (event records with 50ms time bins), `{experiment_id}_trajectories.csv` (full trajectory data aligned with stimulus), and `{experiment_id}_summary.json` (summary statistics).
 
 **Step 2: Feature Engineering** (implemented in `engineer_dataset_from_h5.py`)
 
@@ -384,23 +360,13 @@ This project applies <span class=\"tech\">simulation modeling methods</span> fro
 
 ## Data Sources
 
-- **Primary H5 Files**: `/Users/gilraitses/mechanosensation/h5tests/`
-  - `GMR61_202509051201_tier1.h5` (16 MB): Complete experiment with tracks and LED data
-  - `GMR61_tier2_complete.h5` (83 MB): Full tier2 export with contours
-  - `GMR61_202509051201_tier3.h5` (701 KB): Tier3 export with FID data
-- **Backup CSV Data**: `/Users/gilraitses/mechanosensation/output/spatial_analysis/`
-- **Stimulus Data**: `/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv` when needed
-- **Experimental Metadata**: Experiment IDs embedded in H5 metadata or trajectory CSVs
+Primary H5 files are located at `/Users/gilraitses/mechanosensation/h5tests/` including `GMR61_202509051201_tier1.h5` (16 MB, complete experiment with tracks and LED data), `GMR61_tier2_complete.h5` (83 MB, full tier2 export with contours), and `GMR61_202509051201_tier3.h5` (701 KB, tier3 export with FID data). Backup CSV data is available at `/Users/gilraitses/mechanosensation/output/spatial_analysis/`. Stimulus data files use the pattern `/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv` when needed. Experimental metadata includes experiment IDs embedded in H5 metadata or trajectory CSVs.
 
 ## Model Implementation References
 
-- **Survival Analysis**: Collett (2015) *Modelling Survival Data in Medical Research*
-- **Point Process GLMs**: Berman & Turner (1992) "Approximating point process likelihoods with GLIM"
-- **Temporal Kernels**: Pillow et al. (2008) "Spatio-temporal correlations and visual signalling"
+Modeling approaches draw from survival analysis (Collett 2015, *Modelling Survival Data in Medical Research*), point process GLMs (Berman & Turner 1992, "Approximating point process likelihoods with GLIM"), and temporal kernels (Pillow et al. 2008, "Spatio-temporal correlations and visual signalling").
 
 ## Software Tools
 
-- **Python**: `scikit-learn`, `statsmodels`, `numpy`, `pandas` for modeling
-- **R**: `ggplot2`, `knitr`, `kableExtra` for report generation
-- **MATLAB**: MAGAT API for data loading when needed
+The project uses Python with `scikit-learn`, `statsmodels`, `numpy`, and `pandas` for modeling, R with `ggplot2`, `knitr`, and `kableExtra` for report generation, and MATLAB MAGAT API for data loading when needed.
 
