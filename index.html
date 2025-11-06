@@ -106,7 +106,7 @@
       font-family: 'Didot', 'Georgia', serif;
       position: relative;
       display: inline-block;
-      color: var(--cinnamoroll-dark-blue);
+      color: var(--cinnamoroll-cream);
     }
 
     h1::after {
@@ -127,7 +127,7 @@
 
     .subtitle {
       font-size: 1.3rem;
-      color: var(--cinnamoroll-brown);
+      color: var(--cinnamoroll-peach);
       font-weight: 300;
       margin-top: 0.5rem;
     }
@@ -171,6 +171,13 @@
       margin: 2rem 0 1rem;
       color: var(--cinnamoroll-dark-blue);
       font-family: 'Didot', 'Georgia', serif;
+    }
+
+    h4 {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--cinnamoroll-dark-blue);
     }
 
     p {
@@ -261,6 +268,7 @@
       color: var(--cinnamoroll-dark-blue);
       margin-bottom: 0.5rem;
       font-size: 1.1rem;
+      margin-top: 0;
     }
 
     .kpi-card p {
@@ -356,6 +364,16 @@
       border: 1px solid var(--cinnamoroll-pink);
     }
 
+    ul, ol {
+      padding-left: 2rem;
+      color: var(--cinnamoroll-brown);
+    }
+
+    li {
+      margin: 0.5rem 0;
+      line-height: 1.6;
+    }
+
     @media (max-width: 768px) {
       body {
         font-size: 14px;
@@ -384,7 +402,7 @@
 
 <body>
   <!-- Background canvas elements -->
-  <canvas id="bg" width="2939" height="1425" style="width: 1633px; height: 792px;"></canvas>
+  <canvas id="bg"></canvas>
   <div id="larvae-background"></div>
 
   <div class="keyboard-controls-hint">
@@ -395,7 +413,7 @@
   <header>
     <h1>INDYsim</h1>
     <div class="subtitle">Stimulus-Driven Behavioral Modeling of Drosophila Larvae</div>
-    <div class="subtitle" style="font-size: 1rem; margin-top: 0.5rem; color: #888;">
+    <div class="subtitle" style="font-size: 1rem; margin-top: 0.5rem;">
       Event-Hazard Modeling of Turn Initiation and Trajectory Simulation
     </div>
   </header>
@@ -447,13 +465,31 @@
       </p>
       <h3>Temporal Kernel Design</h3>
       <p>
-        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any).
+        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any). Using raised cosine basis functions:
       </p>
       <div class="math-display">
         κ(τ) = Σ<sub>j=1</sub><sup>J</sup> w<sub>j</sub> cos²(π(τ - τ<sub>j</sub>)/(2Δτ)) 1<sub>[τ<sub>j</sub>-Δτ, τ<sub>j</sub>+Δτ]</sub>(τ)
       </div>
       <p>
         with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
+      </p>
+      <h3>Event Likelihood and Estimation</h3>
+      <p>
+        For larva <em>i</em> with observed events at times {t<sub>i,k</sub>}, the log-likelihood is:
+      </p>
+      <div class="math-display">
+        ℓ(β) = Σ<sub>i</sub> Σ<sub>k</sub> log λ<sub>E</sub>(t<sub>i,k</sub>) - ∫<sub>0</sub><sup>T<sub>i</sub></sup> λ<sub>E</sub>(t) dt
+      </div>
+      <p>
+        Estimation via <span class="tech">penalized maximum likelihood</span> with L<sub>2</sub> regularization.
+      </p>
+      <h3>Model Validation</h3>
+      <p>
+        Model validation uses three methods. The time-rescaled KS test transforms observed event times, which under the correct model should form Poisson process increments. Predictive log-likelihood evaluates holdout larvae for each experimental condition. Peri-stimulus time histograms compare model-predicted versus observed event rates around stimulus onsets.
+      </p>
+      <h3>Trajectory Simulation</h3>
+      <p>
+        Given a fitted hazard model, the simulation follows five steps: initialization samples starting position, orientation, and speed from empirical distributions; event generation samples the next event time from λ<sub>E</sub>(t) using a thinning algorithm; event execution handles turns by sampling new orientation, stops by pausing, and reversals by flipping direction; state update integrates position using forward Euler integration with current speed and orientation; the process repeats until reaching maximum simulation time.
       </p>
     </section>
 
@@ -525,21 +561,156 @@
       <p>
         <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
       </p>
+      <h3>Run Length Determination</h3>
+      <p>
+        The replication length follows Lab04 CI methodology. Target precision uses 10% relative half-width for mean turn rate, which means when the mean equals 5 turns per minute the confidence interval width stays below 0.5 turns per minute. A pilot study runs 10 replications to estimate variance. Required replications follow n ≥ (z<sub>α/2</sub>σ/E)² where E represents the desired half-width. When n > 30 the simulation uses that calculated value, while values n ≤ 30 default to 30 replications as the minimum standard.
+      </p>
     </section>
 
-    <section id="timeline" data-delay="400">
-      <h2>Timeline</h2>
-      <h3>Week 1: November 6-13</h3>
-      <p>Data preparation, feature extraction, hazard model fitting, validation checks.</p>
-      <h3>Week 2: November 13-20</h3>
-      <p>Simulation engine execution, DOE analysis, results synthesis, proposal/report updates.</p>
+    <section id="analysis" data-delay="400">
+      <h2>Analysis Plan</h2>
+      <h3>Data Preprocessing</h3>
+      <h4>Input Data Sources</h4>
+      <p>
+        The primary data source uses H5 files containing exported MAGAT experiment data in HDF5 format such as <code>GMR61_202509051201_tier1.h5</code>. These files contain trajectory positions, LED stimulus data, and metadata located in <code>/Users/gilraitses/mechanosensation/h5tests/</code> and processed using <code>scripts/engineer_dataset_from_h5.py</code>. Backup sources include trajectory CSVs, stimulus CSVs with frame-level LED values, and experimental metadata with experiment IDs, conditions, and replication numbers.
+      </p>
+      <h4>Feature Extraction</h4>
+      <p>
+        Feature extraction involves two steps. Step 1 extracts from H5 files using <code>engineer_dataset_from_h5.py</code>, creating event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics. Step 2 implements feature engineering for each larva trajectory, extracting positions and computing derived features including speed, heading, and heading change. The process time-aligns with stimulus data, creates time bins, and generates stimulus kernel features.
+      </p>
+      <h4>Model Fitting Pipeline</h4>
+      <p>
+        The model fitting pipeline consists of five steps: event detection identifies turn starts, stop starts, and reversal starts from trajectory data; feature matrix construction creates an N × P matrix where N equals total time bins across all larvae and P equals the number of features; GLM fitting uses scikit-learn or statsmodels for Poisson GLM; cross-validation applies leave-one-larva-out CV to assess generalization; kernel visualization plots the fitted kernel to interpret temporal response.
+      </p>
+      <h3>Simulation and DOE Execution</h3>
+      <h4>Simulation Engine</h4>
+      <p>
+        The simulation engine implements a LarvalTrajectorySimulator class that initializes with hazard model, speed distribution, and arena bounds. The simulate method takes stimulus schedule, maximum time, and random seed as inputs. It initializes state with starting position, orientation, and speed, then enters a loop that computes current hazard, samples next event time using a thinning algorithm, executes the event (turn, stop, or reverse), updates position using forward Euler integration, and continues until reaching maximum simulation time.
+      </p>
+      <h4>DOE Execution</h4>
+      <p>
+        For each of 45 conditions, the DOE execution runs a loop over replications. It sets the stimulus schedule from condition parameters (intensity, pulse duration, inter-pulse interval), simulates the trajectory with maximum time of 300 seconds, computes KPIs from the trajectory, and stores results. Finally, it exports to Arena-style CSV format.
+      </p>
+      <h3>Statistical Analysis</h3>
+      <h4>Performance Metrics Calculation</h4>
+      <p>
+        For each KPI and condition, the analysis calculates four statistics: the mean, standard deviation, 95% confidence interval using t-distribution, and minimum and maximum values.
+      </p>
+      <h4>Model Validation Metrics</h4>
+      <p>
+        Model validation uses four metrics: holdout log-likelihood compares results to a null model with constant hazard; the KS test p-value evaluates whether time-rescaled event times follow a uniform distribution; PSTH correlation compares model-predicted versus observed peri-stimulus histograms; trajectory-level statistics compare simulated versus empirical distributions of KPIs.
+      </p>
     </section>
 
-    <section id="conclusion" data-delay="500">
+    <section id="deliverables" data-delay="500">
+      <h2>Expected Deliverables</h2>
+      <h3>Report Components</h3>
+      <p>
+        The report includes six components: model specification covers mathematical formulation, kernel design, and estimation procedure; data description presents dataset characteristics, preprocessing steps, and feature engineering; model fitting results show fitted kernels, coefficients, and validation metrics; DOE results include AcrossReplicationsSummary tables, main effects, and interaction plots; simulation validation compares simulated versus empirical KPIs; confidence intervals explain CI construction methodology and run length justification.
+      </p>
+      <h3>Supporting Files</h3>
+      <p>
+        Supporting files include four categories: model code consists of Python scripts for fitting (<code>fit_hazard_model.py</code>), simulation (<code>simulate_trajectories.py</code>), and DOE execution (<code>run_doe.py</code>); data exports produce Arena-style CSV files including AcrossReplicationsSummary, ContinuousTimeStatsByRep, and DiscreteTimeStatsByRep; the DOE table stores 45 conditions and factor levels in <code>doe_table.csv</code>; configuration uses <code>config.json</code> for model parameters, simulation settings, and CI targets.
+      </p>
+      <h3>Format Requirements</h3>
+      <p>
+        Format requirements include four elements: the Quarto report uses <code>TermProject_Report.qmd</code> rendering to PDF; style matches Lab01 and Lab02 formatting with Avenir Next body text, Didot headings, and technical terminology; figures include kernel plots, PSTHs, KPI comparisons, and interaction plots; tables include the DOE table, AcrossReplicationsSummary, and model coefficients.
+      </p>
+    </section>
+
+    <section id="timeline" data-delay="600">
+      <h2>Timeline and Milestones</h2>
+      <h3>Week 1: November 6-13 (Data, Model Development, and Fitting)</h3>
+      <p>
+        Week 1 covers data preparation, model development, and initial model fitting. The week loads and inspects trajectory and stimulus data, implements the feature extraction pipeline, and computes empirical KPIs for baseline conditions. It implements temporal kernel basis functions, builds the GLM fitting pipeline, and fits a baseline model with constant hazard. The week fits stimulus-locked hazard models for turns, stops, and reversals, performs cross-validation and hyperparameter tuning, and validates models using KS tests and PSTH comparisons. Deliverables include a data exploration notebook, baseline statistics, fitted models, and a validation report.
+      </p>
+      <h3>Week 2: November 13-20 (Simulation, DOE, and Report)</h3>
+      <p>
+        Week 2 covers simulation development, DOE execution, and report completion. The week implements the trajectory simulator, tests on simple stimulus schedules, and validates that simulated KPIs match empirical values for known conditions. It runs the full factorial design with 45 conditions and 30 replications per condition, generates AcrossReplicationsSummary CSVs, computes confidence intervals, and analyzes main effects and interactions. The week writes the Quarto report with all sections, generates figures and tables, and performs final model validation against holdout data. Deliverables include a working simulator, complete DOE results and summary tables, and the final report PDF with supporting code and data.
+      </p>
+    </section>
+
+    <section id="risks" data-delay="700">
+      <h2>Risk Assessment and Mitigation</h2>
+      <h3>Technical Risks</h3>
+      <p>
+        Temporal alignment between stimulus and behavior data could be inaccurate. Mitigation uses validated synchronization methods through MAGAT addTonToff, implements unit tests for alignment, and visually inspects PSTHs for timing errors.
+      </p>
+      <p>
+        The model could overfit to training data with a complex kernel. Mitigation uses cross-validation, applies L2 regularization, limits kernel complexity by reducing basis functions, and compares AIC/BIC across models.
+      </p>
+      <p>
+        Individual heterogeneity could violate the exchangeability assumption. Mitigation includes larva-specific random effects when needed, stratifies analysis by experimental batch, and uses hierarchical models when time permits.
+      </p>
+      <p>
+        Simulation might not capture spatial constraints such as wall interactions. Mitigation includes wall distance in the feature vector, implements boundary conditions in the simulator, and validates that spatial distributions match empirical data.
+      </p>
+      <h3>Data Risks</h3>
+      <p>
+        Some experimental conditions might have insufficient data. Mitigation pools similar conditions, uses data augmentation through bootstrap resampling, and reports sample sizes per condition.
+      </p>
+      <p>
+        Trajectory segments could be missing or corrupted. Mitigation implements robust data validation, excludes problematic trajectories, and reports exclusion criteria in methods.
+      </p>
+      <h3>Timeline Risks</h3>
+      <p>
+        Model fitting could take longer than expected. Mitigation starts with a simplified model using fewer features, uses existing GLM libraries, and parallelizes over larvae when needed.
+      </p>
+      <p>
+        Simulation could be computationally expensive for 1,350 total runs across 45 conditions with 30 replications each. Mitigation optimizes simulation code, runs overnight batches, uses cloud computing when needed, and reduces replications if CI targets are still met.
+      </p>
+    </section>
+
+    <section id="success" data-delay="800">
+      <h2>Success Criteria</h2>
+      <h3>Model Performance Targets</h3>
+      <p>
+        Model performance targets include three criteria: predictive accuracy requires holdout log-likelihood improvement of at least 20% over the null model; temporal fidelity requires a KS test p-value greater than 0.05, which indicates the model is not rejected; kernel interpretability requires the fitted kernel to show biologically plausible latency with peak response between 0.5 and 2 seconds.
+      </p>
+      <h3>Simulation Validation Targets</h3>
+      <p>
+        Simulation validation targets include three criteria: KPI accuracy requires simulated mean turn rates to fall within the 95% CI of empirical values for baseline conditions; distribution match requires simulated KPI distributions to pass a two-sample KS test versus empirical distributions with p-value greater than 0.05; DOE consistency requires main effects to show expected signs such as higher intensity producing higher turn rate.
+      </p>
+      <h3>Deliverable Quality Targets</h3>
+      <p>
+        Deliverable quality targets include three criteria: report completeness requires all sections present with clear figures and tables and reproducible methods; code quality requires well-documented scripts, configuration files, and unit tests where feasible; data format requires CSVs to match Arena output format and remain readable by standard tools.
+      </p>
+    </section>
+
+    <section id="conclusion" data-delay="900">
       <h2>Conclusion</h2>
       <p>
         This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, which show how simulation principles extend from manufacturing systems to biological processes.
       </p>
+    </section>
+
+    <section id="appendix" data-delay="1000">
+      <h2>Appendix</h2>
+      <h3>Data Sources</h3>
+      <ul>
+        <li><strong>Primary H5 Files</strong>: <code>/Users/gilraitses/mechanosensation/h5tests/</code>
+          <ul>
+            <li><code>GMR61_202509051201_tier1.h5</code> (16 MB): Complete experiment with tracks and LED data</li>
+            <li><code>GMR61_tier2_complete.h5</code> (83 MB): Full tier2 export with contours</li>
+            <li><code>GMR61_202509051201_tier3.h5</code> (701 KB): Tier3 export with FID data</li>
+          </ul>
+        </li>
+        <li><strong>Backup CSV Data</strong>: <code>/Users/gilraitses/mechanosensation/output/spatial_analysis/</code></li>
+        <li><strong>Stimulus Data</strong>: <code>/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv</code> when needed</li>
+        <li><strong>Experimental Metadata</strong>: Experiment IDs embedded in H5 metadata or trajectory CSVs</li>
+      </ul>
+      <h3>Model Implementation References</h3>
+      <ul>
+        <li><strong>Survival Analysis</strong>: Collett (2015) <em>Modelling Survival Data in Medical Research</em></li>
+        <li><strong>Point Process GLMs</strong>: Berman & Turner (1992) "Approximating point process likelihoods with GLIM"</li>
+        <li><strong>Temporal Kernels</strong>: Pillow et al. (2008) "Spatio-temporal correlations and visual signalling"</li>
+      </ul>
+      <h3>Software Tools</h3>
+      <ul>
+        <li><strong>Python</strong>: scikit-learn, statsmodels, numpy, pandas for modeling</li>
+        <li><strong>R</strong>: ggplot2, knitr, kableExtra for report generation</li>
+        <li><strong>MATLAB</strong>: MAGAT API for data loading when needed</li>
+      </ul>
     </section>
   </div>
 
@@ -580,7 +751,7 @@
     scene.add(foregroundGroup);
 
     camera.position.setZ(30);
-    scene.fog = new THREE.FogExp2(0xFFF9F3, 0.005); // cinnamoroll-cream with lighter fog
+    scene.fog = new THREE.FogExp2(0xFFF9F3, 0.005);
 
     // Initialize Drosophila larvae background
     function initDrosophilaBackground() {
@@ -605,7 +776,7 @@
         const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
         const larvaMaterial = new THREE.LineBasicMaterial({
-          color: 0x5F4A3F, // cinnamoroll-brown
+          color: 0x5F4A3F,
           linewidth: 3,
           opacity: 0.85,
           transparent: true
@@ -613,7 +784,7 @@
 
         const larva = new THREE.Line(larvaGeometry, larvaMaterial);
 
-        const glowLight = new THREE.PointLight(0xFFE5D9, 0.5, 1); // cinnamoroll-peach
+        const glowLight = new THREE.PointLight(0xFFE5D9, 0.5, 1);
         glowLight.position.set(larvaLength/2, 0, 0);
         larva.add(glowLight);
 
@@ -639,7 +810,7 @@
           size: 0.3 + Math.random() * 0.2,
           trajectoryPoints: [],
           trajectoryColor: new THREE.Color(
-            (0xB4 + Math.random() * 0x23) / 255, // light-blue range
+            (0xB4 + Math.random() * 0x23) / 255,
             (0xD7 + Math.random() * 0x28) / 255,
             (0xEC + Math.random() * 0x13) / 255
           ),
@@ -763,8 +934,8 @@
     function createNeuralNetwork() {
       const group = new THREE.Group();
       const nodeMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8AB4D3, // cinnamoroll-blue
-        emissive: 0xB4D7EC, // cinnamoroll-light-blue
+        color: 0x8AB4D3,
+        emissive: 0xB4D7EC,
         emissiveIntensity: 0.8,
         metalness: 0.9,
         roughness: 0.1
@@ -773,7 +944,7 @@
       const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
       const nodes = [];
       const connectionMaterial = new THREE.LineBasicMaterial({
-        color: 0x8AB4D3, // cinnamoroll-blue
+        color: 0x8AB4D3,
         transparent: true,
         opacity: 0.5
       });
@@ -806,7 +977,7 @@
           pulsePhase: Math.random() * Math.PI * 2
         };
 
-        const nodeLight = new THREE.PointLight(0x8AB4D3, 0.5, 3); // cinnamoroll-blue
+        const nodeLight = new THREE.PointLight(0x8AB4D3, 0.5, 3);
         nodeLight.position.set(0, 0, 0);
         node.add(nodeLight);
         node.userData.light = nodeLight;
@@ -836,9 +1007,9 @@
         }
       }
 
-      const ambientLight = new THREE.AmbientLight(0xB4D7EC, 0.6); // cinnamoroll-light-blue
+      const ambientLight = new THREE.AmbientLight(0xB4D7EC, 0.6);
       group.add(ambientLight);
-      const light = new THREE.PointLight(0xFFF9F3, 1, 100); // cinnamoroll-cream
+      const light = new THREE.PointLight(0xFFF9F3, 1, 100);
       light.position.set(0, 0, 20);
       group.add(light);
 
@@ -864,8 +1035,7 @@
               const intensity = node.userData.flashIntensity || 1.5;
               node.material.emissiveIntensity = intensity;
               node.scale.set(1.5, 1.5, 1.5);
-              // Use Cinnamoroll colors for flashing
-              const colors = [0xB4D7EC, 0xE8D7F1, 0xF5D4D8, 0xFFE5D9]; // light-blue, lavender, pink, peach
+              const colors = [0xB4D7EC, 0xE8D7F1, 0xF5D4D8, 0xFFE5D9];
               const randomColor = colors[Math.floor(Math.random() * colors.length)];
               const color = new THREE.Color(randomColor);
               node.material.emissive.set(color);
@@ -890,8 +1060,8 @@
                 node.userData.active = false;
                 node.userData.flashTimer = 0;
                 node.material.emissiveIntensity = 0.8;
-                node.material.emissive.set(0xB4D7EC); // cinnamoroll-light-blue
-                node.material.color.set(0x8AB4D3); // cinnamoroll-blue
+                node.material.emissive.set(0xB4D7EC);
+                node.material.color.set(0x8AB4D3);
                 if (node.userData.light) {
                   node.userData.light.color.set(0x8AB4D3);
                   node.userData.light.intensity = 0.5;
@@ -921,7 +1091,7 @@
               line.userData.flashTimer++;
               if (line.userData.flashTimer > (line.userData.flashDuration || 20)) {
                 line.userData.flashActive = false;
-                line.material.color.set(0x8AB4D3); // cinnamoroll-blue
+                line.material.color.set(0x8AB4D3);
                 line.material.opacity = 0.5;
               } else {
                 const progress = line.userData.flashTimer / (line.userData.flashDuration || 20);
