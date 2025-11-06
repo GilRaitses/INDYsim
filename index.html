@@ -411,34 +411,6 @@
       border-top: 4px solid var(--cinnamoroll-pink);
     }
 
-    .keyboard-hint {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(44, 74, 95, 0.8);
-      color: var(--cinnamoroll-cream);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      z-index: 1000;
-      opacity: 0.7;
-      transition: opacity 0.3s;
-      border: 1px solid var(--cinnamoroll-pink);
-    }
-
-    .keyboard-hint:hover {
-      opacity: 1;
-    }
-
-    .key {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 3px;
-      padding: 2px 6px;
-      margin: 0 2px;
-      font-family: monospace;
-    }
 
     @media (max-width: 768px) {
       h1 {
@@ -453,9 +425,6 @@
         min-height: 250px;
       }
 
-      .keyboard-hint {
-        display: none;
-      }
 
       .pdf-download {
         bottom: 15px;
@@ -478,10 +447,6 @@
   <!-- Floating pink clouds -->
   <div id="floating-clouds"></div>
 
-  <!-- Keyboard hint -->
-  <div class="keyboard-hint">
-    Rotate: <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
-  </div>
 
   <header>
     <h1>Interface Dynamics Simulation</h1>
