@@ -1,528 +1,1053 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INDYsim: Stimulus-Driven Behavioral Modeling of Drosophila Larvae</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INDYsim: Stimulus-Driven Behavioral Modeling of Drosophila Larvae</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Event-hazard modeling framework for Drosophila larval behavior using stimulus-locked temporal kernels and design of experiments.">
+  <meta name="keywords" content="INDYsim, Drosophila larvae, behavioral modeling, event-hazard, simulation, ECS630">
+  <meta name="author" content="Gil Raitses">
+  
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="INDYsim: Stimulus-Driven Behavioral Modeling">
+  <meta property="og:description" content="Event-hazard modeling framework for Drosophila larval behavior.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gilraitses.github.io/INDYsim/">
+  
+  <!-- Accessibility & Device Compatibility -->
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="color-scheme" content="dark">
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --text-color: #e0e0e0;
+      --primary-color: #4a9eff;
+      --secondary-color: #7ab8ff;
+      --content-bg: rgba(30, 30, 30, 0.85);
+      --header-footer-bg: rgba(20, 20, 20, 0.9);
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --transition-speed: 0.3s;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Avenir Next', sans-serif;
-            color: #e0e0e0;
-            background: #0a0a0a;
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.001s !important;
+        animation-duration: 0.001s !important;
+      }
+      .content:hover, .section:hover, .kpi-card:hover {
+        transform: none !important;
+      }
+    }
 
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.4;
-        }
+    * {
+      box-sizing: border-box;
+      transition: background-color var(--transition-speed), color var(--transition-speed);
+    }
 
-        .content {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        header {
-            text-align: center;
-            margin-bottom: 4rem;
-            padding: 3rem 0;
-        }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Avenir Next', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      overflow-x: hidden;
+      background-color: var(--bg-color);
+    }
 
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 300;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            color: #ffffff;
-            font-family: 'Didot', 'Georgia', serif;
-        }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
 
-        .subtitle {
-            font-size: 1.3rem;
-            color: #b0b0b0;
-            font-weight: 300;
-            margin-top: 0.5rem;
-        }
+    #larvae-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      pointer-events: none;
+    }
 
-        .abstract {
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 3px solid #4a9eff;
-            padding: 2rem;
-            margin: 3rem 0;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-        }
+    header {
+      background: var(--header-footer-bg);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
 
-        .abstract p {
-            color: #d0d0d0;
-            font-size: 1.1rem;
-            line-height: 1.8;
-        }
+    h1 {
+      margin: 0;
+      font-size: 3.5rem;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      font-family: 'Didot', 'Georgia', serif;
+      position: relative;
+      display: inline-block;
+    }
 
-        section {
-            margin: 4rem 0;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
+    h1::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 3px;
+      bottom: -5px;
+      left: 50%;
+      background-color: var(--primary-color);
+      transition: all 0.5s ease;
+    }
 
-        h2 {
-            font-size: 2.2rem;
-            font-weight: 300;
-            margin-bottom: 1.5rem;
-            color: #ffffff;
-            font-family: 'Didot', 'Georgia', serif;
-            border-bottom: 2px solid rgba(74, 158, 255, 0.3);
-            padding-bottom: 0.5rem;
-        }
+    h1:hover::after {
+      width: 100%;
+      left: 0;
+    }
 
-        h3 {
-            font-size: 1.6rem;
-            font-weight: 400;
-            margin: 2rem 0 1rem;
-            color: #e8e8e8;
-            font-family: 'Didot', 'Georgia', serif;
-        }
+    .subtitle {
+      font-size: 1.3rem;
+      color: #b0b0b0;
+      font-weight: 300;
+      margin-top: 0.5rem;
+    }
 
-        p {
-            margin: 1rem 0;
-            color: #c0c0c0;
-            font-size: 1rem;
-        }
+    .content {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: var(--content-bg);
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
 
-        .tech {
-            color: #4a9eff;
-            font-weight: 500;
-        }
+    section {
+      margin-bottom: 3rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 2rem 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            overflow: hidden;
-        }
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-        th {
-            background: rgba(74, 158, 255, 0.2);
-            padding: 1rem;
-            text-align: left;
-            color: #ffffff;
-            font-weight: 500;
-        }
+    h2 {
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 0.5rem;
+      font-size: 2.2rem;
+      font-weight: 300;
+      font-family: 'Didot', 'Georgia', serif;
+      margin-bottom: 1.5rem;
+    }
 
-        td {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: #d0d0d0;
-        }
+    h3 {
+      font-size: 1.6rem;
+      font-weight: 400;
+      margin: 2rem 0 1rem;
+      color: #e8e8e8;
+      font-family: 'Didot', 'Georgia', serif;
+    }
 
-        tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
+    p {
+      margin: 1rem 0;
+      color: #c0c0c0;
+      font-size: 1rem;
+      line-height: 1.8;
+    }
 
-        code {
-            background: rgba(74, 158, 255, 0.15);
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            color: #7ab8ff;
-            font-size: 0.9em;
-        }
+    .tech {
+      color: var(--primary-color);
+      font-weight: 500;
+    }
 
-        pre {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 1.5rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            border: 1px solid rgba(74, 158, 255, 0.2);
-        }
+    .abstract {
+      background: rgba(74, 158, 255, 0.1);
+      border-left: 3px solid var(--primary-color);
+      padding: 2rem;
+      margin: 3rem 0;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
 
-        pre code {
-            background: none;
-            padding: 0;
-        }
+    .abstract p {
+      color: #d0d0d0;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
 
-        .controls {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: #888;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+    }
 
-        .controls kbd {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.2em 0.4em;
-            border-radius: 3px;
-            font-family: monospace;
-        }
+    th {
+      background: rgba(74, 158, 255, 0.2);
+      padding: 1rem;
+      text-align: left;
+      color: #ffffff;
+      font-weight: 500;
+    }
 
-        a {
-            color: #4a9eff;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #d0d0d0;
+    }
 
-        a:hover {
-            color: #7ab8ff;
-        }
+    tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
 
-        .kpi-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid rgba(74, 158, 255, 0.2);
-        }
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      transition: all 0.3s ease;
+    }
 
-        .kpi-card h4 {
-            color: #4a9eff;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
+    .kpi-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary-color);
+    }
 
-        .kpi-card p {
-            color: #b0b0b0;
-            font-size: 0.9rem;
-            margin: 0;
-        }
+    .kpi-card h4 {
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-            .content {
-                padding: 2rem 1rem;
-            }
-            .controls {
-                display: none;
-            }
-        }
-    </style>
+    .kpi-card p {
+      color: #b0b0b0;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    code {
+      background: rgba(74, 158, 255, 0.15);
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      color: #7ab8ff;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid rgba(74, 158, 255, 0.2);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .keyboard-controls-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .keyboard-controls-hint:hover {
+      opacity: 1;
+    }
+
+    .key {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 3px;
+      padding: 2px 6px;
+      margin: 0 2px;
+      font-family: monospace;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: white;
+      padding: 2rem 0;
+      background: var(--header-footer-bg);
+      backdrop-filter: blur(10px);
+      margin-top: 4rem;
+    }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    a:hover {
+      color: var(--secondary-color);
+    }
+
+    .math-display {
+      text-align: center;
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      font-size: 1.1rem;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        font-size: 14px;
+      }
+      
+      h1 {
+        font-size: 2.5rem;
+      }
+      
+      .content {
+        margin: 1rem auto;
+        padding: 1rem;
+        width: 95%;
+      }
+      
+      .keyboard-controls-hint {
+        display: none;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div id="canvas-container"></div>
-    
-    <div class="content">
-        <header>
-            <h1>INDYsim</h1>
-            <div class="subtitle">Stimulus-Driven Behavioral Modeling of Drosophila Larvae</div>
-            <div class="subtitle" style="font-size: 1rem; margin-top: 0.5rem; color: #888;">
-                Event-Hazard Modeling of Turn Initiation and Trajectory Simulation
-            </div>
-        </header>
+  <!-- Background canvas elements -->
+  <canvas id="bg" width="2939" height="1425" style="width: 1633px; height: 792px;"></canvas>
+  <div id="larvae-background"></div>
 
-        <div class="abstract">
-            <p>
-                <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed, orientation, and wall proximity. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. <span class="tech">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class="tech">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data.
-            </p>
+  <div class="keyboard-controls-hint">
+    <span>Rotate:</span>
+    <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
+  </div>
+
+  <header>
+    <h1>INDYsim</h1>
+    <div class="subtitle">Stimulus-Driven Behavioral Modeling of Drosophila Larvae</div>
+    <div class="subtitle" style="font-size: 1rem; margin-top: 0.5rem; color: #888;">
+      Event-Hazard Modeling of Turn Initiation and Trajectory Simulation
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="abstract">
+      <p>
+        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed, orientation, and wall proximity. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. <span class="tech">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class="tech">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data.
+      </p>
+    </div>
+
+    <section id="introduction" class="visible" data-delay="0">
+      <h2>Introduction</h2>
+      <p>
+        This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses existing trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events including turns, stops, and reversals conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>. The model simulates trajectories under different <span class="tech">experimental conditions</span> specified through a <span class="tech">design of experiments</span> framework, which produces behavioral metrics comparable to empirical observations.
+      </p>
+      <p>
+        The project connects simulation modeling methods from <span class="tech">ECS630</span> with biological data analysis. <span class="tech">Discrete-event simulation principles</span> apply to <span class="tech">behavioral systems</span> where events occur stochastically as functions of external stimuli and internal state. Results use <span class="tech">Arena-style summary statistics</span> including <span class="tech">across-replications summaries</span>, <span class="tech">confidence intervals</span>, and <span class="tech">performance metrics</span> analogous to manufacturing system analysis.
+      </p>
+    </section>
+
+    <section id="problem" data-delay="100">
+      <h2>Problem Statement</h2>
+      <h3>Research Question</h3>
+      <p>
+        How can <span class="tech">larval behavioral responses</span> to <span class="tech">time-varying LED stimuli</span> be modeled using <span class="tech">event-hazard methods</span> to predict <span class="tech">turn initiation rates</span>, <span class="tech">behavioral state transitions</span>, and <span class="tech">trajectory-level statistics</span>?
+      </p>
+      <h3>Dataset Characteristics</h3>
+      <p>
+        The mechanosensation dataset contains trajectory data, stimulus data, experimental conditions, and sample size information. Trajectory data includes individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings). Stimulus data consists of LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities (0-100% LED power), pulse frequencies, and temporal patterns. Sample size includes 40+ larvae per condition with multiple replications per experimental condition.
+      </p>
+      <h3>Modeling Challenge</h3>
+      <p>
+        Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history including adaptation/habituation, and pulse timing), contextual features (current speed, orientation relative to stimulus source, and distance to arena walls), and individual heterogeneity (larva-to-larva variation in baseline activity and sensitivity). Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
+      </p>
+    </section>
+
+    <section id="methodology" data-delay="200">
+      <h2>Proposed Methodology</h2>
+      <h3>Core Model: Stimulus-Locked Event-Hazard GLM</h3>
+      <p>
+        For each behavioral event type <em>E</em> ∈ {turn, stop, reverse}, define the time-varying hazard rate:
+      </p>
+      <div class="math-display">
+        λ<sub>E</sub>(t) = exp{β<sub>0,E</sub> + φ<sub>E</sub><sup>T</sup>[s ⋆ κ](t) + x(t)<sup>T</sup>β<sub>E</sub>}
+      </div>
+      <p>
+        where β<sub>0,E</sub> represents the baseline log-hazard for event type <em>E</em>, <em>s</em>(t) is the stimulus feature vector (intensity, on/off state, recent history), κ is the temporal kernel (basis expansion capturing latency and adaptation), [s ⋆ κ](t) is the convolution of stimulus with kernel (stimulus history features), x(t) represents contextual features (speed, orientation, wall distance), and β<sub>E</sub> are the feature coefficients.
+      </p>
+      <h3>Temporal Kernel Design</h3>
+      <p>
+        The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any).
+      </p>
+      <div class="math-display">
+        κ(τ) = Σ<sub>j=1</sub><sup>J</sup> w<sub>j</sub> cos²(π(τ - τ<sub>j</sub>)/(2Δτ)) 1<sub>[τ<sub>j</sub>-Δτ, τ<sub>j</sub>+Δτ]</sub>(τ)
+      </div>
+      <p>
+        with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
+      </p>
+    </section>
+
+    <section id="doe" data-delay="300">
+      <h2>Design of Experiments</h2>
+      <h3>Factors and Levels</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>Levels</th>
+            <th>Description</th>
+            <th>Units</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Stimulus Intensity</td>
+            <td>3 (PWM 250, 500, 1000)</td>
+            <td>Threshold, moderate, and high stimulus levels</td>
+            <td>PWM percentage</td>
+          </tr>
+          <tr>
+            <td>Pulse Duration</td>
+            <td>5 (10s, 15s, 20s, 25s, 30s)</td>
+            <td>Short to extended stimulus presentations</td>
+            <td>Seconds</td>
+          </tr>
+          <tr>
+            <td>Inter-Pulse Interval</td>
+            <td>3 (5s, 10s, 20s)</td>
+            <td>Rapid, moderate, and spaced stimulus timing</td>
+            <td>Seconds</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Response Variables (KPIs)</h3>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <h4>Turn Rate</h4>
+          <p>Reorientations per minute</p>
         </div>
+        <div class="kpi-card">
+          <h4>Latency to First Turn</h4>
+          <p>Time from stimulus onset to first turn (seconds)</p>
+        </div>
+        <div class="kpi-card">
+          <h4>Stop Fraction</h4>
+          <p>Proportion of time spent stopped</p>
+        </div>
+        <div class="kpi-card">
+          <h4>Pause Rate</h4>
+          <p>Pauses per minute</p>
+        </div>
+        <div class="kpi-card">
+          <h4>Path Tortuosity</h4>
+          <p>Net displacement / path length</p>
+        </div>
+        <div class="kpi-card">
+          <h4>Spatial Dispersal</h4>
+          <p>Mean distance from starting position (pixels)</p>
+        </div>
+        <div class="kpi-card">
+          <h4>Mean Spine Curve Energy</h4>
+          <p>Average curvature energy along body axis</p>
+        </div>
+      </div>
+      <h3>Experimental Design</h3>
+      <p>
+        <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
+      </p>
+    </section>
 
-        <section id="introduction">
-            <h2>Introduction</h2>
-            <p>
-                This term project develops a <span class="tech">stimulus-response modeling framework</span> for <span class="tech">Drosophila larval behavior</span> using <span class="tech">event-hazard methods</span> from <span class="tech">survival analysis</span> and <span class="tech">generalized linear models</span>. The project uses existing trajectory data from mechanosensation experiments to estimate time-varying hazard rates for behavioral events including turns, stops, and reversals conditioned on <span class="tech">LED stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span>. The model simulates trajectories under different <span class="tech">experimental conditions</span> specified through a <span class="tech">design of experiments</span> framework, which produces behavioral metrics comparable to empirical observations.
-            </p>
-            <p>
-                The project connects simulation modeling methods from <span class="tech">ECS630</span> with biological data analysis. <span class="tech">Discrete-event simulation principles</span> apply to <span class="tech">behavioral systems</span> where events occur stochastically as functions of external stimuli and internal state. Results use <span class="tech">Arena-style summary statistics</span> including <span class="tech">across-replications summaries</span>, <span class="tech">confidence intervals</span>, and <span class="tech">performance metrics</span> analogous to manufacturing system analysis.
-            </p>
-        </section>
+    <section id="timeline" data-delay="400">
+      <h2>Timeline</h2>
+      <h3>Week 1: November 6-13</h3>
+      <p>Data preparation, feature extraction, hazard model fitting, validation checks.</p>
+      <h3>Week 2: November 13-20</h3>
+      <p>Simulation engine execution, DOE analysis, results synthesis, proposal/report updates.</p>
+    </section>
 
-        <section id="problem">
-            <h2>Problem Statement</h2>
-            <h3>Research Question</h3>
-            <p>
-                How can <span class="tech">larval behavioral responses</span> to <span class="tech">time-varying LED stimuli</span> be modeled using <span class="tech">event-hazard methods</span> to predict <span class="tech">turn initiation rates</span>, <span class="tech">behavioral state transitions</span>, and <span class="tech">trajectory-level statistics</span>?
-            </p>
-            <h3>Dataset Characteristics</h3>
-            <p>
-                The mechanosensation dataset contains trajectory data, stimulus data, experimental conditions, and sample size information. Trajectory data includes individual larval tracks with position coordinates, speeds, orientations, and behavioral events (runs, reorientations, head swings). Stimulus data consists of LED intensity values synchronized to video frames, with stimulus onset times, pulse durations, and inter-pulse intervals. Experimental conditions span multiple experiments with varying stimulus intensities (0-100% LED power), pulse frequencies, and temporal patterns. Sample size includes 40+ larvae per condition with multiple replications per experimental condition.
-            </p>
-            <h3>Modeling Challenge</h3>
-            <p>
-                Behavioral events occur stochastically with rates that depend on stimulus features (current intensity, recent history including adaptation/habituation, and pulse timing), contextual features (current speed, orientation relative to stimulus source, and distance to arena walls), and individual heterogeneity (larva-to-larva variation in baseline activity and sensitivity). Traditional approaches use simple rate averages or linear regressions. This project develops a <span class="tech">structured hazard model</span> that captures temporal dependencies and supports trajectory simulation.
-            </p>
-        </section>
+    <section id="conclusion" data-delay="500">
+      <h2>Conclusion</h2>
+      <p>
+        This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, which show how simulation principles extend from manufacturing systems to biological processes.
+      </p>
+    </section>
+  </div>
 
-        <section id="methodology">
-            <h2>Proposed Methodology</h2>
-            <h3>Core Model: Stimulus-Locked Event-Hazard GLM</h3>
-            <p>
-                For each behavioral event type <em>E</em> ∈ {turn, stop, reverse}, define the time-varying hazard rate:
-            </p>
-            <p style="text-align: center; margin: 2rem 0; font-size: 1.2rem;">
-                λ<sub>E</sub>(t) = exp{β<sub>0,E</sub> + φ<sub>E</sub><sup>T</sup>[s ⋆ κ](t) + x(t)<sup>T</sup>β<sub>E</sub>}
-            </p>
-            <p>
-                where β<sub>0,E</sub> represents the baseline log-hazard for event type <em>E</em>, <em>s</em>(t) is the stimulus feature vector (intensity, on/off state, recent history), κ is the temporal kernel (basis expansion capturing latency and adaptation), [s ⋆ κ](t) is the convolution of stimulus with kernel (stimulus history features), x(t) represents contextual features (speed, orientation, wall distance), and β<sub>E</sub> are the feature coefficients.
-            </p>
-            <h3>Temporal Kernel Design</h3>
-            <p>
-                The kernel κ(τ) captures latency effects (peak response at delay τ<sub>0</sub> ≈ 0.5-2 seconds), adaptation (decay over longer delays with τ > 5 seconds), and anticipation (pre-stimulus effects, if any).
-            </p>
-            <p style="text-align: center; margin: 2rem 0; font-size: 1.1rem;">
-                κ(τ) = Σ<sub>j=1</sub><sup>J</sup> w<sub>j</sub> cos²(π(τ - τ<sub>j</sub>)/(2Δτ)) 1<sub>[τ<sub>j</sub>-Δτ, τ<sub>j</sub>+Δτ]</sub>(τ)
-            </p>
-            <p>
-                with knots τ<sub>j</sub> spanning [-2, 20] seconds relative to stimulus onset.
-            </p>
-        </section>
+  <footer>
+    © 2025 Gil Raitses | ECS630 Term Project
+  </footer>
 
-        <section id="doe">
-            <h2>Design of Experiments</h2>
-            <h3>Factors and Levels</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Factor</th>
-                        <th>Levels</th>
-                        <th>Description</th>
-                        <th>Units</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Stimulus Intensity</td>
-                        <td>3 (PWM 250, 500, 1000)</td>
-                        <td>Threshold, moderate, and high stimulus levels</td>
-                        <td>PWM percentage</td>
-                    </tr>
-                    <tr>
-                        <td>Pulse Duration</td>
-                        <td>5 (10s, 15s, 20s, 25s, 30s)</td>
-                        <td>Short to extended stimulus presentations</td>
-                        <td>Seconds</td>
-                    </tr>
-                    <tr>
-                        <td>Inter-Pulse Interval</td>
-                        <td>3 (5s, 10s, 20s)</td>
-                        <td>Rapid, moderate, and spaced stimulus timing</td>
-                        <td>Seconds</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3>Response Variables (KPIs)</h3>
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <h4>Turn Rate</h4>
-                    <p>Reorientations per minute</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Latency to First Turn</h4>
-                    <p>Time from stimulus onset to first turn (seconds)</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Stop Fraction</h4>
-                    <p>Proportion of time spent stopped</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Pause Rate</h4>
-                    <p>Pauses per minute</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Path Tortuosity</h4>
-                    <p>Net displacement / path length</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Spatial Dispersal</h4>
-                    <p>Mean distance from starting position (pixels)</p>
-                </div>
-                <div class="kpi-card">
-                    <h4>Mean Spine Curve Energy</h4>
-                    <p>Average curvature energy along body axis</p>
-                </div>
-            </div>
-            <h3>Experimental Design</h3>
-            <p>
-                <strong>Full factorial design</strong>: 3 × 5 × 3 = 45 conditions. For each condition, the simulation runs 30 replications (each representing one larva), records events and computes KPIs per replication, and generates <span class="tech">AcrossReplicationsSummary.csv</span> with means and confidence intervals.
-            </p>
-        </section>
+  <script>
+    // Global variables
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let neuralNetwork, larvae, backgroundGroup, foregroundGroup;
+    let cameraDistance = 30;
+    const minDistance = 15;
+    const maxDistance = 50;
+    let targetRotationX = 0;
+    let targetRotationY = 0;
+    let currentRotationX = 0;
+    let currentRotationY = 0;
+    let isDragging = false;
 
-        <section id="timeline">
-            <h2>Timeline</h2>
-            <h3>Week 1: November 6-13</h3>
-            <p>Data preparation, feature extraction, hazard model fitting, validation checks.</p>
-            <h3>Week 2: November 13-20</h3>
-            <p>Simulation engine execution, DOE analysis, results synthesis, proposal/report updates.</p>
-        </section>
+    // Three.js initialization
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: document.querySelector('#bg'),
+      antialias: true, 
+      alpha: true 
+    });
 
-        <section id="conclusion">
-            <h2>Conclusion</h2>
-            <p>
-                This project applies <span class="tech">simulation modeling methods</span> from <span class="tech">ECS630</span> to <span class="tech">biological behavioral data</span>, developing a <span class="tech">stimulus-response model</span> that simulates larval trajectories under different experimental conditions. The <span class="tech">event-hazard framework</span> models stochastic behavioral events, while the <span class="tech">DOE methodology</span> explores stimulus parameter space systematically. Results use <span class="tech">Arena-style statistics</span> including <span class="tech">confidence intervals</span> and <span class="tech">across-replications summaries</span>, which show how simulation principles extend from manufacturing systems to biological processes.
-            </p>
-        </section>
-    </div>
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    <div class="controls">
-        <div><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Rotate</div>
-        <div style="margin-top: 0.5rem;"><kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Rotate</div>
-    </div>
+    // Create rendering groups
+    backgroundGroup = new THREE.Group();
+    foregroundGroup = new THREE.Group();
+    scene.add(backgroundGroup);
+    scene.add(foregroundGroup);
 
-    <script>
-        // Three.js Scene Setup
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        container.appendChild(renderer.domElement);
+    camera.position.setZ(30);
+    scene.fog = new THREE.FogExp2(0x000000, 0.01);
 
-        camera.position.z = 5;
+    // Initialize Drosophila larvae background
+    function initDrosophilaBackground() {
+      const radius = 50;
+      const trajectoriesGroup = new THREE.Group();
+      backgroundGroup.add(trajectoriesGroup);
 
-        // Create neural network-like circular structure
-        const particles = [];
-        const particleCount = 200;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
+      const isMobile = window.innerWidth < 768;
+      const larvaeCount = isMobile ? 70 : 100;
+      const larvae = [];
 
-        for (let i = 0; i < particleCount; i++) {
-            const angle = (i / particleCount) * Math.PI * 2;
-            const radius = 2 + Math.random() * 1.5;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            const z = (Math.random() - 0.5) * 2;
+      for (let i = 0; i < larvaeCount; i++) {
+        const larvaLength = 0.8 + Math.random() * 0.4;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(larvaLength * 0.3, 0, 0),
+          new THREE.Vector3(larvaLength * 0.6, 0, 0),
+          new THREE.Vector3(larvaLength, 0, 0)
+        ]);
 
-            positions[i * 3] = x;
-            positions[i * 3 + 1] = y;
-            positions[i * 3 + 2] = z;
+        const points = curve.getPoints(20);
+        const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
-            const color = new THREE.Color();
-            color.setHSL(0.6 + Math.random() * 0.1, 0.8, 0.5 + Math.random() * 0.3);
-            colors[i * 3] = color.r;
-            colors[i * 3 + 1] = color.g;
-            colors[i * 3 + 2] = color.b;
-
-            particles.push({ x, y, z, angle, radius, speed: 0.001 + Math.random() * 0.002 });
-        }
-
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        const material = new THREE.PointsMaterial({
-            size: 0.05,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
+        const larvaMaterial = new THREE.LineBasicMaterial({
+          color: 0xdddddd,
+          linewidth: 3,
+          opacity: 0.85,
+          transparent: true
         });
 
-        const points = new THREE.Points(geometry, material);
-        scene.add(points);
+        const larva = new THREE.Line(larvaGeometry, larvaMaterial);
 
-        // Add connecting lines
-        const lineGeometry = new THREE.BufferGeometry();
-        const linePositions = [];
-        const lineCount = 300;
+        const glowLight = new THREE.PointLight(0xffffff, 0.5, 1);
+        glowLight.position.set(larvaLength/2, 0, 0);
+        larva.add(glowLight);
 
-        for (let i = 0; i < lineCount; i++) {
-            const p1 = Math.floor(Math.random() * particleCount);
-            const p2 = Math.floor(Math.random() * particleCount);
-            if (p1 !== p2) {
-                linePositions.push(
-                    positions[p1 * 3], positions[p1 * 3 + 1], positions[p1 * 3 + 2],
-                    positions[p2 * 3], positions[p2 * 3 + 1], positions[p2 * 3 + 2]
-                );
+        const phi = Math.acos(2 * Math.random() - 1);
+        const theta = Math.random() * Math.PI * 2;
+
+        larva.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        larva.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        larva.position.z = radius * Math.cos(phi);
+
+        larva.lookAt(0, 0, 0);
+        const randomRotation = Math.random() * Math.PI * 2;
+        larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
+
+        larva.userData = {
+          velocity: 0.02 + Math.random() * 0.03,
+          direction: randomRotation,
+          lastTurn: 0,
+          turnInterval: 20 + Math.random() * 40,
+          wigglePhase: Math.random() * Math.PI * 2,
+          wiggleFrequency: 0.2 + Math.random() * 0.3,
+          wiggleAmount: 0.05 + Math.random() * 0.1,
+          size: 0.3 + Math.random() * 0.2,
+          trajectoryPoints: [],
+          trajectoryColor: new THREE.Color(
+            0.7 + Math.random() * 0.3,
+            0.7 + Math.random() * 0.3,
+            0.7 + Math.random() * 0.3
+          ),
+          lastTrajectoryUpdate: 0,
+          trajectoryUpdateInterval: 3,
+          isHeadcasting: false,
+          headcastTimer: 0,
+          headcastInterval: 100 + Math.random() * 200,
+          headcastDuration: 0,
+          headcastMaxDuration: 0,
+          originalRadius: radius,
+          phi: phi,
+          theta: theta
+        };
+
+        larva.scale.set(larva.userData.size, larva.userData.size, larva.userData.size);
+        backgroundGroup.add(larva);
+        larvae.push(larva);
+      }
+
+      return larvae;
+    }
+
+    // Update larvae positions
+    function updateLarvae(larvae, deltaTime) {
+      if (!Array.isArray(larvae) || larvae.length === 0) return;
+      const trajectoriesGroup = backgroundGroup.children.find(child => child.isGroup);
+      if (!trajectoriesGroup) return;
+
+      larvae.forEach(larva => {
+        const ud = larva.userData;
+        if (!ud) return;
+
+        if (ud.headcastTimer) ud.headcastTimer++;
+        if (!ud.isHeadcasting && ud.headcastTimer > ud.headcastInterval) {
+          ud.isHeadcasting = true;
+          ud.headcastTimer = 0;
+          ud.headcastDuration = 0;
+          ud.headcastMaxDuration = 20 + Math.floor(Math.random() * 30);
+          ud.originalVelocity = ud.velocity;
+          ud.velocity = 0;
+        }
+
+        if (ud.isHeadcasting) {
+          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.5;
+          ud.headcastDuration++;
+          if (ud.headcastDuration > ud.headcastMaxDuration) {
+            ud.isHeadcasting = false;
+            ud.headcastTimer = 0;
+            ud.velocity = ud.originalVelocity;
+            if (ud.direction) ud.direction += (Math.random() * 2 - 1) * Math.PI * 0.7;
+          }
+        } else if (ud.wigglePhase !== undefined) {
+          ud.wigglePhase += ud.wiggleFrequency || 0.2;
+          if (ud.lastTurn !== undefined) {
+            ud.lastTurn += 1;
+            if (ud.turnInterval && ud.lastTurn > ud.turnInterval) {
+              ud.direction += (Math.random() - 0.5) * Math.PI;
+              ud.lastTurn = 0;
+              ud.turnInterval = 20 + Math.random() * 40;
             }
+          }
+          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.1;
+          const wiggleDirection = ud.direction + (ud.wiggleAmount ? Math.sin(ud.wigglePhase) * ud.wiggleAmount : 0);
+
+          if (ud.velocity && wiggleDirection !== undefined && ud.phi !== undefined && ud.theta !== undefined) {
+            ud.phi += Math.sin(wiggleDirection) * ud.velocity * 0.01;
+            ud.theta += Math.cos(wiggleDirection) * ud.velocity * 0.01;
+            ud.phi = Math.max(0.1, Math.min(Math.PI - 0.1, ud.phi));
+
+            larva.position.x = ud.originalRadius * Math.sin(ud.phi) * Math.cos(ud.theta);
+            larva.position.y = ud.originalRadius * Math.sin(ud.phi) * Math.sin(ud.theta);
+            larva.position.z = ud.originalRadius * Math.cos(ud.phi);
+
+            const normal = larva.position.clone().normalize();
+            const tangent = new THREE.Vector3(1, 0, 0).cross(normal).normalize();
+            const rotationAxis = tangent.cross(normal).normalize();
+            const rotationMatrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, wiggleDirection);
+            larva.quaternion.setFromRotationMatrix(rotationMatrix);
+          }
         }
 
-        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: 0x4a9eff,
-            transparent: true,
-            opacity: 0.2
-        });
-        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
-        scene.add(lines);
-
-        // Rotation controls
-        let rotationX = 0;
-        let rotationY = 0;
-        const rotationSpeed = 0.005;
-
-        const keys = {};
-        document.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
-        });
-        document.addEventListener('keyup', (e) => {
-            keys[e.key.toLowerCase()] = false;
-        });
-
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Handle rotation
-            if (keys['w'] || keys['arrowup']) rotationX -= rotationSpeed;
-            if (keys['s'] || keys['arrowdown']) rotationX += rotationSpeed;
-            if (keys['a'] || keys['arrowleft']) rotationY += rotationSpeed;
-            if (keys['d'] || keys['arrowright']) rotationY -= rotationSpeed;
-
-            // Apply rotation
-            points.rotation.x = rotationX;
-            points.rotation.y = rotationY;
-            lines.rotation.x = rotationX;
-            lines.rotation.y = rotationY;
-
-            // Animate particles
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < particleCount; i++) {
-                const angle = particles[i].angle + particles[i].speed;
-                particles[i].angle = angle;
-                positions[i * 3] = Math.cos(angle) * particles[i].radius;
-                positions[i * 3 + 1] = Math.sin(angle) * particles[i].radius;
+        if (ud.lastTrajectoryUpdate !== undefined && ud.trajectoryUpdateInterval) {
+          ud.lastTrajectoryUpdate++;
+          if (ud.lastTrajectoryUpdate >= ud.trajectoryUpdateInterval) {
+            ud.lastTrajectoryUpdate = 0;
+            if (ud.trajectoryPoints) {
+              ud.trajectoryPoints.push(larva.position.clone());
+              if (ud.trajectoryPoints.length > 30) {
+                ud.trajectoryPoints.shift();
+              }
+              if (ud.trajectoryLine) {
+                ud.trajectoryLine.geometry.dispose();
+                ud.trajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
+              } else if (ud.trajectoryPoints.length > 1 && ud.trajectoryColor) {
+                const material = new THREE.LineBasicMaterial({
+                  color: ud.trajectoryColor,
+                  transparent: true,
+                  opacity: 0.8,
+                  linewidth: 2
+                });
+                const geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
+                const line = new THREE.Line(geometry, material);
+                const trailGlow = new THREE.PointLight(ud.trajectoryColor, 0.3, 2);
+                trailGlow.position.copy(larva.position);
+                line.add(trailGlow);
+                ud.trajectoryLine = line;
+                ud.trailGlow = trailGlow;
+                if (trajectoriesGroup) trajectoriesGroup.add(line);
+              }
+              if (ud.trailGlow) {
+                ud.trailGlow.position.copy(larva.position);
+              }
             }
-            geometry.attributes.position.needsUpdate = true;
-
-            // Slow rotation
-            rotationX += rotationSpeed * 0.1;
-            rotationY += rotationSpeed * 0.15;
-
-            renderer.render(scene, camera);
+          }
         }
+      });
+    }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+    // Create neural network structure
+    function createNeuralNetwork() {
+      const group = new THREE.Group();
+      const nodeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4a9eff,
+        emissive: 0x4a9eff,
+        emissiveIntensity: 0.8,
+        metalness: 0.9,
+        roughness: 0.1
+      });
+
+      const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+      const nodes = [];
+      const connectionMaterial = new THREE.LineBasicMaterial({
+        color: 0x4a9eff,
+        transparent: true,
+        opacity: 0.5
+      });
+
+      const isMobile = window.innerWidth < 768;
+      const nodeCount = isMobile ? 40 : 60;
+
+      for (let i = 0; i < nodeCount; i++) {
+        const node = new THREE.Mesh(nodeGeometry, nodeMaterial.clone());
+        const radius = isMobile ? 12 : 15;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        node.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        node.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        node.position.z = radius * Math.cos(phi);
+
+        node.userData = {
+          velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03
+          ),
+          isAnchor: false,
+          active: false,
+          flashTimer: Math.random() * 100,
+          flashInterval: 30 + Math.random() * 100,
+          flashDuration: 20 + Math.random() * 20,
+          flashIntensity: 1.5 + Math.random() * 1.0,
+          pulsePhase: Math.random() * Math.PI * 2
+        };
+
+        const nodeLight = new THREE.PointLight(0x4a9eff, 0.5, 3);
+        nodeLight.position.set(0, 0, 0);
+        node.add(nodeLight);
+        node.userData.light = nodeLight;
+
+        nodes.push(node);
+        group.add(node);
+      }
+
+      const connections = [];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < 5; j++) {
+          const targetIndex = (i + j + 1) % nodes.length;
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            nodes[i].position,
+            nodes[targetIndex].position
+          ]);
+          const line = new THREE.Line(geometry, connectionMaterial.clone());
+          line.userData = {
+            pointA: i,
+            pointB: targetIndex,
+            flashActive: false,
+            flashTimer: Math.random() * 100,
+            pulsePhase: Math.random() * Math.PI * 2
+          };
+          connections.push(line);
+          group.add(line);
+        }
+      }
+
+      const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+      group.add(ambientLight);
+      const light = new THREE.PointLight(0xffffff, 1, 100);
+      light.position.set(0, 0, 20);
+      group.add(light);
+
+      group.userData = {
+        nodes: nodes,
+        connections: connections,
+        update: function(time) {
+          for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            node.position.add(node.userData.velocity);
+            const distance = node.position.length();
+            if (distance > 18) {
+              node.userData.velocity.multiplyScalar(-1);
+            }
+            node.userData.pulsePhase += 0.05;
+            const pulseScale = 1.0 + 0.1 * Math.sin(node.userData.pulsePhase);
+            node.scale.set(pulseScale, pulseScale, pulseScale);
+
+            node.userData.flashTimer++;
+            if (!node.userData.active && node.userData.flashTimer > node.userData.flashInterval) {
+              node.userData.active = true;
+              node.userData.flashTimer = 0;
+              const intensity = node.userData.flashIntensity || 1.5;
+              node.material.emissiveIntensity = intensity;
+              node.scale.set(1.5, 1.5, 1.5);
+              const hue = Math.random();
+              const color = new THREE.Color().setHSL(hue, 0.9, 0.7);
+              node.material.emissive.set(color);
+              node.material.color.set(color);
+              if (node.userData.light) {
+                node.userData.light.color.set(color);
+                node.userData.light.intensity = 1.5;
+                node.userData.light.distance = 5;
+              }
+              for (let j = 0; j < connections.length; j++) {
+                const connection = connections[j];
+                if (connection.userData.pointA === i || connection.userData.pointB === i) {
+                  connection.userData.flashActive = true;
+                  connection.userData.flashTimer = 0;
+                  connection.userData.flashDuration = node.userData.flashDuration;
+                  connection.material.color.copy(color);
+                  connection.material.opacity = 0.9;
+                }
+              }
+            } else if (node.userData.active) {
+              if (node.userData.flashTimer > node.userData.flashDuration) {
+                node.userData.active = false;
+                node.userData.flashTimer = 0;
+                node.material.emissiveIntensity = 0.8;
+                node.material.emissive.set(0x4a9eff);
+                node.material.color.set(0x4a9eff);
+                if (node.userData.light) {
+                  node.userData.light.color.set(0x4a9eff);
+                  node.userData.light.intensity = 0.5;
+                  node.userData.light.distance = 3;
+                }
+              } else {
+                const flashProgress = node.userData.flashTimer / node.userData.flashDuration;
+                const pulseIntensity = 1.5 * (1 - flashProgress) + 0.8 * flashProgress;
+                node.material.emissiveIntensity = pulseIntensity;
+                if (node.userData.light) {
+                  node.userData.light.intensity = pulseIntensity;
+                }
+              }
+            }
+          }
+
+          for (let i = 0; i < connections.length; i++) {
+            const line = connections[i];
+            const nodeA = nodes[line.userData.pointA];
+            const nodeB = nodes[line.userData.pointB];
+            const pointA = nodeA.position;
+            const pointB = nodeB.position;
+            line.geometry.dispose();
+            line.geometry = new THREE.BufferGeometry().setFromPoints([pointA, pointB]);
+            line.userData.pulsePhase += 0.03;
+            if (line.userData.flashActive) {
+              line.userData.flashTimer++;
+              if (line.userData.flashTimer > (line.userData.flashDuration || 20)) {
+                line.userData.flashActive = false;
+                line.material.color.set(0x4a9eff);
+                line.material.opacity = 0.5;
+              } else {
+                const progress = line.userData.flashTimer / (line.userData.flashDuration || 20);
+                const pulse = 0.5 + 0.5 * Math.sin(line.userData.pulsePhase);
+                line.material.opacity = 0.5 + 0.4 * (1 - progress) * pulse;
+              }
+            }
+          }
+        }
+      };
+
+      return group;
+    }
+
+    // Keyboard controls
+    const keyState = {
+      w: false, a: false, s: false, d: false,
+      arrowup: false, arrowleft: false, arrowdown: false, arrowright: false,
+      plus: false, minus: false
+    };
+
+    document.addEventListener('keydown', (event) => {
+      const key = event.key.toLowerCase();
+      if (key in keyState) {
+        keyState[key] = true;
+        event.preventDefault();
+      }
+      if (key === 'r') resetView();
+      if (key === '=' || key === '+') keyState.plus = true;
+      if (key === '-' || key === '_') keyState.minus = true;
+    });
+
+    document.addEventListener('keyup', (event) => {
+      const key = event.key.toLowerCase();
+      if (key in keyState) {
+        keyState[key] = false;
+        event.preventDefault();
+      }
+      if (key === '=' || key === '+') keyState.plus = false;
+      if (key === '-' || key === '_') keyState.minus = false;
+    });
+
+    function resetView() {
+      cameraDistance = 30;
+      targetRotationX = 0;
+      targetRotationY = 0;
+      currentRotationX = 0;
+      currentRotationY = 0;
+      updateCameraPosition();
+    }
+
+    function updateCameraPosition() {
+      const phi = currentRotationX + Math.PI/2;
+      const theta = currentRotationY;
+      camera.position.x = cameraDistance * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = cameraDistance * Math.cos(phi);
+      camera.position.z = cameraDistance * Math.sin(phi) * Math.sin(theta);
+      camera.lookAt(0, 0, 0);
+    }
+
+    function processKeyboardControls() {
+      const rotationSpeed = 0.03;
+      const zoomSpeed = 0.5;
+
+      if (keyState.w) targetRotationX -= rotationSpeed;
+      if (keyState.s) targetRotationX += rotationSpeed;
+      if (keyState.a) targetRotationY -= rotationSpeed;
+      if (keyState.d) targetRotationY += rotationSpeed;
+      if (keyState.arrowup) targetRotationX -= rotationSpeed;
+      if (keyState.arrowdown) targetRotationX += rotationSpeed;
+      if (keyState.arrowleft) targetRotationY -= rotationSpeed;
+      if (keyState.arrowright) targetRotationY += rotationSpeed;
+      if (keyState.plus) cameraDistance = Math.max(minDistance, cameraDistance - zoomSpeed);
+      if (keyState.minus) cameraDistance = Math.min(maxDistance, cameraDistance + zoomSpeed);
+
+      currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+      currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+      updateCameraPosition();
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      processKeyboardControls();
+      if (typeof updateLarvae === 'function' && larvae) {
+        updateLarvae(larvae);
+      }
+      if (neuralNetwork && neuralNetwork.userData && neuralNetwork.userData.update) {
+        neuralNetwork.userData.update(performance.now() * 0.001);
+      }
+      if (backgroundGroup) {
+        backgroundGroup.rotation.y += 0.0005;
+        backgroundGroup.rotation.x += 0.0002;
+      }
+      if (neuralNetwork && !isDragging && !prefersReducedMotion && 
+          (!keyState.w && !keyState.a && !keyState.s && !keyState.d && 
+          !keyState.arrowup && !keyState.arrowleft && !keyState.arrowdown && !keyState.arrowright)) {
+        neuralNetwork.rotation.y += 0.001;
+        neuralNetwork.rotation.z += 0.0005;
+      }
+      renderer.render(scene, camera);
+    }
+
+    // Initialize
+    function init() {
+      neuralNetwork = createNeuralNetwork();
+      scene.add(neuralNetwork);
+      larvae = initDrosophilaBackground();
+      const isMobile = window.innerWidth < 768;
+      camera.position.z = isMobile ? 25 : 30;
+      cameraDistance = isMobile ? 25 : 30;
+      setTimeout(() => {
+        const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
+        if (keyboardShortcuts) keyboardShortcuts.style.opacity = '0';
+      }, 5000);
+      animate();
+    }
+
+    // Intersection Observer for sections
+    function checkElementsInView() {
+      const sections = document.querySelectorAll('section');
+      const options = { root: null, rootMargin: '0px', threshold: 0.1 };
+      const callback = (entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const delay = entry.target.dataset.delay || 0;
+            setTimeout(() => entry.target.classList.add('visible'), delay);
+            observer.unobserve(entry.target);
+          }
         });
+      };
+      const observer = new IntersectionObserver(callback, options);
+      sections.forEach((section, index) => {
+        section.dataset.delay = index * 100;
+        observer.observe(section);
+      });
+    }
 
-        animate();
-    </script>
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      checkElementsInView();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkElementsInView();
+      init();
+    });
+  </script>
 </body>
 </html>
