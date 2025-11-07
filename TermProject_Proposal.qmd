@@ -112,9 +112,7 @@ Behavioral events occur stochastically with rates that depend on stimulus featur
 
 ## Core Model: Stimulus-Locked Event-Hazard GLM
 
-For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}\}$, define the time-varying hazard rate (see Equation \ref{eq:hazard} in Appendix).
-
-where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector including intensity, on/off state, and recent history, $\kappa$ is the temporal kernel using basis expansion to capture latency and adaptation, $[s \star \kappa](t)$ is the convolution of stimulus with kernel producing stimulus history features, $\mathbf{x}(t)$ represents contextual features including speed and orientation, and $\mathbf{\beta}_E$ are the feature coefficients.
+For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}\}$, define the time-varying hazard rate (see Equation \ref{eq:hazard} in Appendix) where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector including intensity, on/off state, and recent history, $\kappa$ is the temporal kernel using basis expansion to capture latency and adaptation, $[s \star \kappa](t)$ is the convolution of stimulus with kernel producing stimulus history features, $\mathbf{x}(t)$ represents contextual features including speed and orientation, and $\mathbf{\beta}_E$ are the feature coefficients.
 
 ### Temporal Kernel Design
 
