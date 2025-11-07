@@ -176,12 +176,17 @@
       transition: opacity 0.5s ease;
     }
 
-    /* Show content for visible sections */
+    /* Show content for visible sections - once revealed, stay revealed */
     section.visible.revealed > *,
-    section.visible:hover > *,
     section.revealed > *,
+    section.visible:hover > *,
     section:hover > * {
       opacity: 1;
+    }
+    
+    /* Once revealed, keep content visible even without hover */
+    section.revealed > * {
+      opacity: 1 !important;
     }
 
     h2 {
@@ -784,6 +789,13 @@
       sectionClouds.forEach((cloud, sectionId) => {
         const ud = cloud.userData;
         if (!ud) return;
+        
+        // Hide cloud if section is revealed
+        const section = ud.sectionElement;
+        if (section && section.classList.contains('revealed')) {
+          cloud.visible = false;
+          return;
+        }
 
         if (!ud.isMovingToSection && !ud.isExpanding) {
           // Floating animation
@@ -797,7 +809,6 @@
           cloud.rotation.x += 0.001;
         } else if (ud.isMovingToSection) {
           // Animate to section position
-          const section = ud.sectionElement;
           if (section) {
             const rect = section.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
@@ -829,6 +840,8 @@
             if (cloud.position.distanceTo(targetPos) < 0.5 && ud.expansionProgress >= 1) {
               ud.isMovingToSection = false;
               ud.isExpanding = true;
+              // Hide cloud once expanded
+              cloud.visible = false;
             }
           }
         }
@@ -844,6 +857,17 @@
             cloud.userData.isMovingToSection = true;
             cloud.userData.expansionProgress = 0;
             section.classList.add('revealed');
+            // Hide the cloud permanently once section is revealed
+            cloud.visible = false;
+          });
+          
+          // Also handle direct section hover (not just cloud)
+          section.addEventListener('mouseenter', () => {
+            section.classList.add('revealed');
+            // Hide corresponding cloud
+            if (cloud) {
+              cloud.visible = false;
+            }
           });
         }
       });
@@ -1266,13 +1290,18 @@
       });
     }
 
-    // Add revealed class on hover to persist visibility (now handled by cloud hover)
+    // Add revealed class on hover to persist visibility
     function setupSectionHover() {
-      // Cloud hover handles this now, but keep for compatibility
       const sections = document.querySelectorAll('section');
       sections.forEach(section => {
         section.addEventListener('mouseenter', () => {
           section.classList.add('revealed');
+          // Hide corresponding cloud permanently
+          const sectionId = section.id;
+          const cloud = sectionClouds.get(sectionId);
+          if (cloud) {
+            cloud.visible = false;
+          }
         });
       });
     }
