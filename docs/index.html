@@ -1267,23 +1267,64 @@
         container.appendChild(sentenceDiv);
 
         // Split sentence into words while preserving HTML tags
-        const words = sentence.split(/(\s+)/);
+        // Use a temporary div to parse HTML, then split by text nodes
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = sentence;
         
-        words.forEach((word, wordIndex) => {
-          if (word.trim() === '') {
-            // Preserve whitespace
-            sentenceDiv.appendChild(document.createTextNode(word));
-            return;
+        const textNodes = [];
+        const walker = document.createTreeWalker(
+          tempDiv,
+          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+          null
+        );
+        
+        let node;
+        while (node = walker.nextNode()) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const words = node.textContent.split(/(\s+)/);
+            words.forEach(word => {
+              if (word.trim() !== '') {
+                textNodes.push({ type: 'text', content: word });
+              } else if (word.length > 0) {
+                textNodes.push({ type: 'space', content: word });
+              }
+            });
+          } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN' && node.classList.contains('tech')) {
+            textNodes.push({ type: 'html', content: node.outerHTML });
           }
-
+        }
+        
+        // If parsing failed, fall back to simple split
+        if (textNodes.length === 0) {
+          const words = sentence.split(/(\s+)/);
+          words.forEach(word => {
+            if (word.trim() !== '') {
+              textNodes.push({ type: 'text', content: word });
+            } else if (word.length > 0) {
+              textNodes.push({ type: 'space', content: word });
+            }
+          });
+        }
+        
+        textNodes.forEach((item, itemIndex) => {
           setTimeout(() => {
-            const span = document.createElement('span');
-            span.className = 'abstract-word-group';
-            span.innerHTML = word + (wordIndex < words.length - 1 ? ' ' : '');
-            sentenceDiv.appendChild(span);
+            if (item.type === 'space') {
+              sentenceDiv.appendChild(document.createTextNode(item.content));
+            } else {
+              const span = document.createElement('span');
+              span.className = 'abstract-word-group';
+              if (item.type === 'html') {
+                span.innerHTML = item.content + ' ';
+              } else {
+                span.textContent = item.content + ' ';
+              }
+              sentenceDiv.appendChild(span);
+            }
           }, currentDelay);
           
-          currentDelay += wordDelay;
+          if (item.type !== 'space') {
+            currentDelay += wordDelay;
+          }
         });
 
         // Add pause after sentence (except last)
