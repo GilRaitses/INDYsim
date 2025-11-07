@@ -148,11 +148,90 @@
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.8s ease, transform 0.8s ease;
+      position: relative;
+      min-height: 200px;
+      cursor: pointer;
     }
 
     section.visible {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    /* Cloud overlay for sections */
+    section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      background: radial-gradient(ellipse at center, var(--cinnamoroll-pink) 0%, rgba(245, 212, 216, 0.7) 40%, rgba(245, 212, 216, 0.3) 70%, transparent 90%);
+      border-radius: 50%;
+      filter: blur(40px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    section::after {
+      content: attr(data-title);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      font-family: 'Didot', 'Georgia', serif;
+      color: var(--cinnamoroll-dark-blue);
+      font-weight: 300;
+      z-index: 2;
+      pointer-events: none;
+      text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+      transition: opacity 0.5s ease;
+    }
+
+    /* Hide cloud overlay when revealed */
+    section.revealed::before,
+    section.revealed::after {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    section:hover::before {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    section:hover::after {
+      opacity: 0;
+    }
+
+    /* Section content */
+    section > * {
+      position: relative;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Show content for visible sections */
+    section.visible.revealed > *,
+    section.visible:hover > *,
+    section.revealed > *,
+    section:hover > * {
+      opacity: 1;
+    }
+
+    /* Hide cloud for visible sections that are revealed */
+    section.visible.revealed::before,
+    section.visible.revealed::after {
+      opacity: 0;
+      pointer-events: none;
     }
 
     h2 {
@@ -1139,7 +1218,22 @@
       const observer = new IntersectionObserver(callback, options);
       sections.forEach((section, index) => {
         section.dataset.delay = index * 100;
+        // Set data-title from h2 text for cloud label
+        const h2 = section.querySelector('h2');
+        if (h2) {
+          section.dataset.title = h2.textContent;
+        }
         observer.observe(section);
+      });
+    }
+
+    // Add revealed class on hover to persist visibility
+    function setupSectionHover() {
+      const sections = document.querySelectorAll('section');
+      sections.forEach(section => {
+        section.addEventListener('mouseenter', () => {
+          section.classList.add('revealed');
+        });
       });
     }
 
@@ -1152,6 +1246,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       checkElementsInView();
+      setupSectionHover();
       init();
     });
   </script>
