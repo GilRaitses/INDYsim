@@ -245,6 +245,8 @@
     .abstract-sentence {
       margin-bottom: 1.5rem;
       line-height: 1.3;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
     .abstract-sentence:last-child {
@@ -254,7 +256,8 @@
     .abstract-word-group {
       opacity: 0;
       display: inline;
-      animation: fadeInWord 0.4s ease-out forwards;
+      animation: fadeInWord 0.15s ease-out forwards;
+      white-space: pre-wrap;
     }
 
     @keyframes fadeInWord {
@@ -1247,43 +1250,40 @@
       if (!container) return;
 
       const abstractSentences = [
-        [
-          ["<span class=\"tech\">Behavioral responses</span>", " to ", "<span class=\"tech\">time-varying stimuli</span>", " in ", "<span class=\"tech\">Drosophila larvae</span>", " show ", "<span class=\"tech\">temporal dynamics</span>", " with ", "<span class=\"tech\">latency-dependent</span>", " and ", "<span class=\"tech\">intensity-dependent</span>", " patterns."]
-        ],
-        [
-          ["This project develops a ", "<span class=\"tech\">stimulus-locked event-hazard model</span>", " for ", "<span class=\"tech\">turn initiation</span>", " and ", "<span class=\"tech\">run-stop transitions</span>", " using ", "<span class=\"tech\">generalized linear models</span>", " with ", "<span class=\"tech\">temporal kernel bases</span>", " that capture stimulus-response relationships."]
-        ],
-        [
-          ["The model estimates time-varying hazard rates", " for behavioral events", " conditioned on ", "<span class=\"tech\">stimulus intensity</span>", ", ", "<span class=\"tech\">temporal history</span>", ", and ", "<span class=\"tech\">contextual features</span>", " including speed and orientation."]
-        ],
-        [
-          ["Using a ", "<span class=\"tech\">design of experiments</span>", " framework", " with ", "<span class=\"tech\">stimulus intensity</span>", ", ", "<span class=\"tech\">pulse duration</span>", ", and ", "<span class=\"tech\">inter-pulse interval</span>", " as factors,", " the analysis generates ", "<span class=\"tech\">simulated trajectories</span>", " that produce ", "<span class=\"tech\">key performance indicators</span>", " including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics."]
-        ],
-        [
-          ["<span class=\"tech\">Confidence intervals</span>", " for behavioral metrics", " provide statistical precision", " comparable to ", "<span class=\"tech\">Arena simulation replications</span>", ", which supports validation of model predictions against empirical larval trajectory data."]
-        ]
+        "<span class=\"tech\">Behavioral responses</span> to <span class=\"tech\">time-varying stimuli</span> in <span class=\"tech\">Drosophila larvae</span> show <span class=\"tech\">temporal dynamics</span> with <span class=\"tech\">latency-dependent</span> and <span class=\"tech\">intensity-dependent</span> patterns.",
+        "This project develops a <span class=\"tech\">stimulus-locked event-hazard model</span> for <span class=\"tech\">turn initiation</span> and <span class=\"tech\">run-stop transitions</span> using <span class=\"tech\">generalized linear models</span> with <span class=\"tech\">temporal kernel bases</span> that capture stimulus-response relationships.",
+        "The model estimates time-varying hazard rates for behavioral events conditioned on <span class=\"tech\">stimulus intensity</span>, <span class=\"tech\">temporal history</span>, and <span class=\"tech\">contextual features</span> including speed and orientation.",
+        "Using a <span class=\"tech\">design of experiments</span> framework with <span class=\"tech\">stimulus intensity</span>, <span class=\"tech\">pulse duration</span>, and <span class=\"tech\">inter-pulse interval</span> as factors, the analysis generates <span class=\"tech\">simulated trajectories</span> that produce <span class=\"tech\">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics.",
+        "<span class=\"tech\">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class=\"tech\">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data."
       ];
 
       let currentDelay = 0;
-      const wordGroupDelay = 80; // milliseconds between word groups
-      const sentencePause = 600; // milliseconds pause between sentences
+      const wordDelay = 35; // milliseconds between words (faster, like typing)
+      const sentencePause = 250; // milliseconds pause between sentences (shorter pause)
 
-      abstractSentences.forEach((sentenceGroups, sentenceIndex) => {
+      abstractSentences.forEach((sentence, sentenceIndex) => {
         const sentenceDiv = document.createElement('div');
         sentenceDiv.className = 'abstract-sentence';
         container.appendChild(sentenceDiv);
 
-        sentenceGroups.forEach((wordGroups) => {
-          wordGroups.forEach((wordGroup, groupIndex) => {
-            setTimeout(() => {
-              const span = document.createElement('span');
-              span.className = 'abstract-word-group';
-              span.innerHTML = wordGroup;
-              span.style.animationDelay = '0s';
-              sentenceDiv.appendChild(span);
-            }, currentDelay);
-            currentDelay += wordGroupDelay;
-          });
+        // Split sentence into words while preserving HTML tags
+        const words = sentence.split(/(\s+)/);
+        
+        words.forEach((word, wordIndex) => {
+          if (word.trim() === '') {
+            // Preserve whitespace
+            sentenceDiv.appendChild(document.createTextNode(word));
+            return;
+          }
+
+          setTimeout(() => {
+            const span = document.createElement('span');
+            span.className = 'abstract-word-group';
+            span.innerHTML = word + (wordIndex < words.length - 1 ? ' ' : '');
+            sentenceDiv.appendChild(span);
+          }, currentDelay);
+          
+          currentDelay += wordDelay;
         });
 
         // Add pause after sentence (except last)
