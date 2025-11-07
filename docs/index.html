@@ -227,31 +227,23 @@
       position: relative;
     }
 
-    #trailer-text-container {
-      position: relative;
-      width: 100%;
-      min-height: 250px;
-    }
-
-    .trailer-line {
-      display: block;
+    .abstract-text {
       color: var(--cinnamoroll-dark-blue);
       font-size: 1.1rem;
       line-height: 1.8;
-      margin-bottom: 1rem;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+      margin: 0;
+      animation: fadeInUp 1.5s ease-out;
     }
 
-    .trailer-line.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .trailer-line .tech {
-      color: var(--cinnamoroll-dark-blue);
-      font-weight: 600;
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     table {
@@ -456,7 +448,9 @@
 
   <div class="content">
     <div class="abstract">
-      <div id="trailer-text-container"></div>
+      <p class="abstract-text">
+        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed and orientation. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. <span class="tech">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class="tech">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data.
+      </p>
     </div>
 
     <section id="introduction" class="visible" data-delay="0">
@@ -1198,9 +1192,6 @@
       const deltaTime = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
       
-      // Update trailer text animation using Three.js timing
-      animateTrailerText(currentTime);
-      
       processKeyboardControls();
       if (typeof updateLarvae === 'function' && larvae) {
         updateLarvae(larvae);
@@ -1222,55 +1213,6 @@
       renderer.render(scene, camera);
     }
 
-    // Trailer text animation using Three.js timing
-    const abstractText = [
-      "<span class=\"tech\">Behavioral responses</span> to <span class=\"tech\">time-varying stimuli</span> in <span class=\"tech\">Drosophila larvae</span> show <span class=\"tech\">temporal dynamics</span> with <span class=\"tech\">latency-dependent</span> and <span class=\"tech\">intensity-dependent</span> patterns.",
-      "This project develops a <span class=\"tech\">stimulus-locked event-hazard model</span> for <span class=\"tech\">turn initiation</span> and <span class=\"tech\">run-stop transitions</span> using <span class=\"tech\">generalized linear models</span> with <span class=\"tech\">temporal kernel bases</span> that capture stimulus-response relationships.",
-      "The model estimates time-varying hazard rates for behavioral events conditioned on <span class=\"tech\">stimulus intensity</span>, <span class=\"tech\">temporal history</span>, and <span class=\"tech\">contextual features</span> including speed and orientation.",
-      "Using a <span class=\"tech\">design of experiments</span> framework with <span class=\"tech\">stimulus intensity</span>, <span class=\"tech\">pulse duration</span>, and <span class=\"tech\">inter-pulse interval</span> as factors,",
-      "the analysis generates <span class=\"tech\">simulated trajectories</span>",
-      "that produce <span class=\"tech\">key performance indicators</span>",
-      "with <span class=\"tech\">confidence intervals</span> comparable to Arena simulation replications."
-    ];
-
-    let trailerAnimationStartTime = null;
-    const trailerLineDelay = 1000; // 1 second between lines (in milliseconds)
-
-    function animateTrailerText(currentTime) {
-      if (!trailerAnimationStartTime) {
-        trailerAnimationStartTime = currentTime;
-      }
-
-      const container = document.getElementById('trailer-text-container');
-      if (!container) return;
-
-      const elapsed = currentTime - trailerAnimationStartTime;
-      const totalLines = abstractText.length;
-
-      // Create lines up to the current time
-      for (let i = 0; i < totalLines; i++) {
-        const lineStartTime = i * trailerLineDelay;
-        const lineElement = container.children[i];
-
-        if (elapsed >= lineStartTime) {
-          if (!lineElement) {
-            // Create the line element
-            const span = document.createElement('div');
-            span.className = 'trailer-line';
-            span.innerHTML = abstractText[i];
-            container.appendChild(span);
-            
-            // Trigger visibility after a tiny delay to ensure DOM update
-            requestAnimationFrame(() => {
-              span.classList.add('visible');
-            });
-          } else if (!lineElement.classList.contains('visible')) {
-            lineElement.classList.add('visible');
-          }
-        }
-      }
-    }
-
     // Initialize
     function init() {
       neuralNetwork = createNeuralNetwork();
@@ -1285,9 +1227,6 @@
       // Add ambient light for clouds
       const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
       scene.add(ambientLight);
-      
-      // Start trailer text animation
-      trailerAnimationStartTime = null;
       
       setTimeout(() => {
         const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');

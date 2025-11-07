@@ -112,9 +112,7 @@ Behavioral events occur stochastically with rates that depend on stimulus featur
 
 ## Core Model: Stimulus-Locked Event-Hazard GLM
 
-For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}\}$, define the time-varying hazard rate:
-
-$$\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}$$
+For each behavioral event type $E \in \{\text{turn}, \text{stop}, \text{reverse}\}$, define the time-varying hazard rate (see Equation \ref{eq:hazard} in Appendix).
 
 where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)$ is the stimulus feature vector including intensity, on/off state, and recent history, $\kappa$ is the temporal kernel using basis expansion to capture latency and adaptation, $[s \star \kappa](t)$ is the convolution of stimulus with kernel producing stimulus history features, $\mathbf{x}(t)$ represents contextual features including speed and orientation, and $\mathbf{\beta}_E$ are the feature coefficients.
 
@@ -122,20 +120,11 @@ where $\beta_{0,E}$ represents the baseline log-hazard for event type $E$, $s(t)
 
 The kernel $\kappa(\tau)$ captures latency effects with peak response at delay $\tau_0 \approx 0.5-2$ seconds, adaptation showing decay over longer delays when $\tau > 5$ seconds, and anticipation through pre-stimulus effects if present.
 
-Using raised cosine basis functions:
-$$\kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)$$
-
-with knots $\tau_j$ spanning $[-2, 20]$ seconds relative to stimulus onset.
+Using raised cosine basis functions (see Equation \ref{eq:kernel} in Appendix) with knots $\tau_j$ spanning $[-2, 20]$ seconds relative to stimulus onset.
 
 ### Event Likelihood and Estimation
 
-For larva $i$ with observed events at times $\{t_{i,k}\}$, the log-likelihood is:
-
-$$\ell(\mathbf{\beta}) = \sum_i \sum_k \log \lambda_E(t_{i,k}) - \int_0^{T_i} \lambda_E(t) dt$$
-
-Estimation via \tech{penalized maximum likelihood} with $L_2$ regularization:
-
-$$\hat{\mathbf{\beta}} = \arg\max \left\{ \ell(\mathbf{\beta}) - \lambda_{\text{reg}} \|\mathbf{\beta}\|_2^2 \right\}$$
+For larva $i$ with observed events at times $\{t_{i,k}\}$, the log-likelihood follows Equation \ref{eq:likelihood} in Appendix. Estimation via \tech{penalized maximum likelihood} with $L_2$ regularization (see Equation \ref{eq:estimation} in Appendix).
 
 ### Model Validation
 
@@ -147,10 +136,7 @@ Given a fitted hazard model, the simulation follows five steps. Initialization s
 
 ### Speed Dynamics
 
-Run speeds follow observed empirical distributions (typically log-normal). During runs, integrate:
-$$\mathbf{x}(t+\Delta t) = \mathbf{x}(t) + v(t) \Delta t \cdot [\cos(\theta(t)), \sin(\theta(t))]^\top$$
-
-where $v(t)$ is current speed and $\theta(t)$ is current heading.
+Run speeds follow observed empirical distributions (typically log-normal). During runs, integrate using Equation \ref{eq:speed_dynamics} in Appendix where $v(t)$ is current speed and $\theta(t)$ is current heading.
 
 ## Design of Experiments
 
@@ -180,7 +166,7 @@ where $v(t)$ is current speed and $\theta(t)$ is current heading.
 
 ### Run Length Determination
 
-The replication length follows Lab04 CI methodology. Target precision uses \num{10}\% relative half-width for mean turn rate, which means when the mean equals \num{5} turns per minute the confidence interval width stays below \num{0.5} turns per minute. A pilot study runs \num{10} replications to estimate variance $\hat{\sigma}^2$. Required replications follow $n \geq \left(\frac{z_{\alpha/2} \hat{\sigma}}{E}\right)^2$ where $E$ represents the desired half-width. When $n > 30$ the simulation uses that calculated value, while values $n \leq 30$ default to \num{30} replications as the minimum standard.
+The replication length follows Lab04 CI methodology. Target precision uses \num{10}\% relative half-width for mean turn rate, which means when the mean equals \num{5} turns per minute the confidence interval width stays below \num{0.5} turns per minute. A pilot study runs \num{10} replications to estimate variance $\hat{\sigma}^2$. Required replications follow Equation \ref{eq:run_length} in Appendix where $E$ represents the desired half-width. When $n > 30$ the simulation uses that calculated value, while values $n \leq 30$ default to \num{30} replications as the minimum standard.
 
 # Analysis Plan
 
@@ -194,41 +180,11 @@ The primary data source uses H5 files containing exported MAGAT experiment data 
 
 **Step 1: Extract from H5 Files**
 
-```bash
-python3 scripts/engineer_dataset_from_h5.py \
-    --h5-dir /Users/gilraitses/mechanosensation/h5tests \
-    --output-dir data/engineered \
-    --experiment-id GMR61_202509051201
-```
-
-This creates three output files: event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics in CSV and JSON formats.
+The extraction command is shown in Code \ref{code-h5-extract} in Appendix. This creates three output files: event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics in CSV and JSON formats.
 
 **Step 2: Feature Engineering** (implemented in `engineer_dataset_from_h5.py`)
 
-```python
-# For each larva trajectory from H5:
-for each track in h5_file['tracks']:
-    # Extract positions (x, y) and compute derived features
-    positions = track['positions']  # N×2 array
-    speed = compute_speed(positions, frame_rate=20)
-    heading = compute_heading(positions)
-    heading_change = detect_turns(heading, threshold=30°)
-    
-    # Time-align with stimulus data
-    stimulus_df = extract_stimulus_timing(h5_file['led_data'])
-    aligned_df = align_trajectory_with_stimulus(trajectory_df, stimulus_df)
-    
-    # Create time bins (50ms)
-    bin_width = 0.05
-    binned = aggregate_to_bins(aligned_df, bin_width)
-    
-    # Create stimulus kernel features (in fit_hazard_model.py)
-    for each bin:
-        stimulus_history = extract_stimulus_window(time_window=[-2, 20])
-        kernel_features = apply_temporal_kernel(stimulus_history, basis_functions)
-        feature_vector = [kernel_features, speed, heading]
-        event_occurred = (binned['is_turn'] == True)
-```
+The feature engineering pipeline is detailed in Code \ref{code-feature-engineering} in Appendix.
 
 ### Model Fitting Pipeline
 
@@ -238,89 +194,17 @@ The model fitting pipeline consists of five steps. Event detection identifies tu
 
 ### Simulation Engine
 
-```python
-class LarvalTrajectorySimulator:
-    def __init__(self, hazard_model, speed_distribution, arena_bounds):
-        self.hazard_model = hazard_model
-        self.speed_dist = speed_distribution
-        self.arena = arena_bounds
-    
-    def simulate(self, stimulus_schedule, max_time, random_seed):
-        # Initialize state
-        position = sample_starting_position()
-        orientation = sample_starting_orientation()
-        speed = self.speed_dist.sample()
-        
-        events = []
-        t = 0
-        
-        while t < max_time:
-            # Compute current hazard
-            lambda_t = self.hazard_model.predict(
-                stimulus=stimulus_schedule(t),
-                speed=speed,
-                orientation=orientation
-            )
-            
-            # Sample next event time (thinning algorithm)
-            next_event_time = sample_from_hazard(lambda_t, current_time=t)
-            
-            # Execute event
-            if next_event_time < max_time:
-                event_type = sample_event_type(lambda_t)  # turn, stop, reverse
-                events.append((next_event_time, event_type))
-                
-                # Update state based on event
-                if event_type == 'turn':
-                    orientation = sample_new_orientation(orientation)
-                elif event_type == 'stop':
-                    speed = 0
-                elif event_type == 'reverse':
-                    orientation = flip_orientation(orientation)
-            
-            # Update position
-            dt = min(next_event_time - t, 0.1)  # 100ms integration step
-            position += speed * dt * [cos(orientation), sin(orientation)]
-            t = next_event_time
-        
-        return Trajectory(position_history, events)
-```
+The simulation engine implementation is shown in Code \ref{code-simulator} in Appendix.
 
 ### DOE Execution
 
-For each of 45 conditions:
-
-```python
-results = []
-for condition in doe_table:
-    for replication in range(30):
-        # Set stimulus schedule from condition
-        stimulus = create_stimulus_schedule(
-            intensity=condition.intensity,
-            pulse_duration=condition.pulse_duration,
-            inter_pulse_interval=condition.inter_pulse_interval
-        )
-        
-        # Simulate trajectory
-        traj = simulator.simulate(stimulus, max_time=300, random_seed=replication)
-        
-        # Compute KPIs
-        kpis = compute_kpis(traj)
-        results.append({
-            'condition': condition.id,
-            'replication': replication,
-            **kpis
-        })
-
-# Export to Arena-style CSV
-export_to_arena_format(results, 'AcrossReplicationsSummary.csv')
-```
+For each of 45 conditions, the DOE execution follows Code \ref{code-doe-execution} in Appendix.
 
 ## Statistical Analysis
 
 ### Performance Metrics Calculation
 
-For each KPI and condition, the analysis calculates four statistics. The mean uses $\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i$. Standard deviation follows $s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}$. The 95\% confidence interval uses $\bar{X} \pm t_{0.025,n-1} \frac{s}{\sqrt{n}}$. Minimum and maximum values track $\min_i X_i$ and $\max_i X_i$.
+For each KPI and condition, the analysis calculates four statistics. The mean uses $\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i$. Standard deviation follows $s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}$. The 95\% confidence interval uses $\bar{X} \pm t_{0.025,n-1} \frac{s}{\sqrt{n}}$. Minimum and maximum values track $\min_i X_i$ and $\max_i X_i$ (see Equations \ref{eq:mean}--\ref{eq:ci} in Appendix).
 
 ### Model Validation Metrics
 
@@ -393,6 +277,175 @@ Deliverable quality targets include three criteria. Report completeness requires
 This project applies \tech{simulation modeling methods} from \tech{ECS630} to \tech{biological behavioral data}, developing a \tech{stimulus-response model} that simulates larval trajectories under different experimental conditions. The \tech{event-hazard framework} models stochastic behavioral events, while the \tech{DOE methodology} explores stimulus parameter space systematically. Results use \tech{Arena-style statistics} including \tech{confidence intervals} and \tech{across-replications summaries}, which show how simulation principles extend from manufacturing systems to biological processes.
 
 # Appendix
+
+## Equations
+
+### Core Model Equations
+
+\begin{equation}
+\label{eq:hazard}
+\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}
+\end{equation}
+
+\begin{equation}
+\label{eq:kernel}
+\kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)
+\end{equation}
+
+\begin{equation}
+\label{eq:likelihood}
+\ell(\mathbf{\beta}) = \sum_i \sum_k \log \lambda_E(t_{i,k}) - \int_0^{T_i} \lambda_E(t) dt
+\end{equation}
+
+\begin{equation}
+\label{eq:estimation}
+\hat{\mathbf{\beta}} = \arg\max \left\{ \ell(\mathbf{\beta}) - \lambda_{\text{reg}} \|\mathbf{\beta}\|_2^2 \right\}
+\end{equation}
+
+\begin{equation}
+\label{eq:speed_dynamics}
+\mathbf{x}(t+\Delta t) = \mathbf{x}(t) + v(t) \Delta t \cdot [\cos(\theta(t)), \sin(\theta(t))]^\top
+\end{equation}
+
+\begin{equation}
+\label{eq:run_length}
+n \geq \left(\frac{z_{\alpha/2} \hat{\sigma}}{E}\right)^2
+\end{equation}
+
+### Statistical Metrics
+
+\begin{equation}
+\label{eq:mean}
+\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i
+\end{equation}
+
+\begin{equation}
+\label{eq:std}
+s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}
+\end{equation}
+
+\begin{equation}
+\label{eq:ci}
+\bar{X} \pm t_{0.025,n-1} \frac{s}{\sqrt{n}}
+\end{equation}
+
+## Code Blocks
+
+### Feature Extraction
+
+```bash
+{#code-h5-extract}
+python3 scripts/engineer_dataset_from_h5.py \
+    --h5-dir /Users/gilraitses/mechanosensation/h5tests \
+    --output-dir data/engineered \
+    --experiment-id GMR61_202509051201
+```
+
+```python
+{#code-feature-engineering}
+# For each larva trajectory from H5:
+for each track in h5_file['tracks']:
+    # Extract positions (x, y) and compute derived features
+    positions = track['positions']  # N×2 array
+    speed = compute_speed(positions, frame_rate=20)
+    heading = compute_heading(positions)
+    heading_change = detect_turns(heading, threshold=30°)
+    
+    # Time-align with stimulus data
+    stimulus_df = extract_stimulus_timing(h5_file['led_data'])
+    aligned_df = align_trajectory_with_stimulus(trajectory_df, stimulus_df)
+    
+    # Create time bins (50ms)
+    bin_width = 0.05
+    binned = aggregate_to_bins(aligned_df, bin_width)
+    
+    # Create stimulus kernel features (in fit_hazard_model.py)
+    for each bin:
+        stimulus_history = extract_stimulus_window(time_window=[-2, 20])
+        kernel_features = apply_temporal_kernel(stimulus_history, basis_functions)
+        feature_vector = [kernel_features, speed, heading]
+        event_occurred = (binned['is_turn'] == True)
+```
+
+### Simulation Engine
+
+```python
+{#code-simulator}
+class LarvalTrajectorySimulator:
+    def __init__(self, hazard_model, speed_distribution, arena_bounds):
+        self.hazard_model = hazard_model
+        self.speed_dist = speed_distribution
+        self.arena = arena_bounds
+    
+    def simulate(self, stimulus_schedule, max_time, random_seed):
+        # Initialize state
+        position = sample_starting_position()
+        orientation = sample_starting_orientation()
+        speed = self.speed_dist.sample()
+        
+        events = []
+        t = 0
+        
+        while t < max_time:
+            # Compute current hazard
+            lambda_t = self.hazard_model.predict(
+                stimulus=stimulus_schedule(t),
+                speed=speed,
+                orientation=orientation
+            )
+            
+            # Sample next event time (thinning algorithm)
+            next_event_time = sample_from_hazard(lambda_t, current_time=t)
+            
+            # Execute event
+            if next_event_time < max_time:
+                event_type = sample_event_type(lambda_t)  # turn, stop, reverse
+                events.append((next_event_time, event_type))
+                
+                # Update state based on event
+                if event_type == 'turn':
+                    orientation = sample_new_orientation(orientation)
+                elif event_type == 'stop':
+                    speed = 0
+                elif event_type == 'reverse':
+                    orientation = flip_orientation(orientation)
+            
+            # Update position
+            dt = min(next_event_time - t, 0.1)  # 100ms integration step
+            position += speed * dt * [cos(orientation), sin(orientation)]
+            t = next_event_time
+        
+        return Trajectory(position_history, events)
+```
+
+### DOE Execution
+
+```python
+{#code-doe-execution}
+results = []
+for condition in doe_table:
+    for replication in range(30):
+        # Set stimulus schedule from condition
+        stimulus = create_stimulus_schedule(
+            intensity=condition.intensity,
+            pulse_duration=condition.pulse_duration,
+            inter_pulse_interval=condition.inter_pulse_interval
+        )
+        
+        # Simulate trajectory
+        traj = simulator.simulate(stimulus, max_time=300, random_seed=replication)
+        
+        # Compute KPIs
+        kpis = compute_kpis(traj)
+        results.append({
+            'condition': condition.id,
+            'replication': replication,
+            **kpis
+        })
+
+# Export to Arena-style CSV
+export_to_arena_format(results, 'AcrossReplicationsSummary.csv')
+```
 
 ## Data Sources
 
