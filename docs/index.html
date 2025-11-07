@@ -237,22 +237,32 @@
     .abstract-text {
       color: var(--cinnamoroll-dark-blue);
       font-size: 1.1rem;
-      line-height: 1.8;
       margin: 0;
-      opacity: 1;
-      animation: fadeInUp 1.5s ease-out;
       position: relative;
       z-index: 2;
     }
 
-    @keyframes fadeInUp {
-      0% {
+    .abstract-sentence {
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    .abstract-sentence:last-child {
+      margin-bottom: 0;
+    }
+
+    .abstract-word-group {
+      opacity: 0;
+      display: inline;
+      animation: fadeInWord 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeInWord {
+      from {
         opacity: 0;
-        transform: translateY(20px);
       }
-      100% {
+      to {
         opacity: 1;
-        transform: translateY(0);
       }
     }
 
@@ -458,9 +468,7 @@
 
   <div class="content">
     <div class="abstract">
-      <p class="abstract-text">
-        <span class="tech">Behavioral responses</span> to <span class="tech">time-varying stimuli</span> in <span class="tech">Drosophila larvae</span> show <span class="tech">temporal dynamics</span> with <span class="tech">latency-dependent</span> and <span class="tech">intensity-dependent</span> patterns. This project develops a <span class="tech">stimulus-locked event-hazard model</span> for <span class="tech">turn initiation</span> and <span class="tech">run-stop transitions</span> using <span class="tech">generalized linear models</span> with <span class="tech">temporal kernel bases</span> that capture stimulus-response relationships. The model estimates time-varying hazard rates for behavioral events conditioned on <span class="tech">stimulus intensity</span>, <span class="tech">temporal history</span>, and <span class="tech">contextual features</span> including speed and orientation. Using a <span class="tech">design of experiments</span> framework with <span class="tech">stimulus intensity</span>, <span class="tech">pulse duration</span>, and <span class="tech">inter-pulse interval</span> as factors, the analysis generates <span class="tech">simulated trajectories</span> that produce <span class="tech">key performance indicators</span> including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics. <span class="tech">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class="tech">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data.
-      </p>
+      <div id="abstract-container" class="abstract-text"></div>
     </div>
 
     <section id="introduction" class="visible" data-delay="0">
@@ -1233,6 +1241,58 @@
       renderer.render(scene, camera);
     }
 
+    // Animate abstract text in word groups with pauses between sentences
+    function animateAbstract() {
+      const container = document.getElementById('abstract-container');
+      if (!container) return;
+
+      const abstractSentences = [
+        [
+          ["<span class=\"tech\">Behavioral responses</span>", " to ", "<span class=\"tech\">time-varying stimuli</span>", " in ", "<span class=\"tech\">Drosophila larvae</span>", " show ", "<span class=\"tech\">temporal dynamics</span>", " with ", "<span class=\"tech\">latency-dependent</span>", " and ", "<span class=\"tech\">intensity-dependent</span>", " patterns."]
+        ],
+        [
+          ["This project develops a ", "<span class=\"tech\">stimulus-locked event-hazard model</span>", " for ", "<span class=\"tech\">turn initiation</span>", " and ", "<span class=\"tech\">run-stop transitions</span>", " using ", "<span class=\"tech\">generalized linear models</span>", " with ", "<span class=\"tech\">temporal kernel bases</span>", " that capture stimulus-response relationships."]
+        ],
+        [
+          ["The model estimates time-varying hazard rates", " for behavioral events", " conditioned on ", "<span class=\"tech\">stimulus intensity</span>", ", ", "<span class=\"tech\">temporal history</span>", ", and ", "<span class=\"tech\">contextual features</span>", " including speed and orientation."]
+        ],
+        [
+          ["Using a ", "<span class=\"tech\">design of experiments</span>", " framework", " with ", "<span class=\"tech\">stimulus intensity</span>", ", ", "<span class=\"tech\">pulse duration</span>", ", and ", "<span class=\"tech\">inter-pulse interval</span>", " as factors,", " the analysis generates ", "<span class=\"tech\">simulated trajectories</span>", " that produce ", "<span class=\"tech\">key performance indicators</span>", " including mean turn rate, latency to first turn, stop fraction, and spatial distribution metrics."]
+        ],
+        [
+          ["<span class=\"tech\">Confidence intervals</span>", " for behavioral metrics", " provide statistical precision", " comparable to ", "<span class=\"tech\">Arena simulation replications</span>", ", which supports validation of model predictions against empirical larval trajectory data."]
+        ]
+      ];
+
+      let currentDelay = 0;
+      const wordGroupDelay = 80; // milliseconds between word groups
+      const sentencePause = 600; // milliseconds pause between sentences
+
+      abstractSentences.forEach((sentenceGroups, sentenceIndex) => {
+        const sentenceDiv = document.createElement('div');
+        sentenceDiv.className = 'abstract-sentence';
+        container.appendChild(sentenceDiv);
+
+        sentenceGroups.forEach((wordGroups) => {
+          wordGroups.forEach((wordGroup, groupIndex) => {
+            setTimeout(() => {
+              const span = document.createElement('span');
+              span.className = 'abstract-word-group';
+              span.innerHTML = wordGroup;
+              span.style.animationDelay = '0s';
+              sentenceDiv.appendChild(span);
+            }, currentDelay);
+            currentDelay += wordGroupDelay;
+          });
+        });
+
+        // Add pause after sentence (except last)
+        if (sentenceIndex < abstractSentences.length - 1) {
+          currentDelay += sentencePause;
+        }
+      });
+    }
+
     // Initialize
     function init() {
       neuralNetwork = createNeuralNetwork();
@@ -1247,6 +1307,9 @@
       // Add ambient light for clouds
       const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
       scene.add(ambientLight);
+      
+      // Start abstract animation
+      animateAbstract();
       
       setTimeout(() => {
         const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
