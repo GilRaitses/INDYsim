@@ -225,6 +225,7 @@
       flex-direction: column;
       justify-content: center;
       position: relative;
+      z-index: 1;
     }
 
     .abstract-text {
@@ -232,15 +233,18 @@
       font-size: 1.1rem;
       line-height: 1.8;
       margin: 0;
+      opacity: 1;
       animation: fadeInUp 1.5s ease-out;
+      position: relative;
+      z-index: 2;
     }
 
     @keyframes fadeInUp {
-      from {
+      0% {
         opacity: 0;
         transform: translateY(20px);
       }
-      to {
+      100% {
         opacity: 1;
         transform: translateY(0);
       }
