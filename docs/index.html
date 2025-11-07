@@ -860,15 +860,6 @@
             // Hide the cloud permanently once section is revealed
             cloud.visible = false;
           });
-          
-          // Also handle direct section hover (not just cloud)
-          section.addEventListener('mouseenter', () => {
-            section.classList.add('revealed');
-            // Hide corresponding cloud
-            if (cloud) {
-              cloud.visible = false;
-            }
-          });
         }
       });
     }
