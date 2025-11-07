@@ -158,57 +158,13 @@
       transform: translateY(0);
     }
 
-    /* Cloud overlay for sections */
+    /* Cloud overlay for sections - hidden when using Three.js clouds */
     section::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      min-height: 200px;
-      background: radial-gradient(ellipse at center, var(--cinnamoroll-pink) 0%, rgba(245, 212, 216, 0.7) 40%, rgba(245, 212, 216, 0.3) 70%, transparent 90%);
-      border-radius: 50%;
-      filter: blur(40px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      z-index: 1;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: none; /* Hidden - using Three.js clouds instead */
     }
 
     section::after {
-      content: attr(data-title);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2.5rem;
-      font-family: 'Didot', 'Georgia', serif;
-      color: var(--cinnamoroll-dark-blue);
-      font-weight: 300;
-      z-index: 2;
-      pointer-events: none;
-      text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
-      transition: opacity 0.5s ease;
-    }
-
-    /* Hide cloud overlay when revealed */
-    section.revealed::before,
-    section.revealed::after {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    section:hover::before {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1.2);
-    }
-
-    section:hover::after {
-      opacity: 0;
+      display: none; /* Hidden - using Three.js clouds instead */
     }
 
     /* Section content */
@@ -225,13 +181,6 @@
     section.revealed > *,
     section:hover > * {
       opacity: 1;
-    }
-
-    /* Hide cloud for visible sections that are revealed */
-    section.visible.revealed::before,
-    section.visible.revealed::after {
-      opacity: 0;
-      pointer-events: none;
     }
 
     h2 {
@@ -662,6 +611,7 @@
     let currentRotationX = 0;
     let currentRotationY = 0;
     let isDragging = false;
+    let sectionClouds = new Map(); // Map of section IDs to cloud objects
 
     // Three.js initialization
     const scene = new THREE.Scene();
@@ -708,9 +658,9 @@
         const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
         const larvaMaterial = new THREE.LineBasicMaterial({
-          color: 0x5F4A3F, // cinnamoroll-brown
+          color: 0x8AB4D3, // cinnamoroll-blue (changed from brown)
           linewidth: 3,
-          opacity: 0.85,
+          opacity: 0.9,
           transparent: true
         });
 
@@ -764,6 +714,140 @@
       }
 
       return larvae;
+    }
+
+    // Create floating pink clouds for sections
+    function createSectionClouds() {
+      const sections = document.querySelectorAll('section');
+      const cloudGroup = new THREE.Group();
+      foregroundGroup.add(cloudGroup);
+
+      sections.forEach((section, index) => {
+        // Create cloud geometry (fluffy sphere)
+        const cloudGeometry = new THREE.SphereGeometry(2, 32, 32);
+        const cloudMaterial = new THREE.MeshPhongMaterial({
+          color: 0xF5D4D8, // cinnamoroll-pink
+          transparent: true,
+          opacity: 0.6,
+          emissive: 0xF5D4D8,
+          emissiveIntensity: 0.3,
+          shininess: 0
+        });
+
+        // Create main cloud mesh
+        const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+        
+        // Add smaller spheres for fluffiness
+        for (let i = 0; i < 5; i++) {
+          const fluffSize = 0.5 + Math.random() * 0.8;
+          const fluffGeometry = new THREE.SphereGeometry(fluffSize, 16, 16);
+          const fluff = new THREE.Mesh(fluffGeometry, cloudMaterial);
+          fluff.position.set(
+            (Math.random() - 0.5) * 3,
+            (Math.random() - 0.5) * 3,
+            (Math.random() - 0.5) * 3
+          );
+          cloud.add(fluff);
+        }
+
+        // Initial floating position (random in 3D space)
+        const angle = (index / sections.length) * Math.PI * 2;
+        const radius = 25 + Math.random() * 15;
+        const height = (Math.random() - 0.5) * 20;
+        
+        cloud.position.x = Math.cos(angle) * radius;
+        cloud.position.y = height;
+        cloud.position.z = Math.sin(angle) * radius;
+
+        // Cloud animation data
+        cloud.userData = {
+          originalPosition: cloud.position.clone(),
+          targetPosition: null,
+          floatingPhase: Math.random() * Math.PI * 2,
+          floatingSpeed: 0.5 + Math.random() * 0.5,
+          floatingAmplitude: 2 + Math.random() * 3,
+          isExpanding: false,
+          isMovingToSection: false,
+          expansionProgress: 0,
+          sectionElement: section,
+          sectionId: section.id
+        };
+
+        cloudGroup.add(cloud);
+        sectionClouds.set(section.id, cloud);
+      });
+
+      return cloudGroup;
+    }
+
+    // Update cloud positions (floating animation)
+    function updateClouds(deltaTime) {
+      sectionClouds.forEach((cloud, sectionId) => {
+        const ud = cloud.userData;
+        if (!ud) return;
+
+        if (!ud.isMovingToSection && !ud.isExpanding) {
+          // Floating animation
+          ud.floatingPhase += ud.floatingSpeed * 0.01;
+          cloud.position.y = ud.originalPosition.y + Math.sin(ud.floatingPhase) * ud.floatingAmplitude;
+          cloud.position.x = ud.originalPosition.x + Math.cos(ud.floatingPhase * 0.7) * 1;
+          cloud.position.z = ud.originalPosition.z + Math.sin(ud.floatingPhase * 0.5) * 1;
+          
+          // Gentle rotation
+          cloud.rotation.y += 0.002;
+          cloud.rotation.x += 0.001;
+        } else if (ud.isMovingToSection) {
+          // Animate to section position
+          const section = ud.sectionElement;
+          if (section) {
+            const rect = section.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Convert screen coordinates to 3D world coordinates
+            const vector = new THREE.Vector3();
+            vector.set(
+              (centerX / window.innerWidth) * 2 - 1,
+              -(centerY / window.innerHeight) * 2 + 1,
+              0.5
+            );
+            
+            // Use proper unproject method
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = 20; // Distance from camera
+            const targetPos = camera.position.clone().add(dir.multiplyScalar(distance));
+            
+            // Smooth animation to target
+            cloud.position.lerp(targetPos, 0.05);
+            
+            // Expand cloud
+            ud.expansionProgress = Math.min(1, ud.expansionProgress + 0.03);
+            const scale = 1 + ud.expansionProgress * 2;
+            cloud.scale.set(scale, scale, scale);
+            
+            // Check if close enough
+            if (cloud.position.distanceTo(targetPos) < 0.5 && ud.expansionProgress >= 1) {
+              ud.isMovingToSection = false;
+              ud.isExpanding = true;
+            }
+          }
+        }
+      });
+    }
+
+    // Setup hover handlers for sections
+    function setupCloudHover() {
+      sectionClouds.forEach((cloud, sectionId) => {
+        const section = cloud.userData.sectionElement;
+        if (section) {
+          section.addEventListener('mouseenter', () => {
+            cloud.userData.isMovingToSection = true;
+            cloud.userData.expansionProgress = 0;
+            section.classList.add('revealed');
+          });
+        }
+      });
     }
 
     // Update larvae positions
@@ -1106,17 +1190,22 @@
     }
 
     // Animation loop
+    let lastTime = performance.now();
     function animate() {
       requestAnimationFrame(animate);
       
-      // Update trailer text animation using Three.js timing
       const currentTime = performance.now();
+      const deltaTime = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+      
+      // Update trailer text animation using Three.js timing
       animateTrailerText(currentTime);
       
       processKeyboardControls();
       if (typeof updateLarvae === 'function' && larvae) {
         updateLarvae(larvae);
       }
+      updateClouds(deltaTime);
       if (neuralNetwork && neuralNetwork.userData && neuralNetwork.userData.update) {
         neuralNetwork.userData.update(performance.now() * 0.001);
       }
@@ -1187,9 +1276,15 @@
       neuralNetwork = createNeuralNetwork();
       scene.add(neuralNetwork);
       larvae = initDrosophilaBackground();
+      createSectionClouds();
+      setupCloudHover();
       const isMobile = window.innerWidth < 768;
       camera.position.z = isMobile ? 25 : 30;
       cameraDistance = isMobile ? 25 : 30;
+      
+      // Add ambient light for clouds
+      const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
+      scene.add(ambientLight);
       
       // Start trailer text animation
       trailerAnimationStartTime = null;
@@ -1227,8 +1322,9 @@
       });
     }
 
-    // Add revealed class on hover to persist visibility
+    // Add revealed class on hover to persist visibility (now handled by cloud hover)
     function setupSectionHover() {
+      // Cloud hover handles this now, but keep for compatibility
       const sections = document.querySelectorAll('section');
       sections.forEach(section => {
         section.addEventListener('mouseenter', () => {
