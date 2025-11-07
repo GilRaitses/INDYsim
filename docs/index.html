@@ -1266,65 +1266,35 @@
         sentenceDiv.className = 'abstract-sentence';
         container.appendChild(sentenceDiv);
 
-        // Split sentence into words while preserving HTML tags
-        // Use a temporary div to parse HTML, then split by text nodes
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = sentence;
+        // Split sentence into tokens (words and HTML tags)
+        // Match HTML tags or words separated by spaces
+        const tokens = sentence.match(/<[^>]+>|[^\s<]+/g) || [];
         
-        const textNodes = [];
-        const walker = document.createTreeWalker(
-          tempDiv,
-          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-          null
-        );
-        
-        let node;
-        while (node = walker.nextNode()) {
-          if (node.nodeType === Node.TEXT_NODE) {
-            const words = node.textContent.split(/(\s+)/);
-            words.forEach(word => {
-              if (word.trim() !== '') {
-                textNodes.push({ type: 'text', content: word });
-              } else if (word.length > 0) {
-                textNodes.push({ type: 'space', content: word });
-              }
-            });
-          } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN' && node.classList.contains('tech')) {
-            textNodes.push({ type: 'html', content: node.outerHTML });
-          }
-        }
-        
-        // If parsing failed, fall back to simple split
-        if (textNodes.length === 0) {
-          const words = sentence.split(/(\s+)/);
-          words.forEach(word => {
-            if (word.trim() !== '') {
-              textNodes.push({ type: 'text', content: word });
-            } else if (word.length > 0) {
-              textNodes.push({ type: 'space', content: word });
-            }
-          });
-        }
-        
-        textNodes.forEach((item, itemIndex) => {
+        tokens.forEach((token, tokenIndex) => {
           setTimeout(() => {
-            if (item.type === 'space') {
-              sentenceDiv.appendChild(document.createTextNode(item.content));
+            const span = document.createElement('span');
+            span.className = 'abstract-word-group';
+            
+            if (token.startsWith('<')) {
+              // It's an HTML tag - include it with the next word or add space
+              span.innerHTML = token;
             } else {
-              const span = document.createElement('span');
-              span.className = 'abstract-word-group';
-              if (item.type === 'html') {
-                span.innerHTML = item.content + ' ';
-              } else {
-                span.textContent = item.content + ' ';
-              }
-              sentenceDiv.appendChild(span);
+              // It's a word
+              span.textContent = token;
             }
+            
+            // Add space after token (except last)
+            if (tokenIndex < tokens.length - 1) {
+              const nextToken = tokens[tokenIndex + 1];
+              if (!nextToken.startsWith('<')) {
+                span.textContent += ' ';
+              }
+            }
+            
+            sentenceDiv.appendChild(span);
           }, currentDelay);
           
-          if (item.type !== 'space') {
-            currentDelay += wordDelay;
-          }
+          currentDelay += wordDelay;
         });
 
         // Add pause after sentence (except last)
