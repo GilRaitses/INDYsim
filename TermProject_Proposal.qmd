@@ -282,30 +282,54 @@ This project applies \tech{simulation modeling methods} from \tech{ECS630} to \t
 
 ### Core Model Equations
 
+**Equation \ref{eq:hazard}: Hazard Rate Model**
+
+The time-varying hazard rate for behavioral event type $E$ combines baseline log-hazard, stimulus history through temporal kernel convolution, and contextual features. This exponential link function ensures positive hazard rates while allowing linear combination of features in log-space.
+
 \begin{equation}
 \label{eq:hazard}
 \lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}
 \end{equation}
+
+**Equation \ref{eq:kernel}: Temporal Kernel Basis Expansion**
+
+The temporal kernel uses raised cosine basis functions centered at knots $\tau_j$ spanning the analysis window. Each basis function has local support $[\tau_j-\Delta\tau, \tau_j+\Delta\tau]$ and captures stimulus-response dynamics at different time delays relative to stimulus onset.
 
 \begin{equation}
 \label{eq:kernel}
 \kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)
 \end{equation}
 
+**Equation \ref{eq:likelihood}: Event Likelihood**
+
+The log-likelihood sums log-hazard contributions from observed events across all larvae and subtracts the integrated hazard over each larva's observation period. This formulation follows standard point process likelihood theory for inhomogeneous Poisson processes.
+
 \begin{equation}
 \label{eq:likelihood}
 \ell(\mathbf{\beta}) = \sum_i \sum_k \log \lambda_E(t_{i,k}) - \int_0^{T_i} \lambda_E(t) dt
 \end{equation}
+
+**Equation \ref{eq:estimation}: Penalized Maximum Likelihood Estimation**
+
+Parameter estimation maximizes the log-likelihood subject to $L_2$ regularization penalty. The regularization parameter $\lambda_{\text{reg}}$ controls the trade-off between model fit and complexity, preventing overfitting to training data.
 
 \begin{equation}
 \label{eq:estimation}
 \hat{\mathbf{\beta}} = \arg\max \left\{ \ell(\mathbf{\beta}) - \lambda_{\text{reg}} \|\mathbf{\beta}\|_2^2 \right\}
 \end{equation}
 
+**Equation \ref{eq:speed_dynamics}: Position Integration**
+
+During run phases, position updates using forward Euler integration with current speed $v(t)$ and heading angle $\theta(t)$. The integration step size $\Delta t$ balances numerical accuracy with computational efficiency.
+
 \begin{equation}
 \label{eq:speed_dynamics}
 \mathbf{x}(t+\Delta t) = \mathbf{x}(t) + v(t) \Delta t \cdot [\cos(\theta(t)), \sin(\theta(t))]^\top
 \end{equation}
+
+**Equation \ref{eq:run_length}: Replication Count Determination**
+
+The required number of replications $n$ depends on the desired confidence interval half-width $E$, estimated variance $\hat{\sigma}^2$, and significance level $\alpha$. This formula ensures statistical precision targets are met while minimizing computational cost.
 
 \begin{equation}
 \label{eq:run_length}
@@ -314,15 +338,27 @@ n \geq \left(\frac{z_{\alpha/2} \hat{\sigma}}{E}\right)^2
 
 ### Statistical Metrics
 
+**Equation \ref{eq:mean}: Sample Mean**
+
+The sample mean provides an unbiased estimate of the population mean for each KPI across replications within a condition. This statistic serves as the primary point estimate for comparison across experimental conditions.
+
 \begin{equation}
 \label{eq:mean}
 \bar{X} = \frac{1}{n}\sum_{i=1}^n X_i
 \end{equation}
 
+**Equation \ref{eq:std}: Sample Standard Deviation**
+
+The sample standard deviation quantifies variability across replications using Bessel's correction ($n-1$ in the denominator) to provide an unbiased estimate of population variance. This measure informs confidence interval width and statistical power.
+
 \begin{equation}
 \label{eq:std}
 s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}
 \end{equation}
+
+**Equation \ref{eq:ci}: 95\% Confidence Interval**
+
+The confidence interval uses the $t$-distribution with $n-1$ degrees of freedom to account for uncertainty in variance estimation with finite samples. The interval provides a range of plausible values for the population mean at 95\% confidence level.
 
 \begin{equation}
 \label{eq:ci}
@@ -333,6 +369,10 @@ s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}
 
 ### Feature Extraction
 
+**Code \ref{code-h5-extract}: H5 Data Extraction Command**
+
+The extraction script processes raw H5 files from MAGAT experiments, extracting trajectory positions, LED stimulus data, and metadata. The script outputs event records, full trajectory data aligned with stimulus timing, and summary statistics in CSV and JSON formats for downstream analysis.
+
 ```bash
 {#code-h5-extract}
 python3 scripts/engineer_dataset_from_h5.py \
@@ -340,6 +380,10 @@ python3 scripts/engineer_dataset_from_h5.py \
     --output-dir data/engineered \
     --experiment-id GMR61_202509051201
 ```
+
+**Code \ref{code-feature-engineering}: Feature Engineering Pipeline**
+
+The feature engineering pipeline processes each larval trajectory by extracting position coordinates, computing derived features including speed and heading, detecting behavioral events such as turns, and aligning trajectory data with stimulus timing. The pipeline creates time bins and generates stimulus kernel features for model fitting.
 
 ```python
 {#code-feature-engineering}
@@ -368,6 +412,10 @@ for each track in h5_file['tracks']:
 ```
 
 ### Simulation Engine
+
+**Code \ref{code-simulator}: Trajectory Simulator Class**
+
+The simulator class implements discrete-event simulation of larval trajectories using fitted hazard models. The simulation initializes state variables, samples event times from hazard rates using a thinning algorithm, executes behavioral events, and integrates position using forward Euler method until reaching maximum simulation time.
 
 ```python
 {#code-simulator}
@@ -419,6 +467,10 @@ class LarvalTrajectorySimulator:
 ```
 
 ### DOE Execution
+
+**Code \ref{code-doe-execution}: Design of Experiments Execution Loop**
+
+The DOE execution script iterates through all 45 factorial conditions, running 30 replications per condition. For each replication, the script creates a stimulus schedule from condition parameters, simulates a trajectory, computes KPIs, and aggregates results into Arena-style CSV format with confidence intervals.
 
 ```python
 {#code-doe-execution}
