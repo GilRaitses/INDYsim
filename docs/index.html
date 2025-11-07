@@ -240,13 +240,15 @@
       margin: 0;
       position: relative;
       z-index: 2;
+      text-align: left;
     }
 
     .abstract-sentence {
-      margin-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
       line-height: 1.3;
       word-wrap: break-word;
       overflow-wrap: break-word;
+      text-align: left;
     }
 
     .abstract-sentence:last-child {
@@ -256,8 +258,7 @@
     .abstract-word-group {
       opacity: 0;
       display: inline;
-      animation: fadeInWord 0.15s ease-out forwards;
-      white-space: pre-wrap;
+      animation: fadeInWord 0.1s ease-out forwards;
     }
 
     @keyframes fadeInWord {
@@ -1266,35 +1267,76 @@
         sentenceDiv.className = 'abstract-sentence';
         container.appendChild(sentenceDiv);
 
-        // Split sentence into tokens (words and HTML tags)
-        // Match HTML tags or words separated by spaces
-        const tokens = sentence.match(/<[^>]+>|[^\s<]+/g) || [];
+        // Properly split sentence into words while preserving HTML tags
+        // Create a temporary element to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = sentence;
         
-        tokens.forEach((token, tokenIndex) => {
-          setTimeout(() => {
-            const span = document.createElement('span');
-            span.className = 'abstract-word-group';
-            
-            if (token.startsWith('<')) {
-              // It's an HTML tag - include it with the next word or add space
-              span.innerHTML = token;
-            } else {
-              // It's a word
-              span.textContent = token;
-            }
-            
-            // Add space after token (except last)
-            if (tokenIndex < tokens.length - 1) {
-              const nextToken = tokens[tokenIndex + 1];
-              if (!nextToken.startsWith('<')) {
-                span.textContent += ' ';
+        // Extract all text nodes and elements, preserving order
+        const walker = document.createTreeWalker(
+          tempDiv,
+          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+          null
+        );
+        
+        const parts = [];
+        let node;
+        while (node = walker.nextNode()) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            // Split text by spaces
+            const words = node.textContent.split(/(\s+)/);
+            words.forEach(word => {
+              if (word.trim()) {
+                parts.push({ type: 'word', content: word });
+              } else if (word) {
+                parts.push({ type: 'space', content: word });
               }
+            });
+          } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
+            // Preserve span elements as-is
+            parts.push({ type: 'html', content: node.outerHTML });
+          }
+        }
+        
+        // If parsing failed, use simple approach
+        if (parts.length === 0) {
+          const simpleWords = sentence.split(/(\s+)/);
+          simpleWords.forEach(word => {
+            if (word.trim()) {
+              parts.push({ type: 'word', content: word });
+            } else if (word) {
+              parts.push({ type: 'space', content: word });
             }
-            
-            sentenceDiv.appendChild(span);
+          });
+        }
+        
+        parts.forEach((part, partIndex) => {
+          setTimeout(() => {
+            if (part.type === 'space') {
+              sentenceDiv.appendChild(document.createTextNode(part.content));
+            } else {
+              const span = document.createElement('span');
+              span.className = 'abstract-word-group';
+              if (part.type === 'html') {
+                span.innerHTML = part.content;
+                // Add space after HTML tag if next part is a word
+                if (partIndex < parts.length - 1 && parts[partIndex + 1].type === 'word') {
+                  span.innerHTML += ' ';
+                }
+              } else {
+                span.textContent = part.content;
+                // Add space after word if next part exists and isn't HTML
+                if (partIndex < parts.length - 1 && parts[partIndex + 1].type !== 'html') {
+                  span.textContent += ' ';
+                }
+              }
+              sentenceDiv.appendChild(span);
+            }
           }, currentDelay);
           
-          currentDelay += wordDelay;
+          if (part.type !== 'space') {
+            currentDelay += wordDelay;
+          }
         });
 
         // Add pause after sentence (except last)
