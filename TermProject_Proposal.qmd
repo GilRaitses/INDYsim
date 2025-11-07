@@ -174,37 +174,31 @@ The replication length follows Lab04 CI methodology. Target precision uses \num{
 
 ### Input Data Sources
 
-The primary data source uses H5 files containing exported MAGAT experiment data in HDF5 format. These files contain trajectory positions, LED stimulus data, and metadata processed using the feature extraction pipeline. Backup sources include trajectory CSVs for runs and reorientations, stimulus CSVs with frame-level LED values, and experimental metadata with experiment IDs, conditions, and replication numbers.
+The analysis uses trajectory data from MAGAT experiments containing position coordinates, speeds, orientations, and behavioral events synchronized with LED stimulus timing. Data includes multiple experimental conditions with varying stimulus intensities, pulse durations, and inter-pulse intervals, providing sufficient sample size for model fitting and validation.
 
 ### Feature Extraction
 
-**Step 1: Extract from H5 Files**
-
-The extraction command is shown in Code \ref{code-h5-extract} in Appendix. This creates three output files: event records with 50ms time bins, full trajectory data aligned with stimulus, and summary statistics in CSV and JSON formats.
-
-**Step 2: Feature Engineering** (implemented in `engineer_dataset_from_h5.py`)
-
-The feature engineering pipeline is detailed in Code \ref{code-feature-engineering} in Appendix.
+The analysis extracts behavioral features from trajectory data including position coordinates, speed, heading angles, and event timing. Features are computed at 50ms time bins and aligned with stimulus timing to capture temporal relationships between stimulus presentation and behavioral responses. The feature set includes stimulus history features derived from temporal kernel convolution, contextual features such as current speed and orientation, and event indicators marking turn starts, stop starts, and reversals.
 
 ### Model Fitting Pipeline
 
-The model fitting pipeline consists of five steps. Event detection identifies turn starts, stop starts, and reversal starts from trajectory data. Feature matrix construction creates an $N \times P$ matrix where $N$ equals total time bins across all larvae and $P$ equals the number of features. GLM fitting uses `sklearn.linear_model.LogisticRegression` or `statsmodels` for Poisson GLM. Cross-validation applies leave-one-larva-out CV to assess generalization. Kernel visualization plots the fitted kernel $\hat{\kappa}(\tau)$ to interpret temporal response.
+The model fitting process identifies behavioral events from trajectory data, constructs feature matrices combining stimulus history and contextual variables, and fits GLM models using penalized maximum likelihood estimation. Cross-validation assesses model generalization using leave-one-larva-out validation. Model validation evaluates temporal fidelity through time-rescaled KS tests and compares predicted versus observed event rates using peri-stimulus time histograms.
 
 ## Simulation and DOE Execution
 
 ### Simulation Engine
 
-The simulation engine implementation is shown in Code \ref{code-simulator} in Appendix.
+The trajectory simulator generates larval paths by sampling event times from fitted hazard models and integrating position using empirical speed distributions. The simulator handles behavioral state transitions including turns, stops, and reversals, producing complete trajectories under specified stimulus schedules.
 
 ### DOE Execution
 
-For each of 45 conditions, the DOE execution follows Code \ref{code-doe-execution} in Appendix.
+The full factorial design executes 45 experimental conditions with 30 replications per condition. Each replication simulates a complete larval trajectory under the condition's stimulus parameters, computes KPIs, and aggregates results into summary statistics with confidence intervals following Arena-style output format.
 
 ## Statistical Analysis
 
 ### Performance Metrics Calculation
 
-For each KPI and condition, the analysis calculates four statistics. The mean uses $\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i$. Standard deviation follows $s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}$. The 95\% confidence interval uses $\bar{X} \pm t_{0.025,n-1} \frac{s}{\sqrt{n}}$. Minimum and maximum values track $\min_i X_i$ and $\max_i X_i$ (see Equations \ref{eq:mean}--\ref{eq:ci} in Appendix).
+For each KPI and condition, the analysis computes sample means, standard deviations, 95\% confidence intervals using $t$-distributions, and minimum/maximum values across replications. These statistics provide point estimates and uncertainty quantification for behavioral metrics under each experimental condition (see Equations \ref{eq:mean}--\ref{eq:ci} in Appendix).
 
 ### Model Validation Metrics
 
