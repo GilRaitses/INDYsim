@@ -244,8 +244,8 @@
     }
 
     .abstract-sentence {
-      margin-bottom: 3.5rem;
-      line-height: 1.15;
+      margin-bottom: 2rem;
+      line-height: 1.05;
       word-wrap: break-word;
       overflow-wrap: break-word;
       text-align: left;
@@ -1245,7 +1245,7 @@
       renderer.render(scene, camera);
     }
 
-    // Animate abstract text in word groups with pauses between sentences
+    // Display abstract text immediately without animation
     function animateAbstract() {
       const container = document.getElementById('abstract-container');
       if (!container) return;
@@ -1258,91 +1258,11 @@
         "<span class=\"tech\">Confidence intervals</span> for behavioral metrics provide statistical precision comparable to <span class=\"tech\">Arena simulation replications</span>, which supports validation of model predictions against empirical larval trajectory data."
       ];
 
-      let currentDelay = 0;
-      const wordDelay = 35; // milliseconds between words (faster, like typing)
-      const sentencePause = 250; // milliseconds pause between sentences (shorter pause)
-
-      abstractSentences.forEach((sentence, sentenceIndex) => {
+      abstractSentences.forEach((sentence) => {
         const sentenceDiv = document.createElement('div');
         sentenceDiv.className = 'abstract-sentence';
+        sentenceDiv.innerHTML = sentence;
         container.appendChild(sentenceDiv);
-
-        // Properly split sentence into words while preserving HTML tags
-        // Create a temporary element to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = sentence;
-        
-        // Extract all text nodes and elements, preserving order
-        const walker = document.createTreeWalker(
-          tempDiv,
-          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-          null
-        );
-        
-        const parts = [];
-        let node;
-        while (node = walker.nextNode()) {
-          if (node.nodeType === Node.TEXT_NODE) {
-            // Split text by spaces
-            const words = node.textContent.split(/(\s+)/);
-            words.forEach(word => {
-              if (word.trim()) {
-                parts.push({ type: 'word', content: word });
-              } else if (word) {
-                parts.push({ type: 'space', content: word });
-              }
-            });
-          } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
-            // Preserve span elements as-is
-            parts.push({ type: 'html', content: node.outerHTML });
-          }
-        }
-        
-        // If parsing failed, use simple approach
-        if (parts.length === 0) {
-          const simpleWords = sentence.split(/(\s+)/);
-          simpleWords.forEach(word => {
-            if (word.trim()) {
-              parts.push({ type: 'word', content: word });
-            } else if (word) {
-              parts.push({ type: 'space', content: word });
-            }
-          });
-        }
-        
-        parts.forEach((part, partIndex) => {
-          setTimeout(() => {
-            if (part.type === 'space') {
-              sentenceDiv.appendChild(document.createTextNode(part.content));
-            } else {
-              const span = document.createElement('span');
-              span.className = 'abstract-word-group';
-              if (part.type === 'html') {
-                span.innerHTML = part.content;
-                // Add space after HTML tag if next part is a word
-                if (partIndex < parts.length - 1 && parts[partIndex + 1].type === 'word') {
-                  span.innerHTML += ' ';
-                }
-              } else {
-                span.textContent = part.content;
-                // Add space after word if next part exists and isn't HTML
-                if (partIndex < parts.length - 1 && parts[partIndex + 1].type !== 'html') {
-                  span.textContent += ' ';
-                }
-              }
-              sentenceDiv.appendChild(span);
-            }
-          }, currentDelay);
-          
-          if (part.type !== 'space') {
-            currentDelay += wordDelay;
-          }
-        });
-
-        // Add pause after sentence (except last)
-        if (sentenceIndex < abstractSentences.length - 1) {
-          currentDelay += sentencePause;
-        }
       });
     }
 
