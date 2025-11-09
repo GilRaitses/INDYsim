@@ -241,7 +241,13 @@
       position: relative;
       z-index: 2;
       text-align: left;
-      opacity: 1;
+      opacity: 1 !important;
+    }
+
+    .abstract-text * {
+      opacity: 1 !important;
+      transition: none !important;
+      animation: none !important;
     }
 
     .abstract-sentence {
@@ -250,7 +256,7 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
       text-align: left;
-      opacity: 1;
+      opacity: 1 !important;
     }
 
     .abstract-sentence:last-child {
