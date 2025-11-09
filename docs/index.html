@@ -241,6 +241,7 @@
       position: relative;
       z-index: 2;
       text-align: left;
+      opacity: 1;
     }
 
     .abstract-sentence {
@@ -249,25 +250,11 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
       text-align: left;
+      opacity: 1;
     }
 
     .abstract-sentence:last-child {
       margin-bottom: 0;
-    }
-
-    .abstract-word-group {
-      opacity: 0;
-      display: inline;
-      animation: fadeInWord 0.1s ease-out forwards;
-    }
-
-    @keyframes fadeInWord {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
     }
 
     table {
