@@ -6,3 +6,9 @@ output/
 data/
 
 /.quarto/
+
+# H5 files are too large for git
+*.h5
+*.hdf5
+data/**/*.h5
+data/**/*.hdf5

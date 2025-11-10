@@ -62,7 +62,7 @@ def extract_cycles_from_h5(h5_file):
             print(f"  Found {len(onset_frames)} stimulus onsets")
             print(f"  LED1 data: {len(led1_data)} frames")
             
-            # Extract cycles - find actual LED ON and OFF times
+            # Extract cycles - use onset_frame as t=0, find LED OFF, calculate ETI
             threshold = 50.0
             pulse_durations = []
             
@@ -70,24 +70,14 @@ def extract_cycles_from_h5(h5_file):
                 onset_frame_int = int(onset_frame)
                 onset_time = onset_frame_int / fps
                 
-                # Find when LED actually turns ON (may be before onset_frame)
-                # Look backwards from onset_frame to find LED transition
-                lookback_start = max(0, onset_frame_int - 50)  # Look back up to 5 seconds
-                lookback_window = led1_data[lookback_start:onset_frame_int + 1]
-                on_indices = np.where(lookback_window >= threshold)[0]
+                # Use onset_frame as the reference point (t=0) - DO NOT look backwards
+                # The onset_frame is the actual stimulus onset time
+                led_on_frame = onset_frame_int
+                led_on_time = onset_time
                 
-                if len(on_indices) > 0:
-                    # LED ON is the first frame where LED >= threshold before/at onset
-                    led_on_frame = lookback_start + on_indices[0]
-                    led_on_time = led_on_frame / fps
-                else:
-                    # Fallback: use onset_frame as LED ON
-                    led_on_frame = onset_frame_int
-                    led_on_time = onset_time
-                
-                # Find when LED turns OFF after LED ON
-                pulse_window_start = led_on_frame
-                pulse_window_end = min(led_on_frame + 600, len(led1_data))  # Check up to 60 seconds
+                # Find when LED turns OFF after onset
+                pulse_window_start = onset_frame_int
+                pulse_window_end = min(onset_frame_int + 600, len(led1_data))  # Check up to 60 seconds
                 pulse_window = led1_data[pulse_window_start:pulse_window_end]
                 
                 drop_indices = np.where(pulse_window < threshold)[0]
@@ -97,42 +87,86 @@ def extract_cycles_from_h5(h5_file):
                     led_off_time = led_off_frame / fps
                     pulse_duration = led_off_time - led_on_time
                 else:
-                    # If no drop found, use next onset as end
+                    # If no drop found, calculate ETI (time to next onset)
                     if i < len(onset_frames) - 1:
                         next_onset_frame = int(onset_frames[i+1])
-                        led_off_frame = next_onset_frame
-                        led_off_time = next_onset_frame / fps
-                        pulse_duration = led_off_time - led_on_time
+                        next_onset_time = next_onset_frame / fps
+                        # Use ETI to determine pulse duration: pulse ends when next cycle starts
+                        # But we need the actual pulse duration, not ETI
+                        # Check if LED is still ON at next onset
+                        if next_onset_frame < len(led1_data) and led1_data[next_onset_frame] >= threshold:
+                            # LED still ON at next onset - use next onset as OFF
+                            led_off_frame = next_onset_frame
+                            led_off_time = next_onset_time
+                            pulse_duration = led_off_time - led_on_time
+                        else:
+                            # LED already OFF - find the actual drop point
+                            # Look between onset and next onset
+                            search_end = min(next_onset_frame, len(led1_data))
+                            search_window = led1_data[onset_frame_int:search_end]
+                            drop_in_window = np.where(search_window < threshold)[0]
+                            if len(drop_in_window) > 0:
+                                led_off_frame = onset_frame_int + drop_in_window[0]
+                                led_off_time = led_off_frame / fps
+                                pulse_duration = led_off_time - led_on_time
+                            else:
+                                # No drop found, use next onset as end
+                                led_off_frame = next_onset_frame
+                                led_off_time = next_onset_time
+                                pulse_duration = led_off_time - led_on_time
                     else:
-                        led_off_frame = len(led1_data) - 1
-                        led_off_time = led_off_frame / fps
-                        pulse_duration = led_off_time - led_on_time
+                        # Last cycle - check if LED drops before end of data
+                        search_end = min(onset_frame_int + 600, len(led1_data))
+                        search_window = led1_data[onset_frame_int:search_end]
+                        drop_in_window = np.where(search_window < threshold)[0]
+                        if len(drop_in_window) > 0:
+                            led_off_frame = onset_frame_int + drop_in_window[0]
+                            led_off_time = led_off_frame / fps
+                            pulse_duration = led_off_time - led_on_time
+                        else:
+                            led_off_frame = len(led1_data) - 1
+                            led_off_time = led_off_frame / fps
+                            pulse_duration = led_off_time - led_on_time
+                
+                # Calculate ETI (elapsed time index) - time from LED OFF to next onset
+                if i < len(onset_frames) - 1:
+                    next_onset_frame = int(onset_frames[i+1])
+                    next_onset_time = next_onset_frame / fps
+                    eti = next_onset_time - led_off_time
+                else:
+                    eti = None
                 
                 pulse_durations.append(pulse_duration)
                 
-                # Analysis window: 10 seconds BEFORE LED ON + full pulse duration
-                # Cycle is aligned to LED ON time (not onset_frame)
+                # Analysis window: 10 seconds BEFORE onset (t=0) + full pulse duration
+                # Cycle is aligned to onset_frame (t=0), NOT led_on_time
                 baseline_period = 10.0
-                baseline_start_time = max(0, led_on_time - baseline_period)
+                baseline_start_time = max(0, onset_time - baseline_period)
                 analysis_end_time = led_off_time
                 
                 cycle = {
                     'cycle_num': i + 1,
-                    'onset_frame': onset_frame_int,  # Original onset frame (for reference)
-                    'onset_time': onset_time,  # Original onset time (for reference)
-                    'led_on_frame': led_on_frame,
-                    'led_on_time': led_on_time,  # Actual LED ON time (cycle start = 0)
+                    'onset_frame': onset_frame_int,  # Stimulus onset frame (t=0 reference)
+                    'onset_time': onset_time,  # Stimulus onset time (t=0 reference)
+                    'led_on_frame': led_on_frame,  # Same as onset_frame (for compatibility)
+                    'led_on_time': led_on_time,  # Same as onset_time (t=0)
                     'led_off_frame': led_off_frame,
                     'led_off_time': led_off_time,
                     'pulse_duration': pulse_duration,
+                    'eti': eti,  # Elapsed time index (time from OFF to next onset)
                     'baseline_start_time': baseline_start_time,
-                    'cycle_start_time': baseline_start_time,  # Start of analysis window (10s before LED ON)
+                    'cycle_start_time': baseline_start_time,  # Start of analysis window (10s before onset)
                     'cycle_end_time': analysis_end_time  # End of analysis window (LED OFF)
                 }
                 cycles.append(cycle)
             
             if len(pulse_durations) > 0:
                 print(f"  Pulse durations: min={min(pulse_durations):.1f}s, max={max(pulse_durations):.1f}s, mean={np.mean(pulse_durations):.1f}s")
+                # Print ETI values for validation
+                eti_values = [c['eti'] for c in cycles if c.get('eti') is not None]
+                if len(eti_values) > 0:
+                    print(f"  ETI (time from OFF to next onset): min={min(eti_values):.1f}s, max={max(eti_values):.1f}s, mean={np.mean(eti_values):.1f}s")
+                print(f"  Cycle alignment: t=0 is stimulus onset_frame (NOT looking backwards)")
         
         return cycles, led1_data
     except FileNotFoundError as e:
@@ -144,25 +178,37 @@ def extract_cycles_from_h5(h5_file):
         traceback.print_exc()
         raise
 
-def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=None):
+def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=None, trajectories_df=None):
     """
     Calculate actual stimulus-locked turn rate from events data.
     
+    FIXED: Now matches MATLAB ExperimentAggregator.m methodology:
+    - Extracts reorientation start times directly (not summing boolean values)
+    - Counts reorientations per bin: sum(reorientation_times >= bin_start & reorientation_times < bin_end)
+    - Formula: (reorientations / bin_duration) * 60 (matches MATLAB line 352)
+    
+    TEMPORAL ALIGNMENT FIX:
+    - If trajectories_df is provided, uses frame-level times for maximum accuracy
+    - Otherwise uses events_df with 'first' time aggregation (not 'mean') to avoid drift
+    
     Proper methodology:
-    1. For each cycle, bin into 0.5s bins
-    2. For each bin in each cycle, aggregate tracks that have data
-    3. Calculate turn rate per bin: (n_turns / bin_duration) * 60
-    4. Store rate and n_tracks for each cycle-bin combination
+    1. Extract reorientation start times from events where is_reorientation == True
+    2. For each cycle, align times relative to stimulus onset (cycle time 0 = onset_frame)
+    3. For each 0.5s bin, count reorientation times that fall within bin boundaries (MATLAB-style)
+    4. Calculate turn rate per track per bin: (n_reorientations / bin_duration) * 60
     5. Aggregate across cycles with proper weighting by n_tracks
     
     Parameters
     ----------
     events_df : pd.DataFrame
-        Events CSV with track_id, time, is_turn columns
+        Events CSV with track_id, time, is_reorientation columns (50ms bins)
     cycles : List[Dict]
         Actual cycles extracted from H5 file
     h5_file : str, optional
         Path to H5 file for LED data
+    trajectories_df : pd.DataFrame, optional
+        Trajectories CSV with frame-level times (more accurate than binned events)
+        If provided, uses this for exact reorientation start times
     
     Returns
     -------
@@ -202,6 +248,29 @@ def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=Non
     
     # Use is_reorientation (MAGAT-compatible reorientation detection)
     print("  Using is_reorientation (MAGAT-based reorientation detection)")
+    print("  FIXED: Counting reorientation start times directly (MATLAB-style) instead of summing boolean values")
+    
+    # TEMPORAL ALIGNMENT FIX: Use trajectories CSV for frame-level accuracy if available
+    # This avoids temporal drift from binning/averaging in events CSV
+    if trajectories_df is not None and 'is_reorientation' in trajectories_df.columns:
+        print("  Using trajectories CSV for frame-level reorientation times (maximum accuracy)")
+        reorientation_events = trajectories_df[trajectories_df['is_reorientation'] == True].copy()
+        if 'track_id' not in reorientation_events.columns:
+            print("  WARNING: trajectories_df missing track_id column, falling back to events_df")
+            reorientation_events = events_df[events_df['is_reorientation'] == True].copy()
+    else:
+        # Extract reorientation start times from events CSV (50ms bins)
+        # NOTE: Events CSV uses 50ms bins with 'first' time aggregation (not 'mean') to avoid drift
+        # This avoids issues with double-binning and aggregation loss from summing boolean values
+        # For maximum accuracy, provide trajectories_df (frame-level resolution) instead.
+        reorientation_events = events_df[events_df['is_reorientation'] == True].copy()
+    
+    if len(reorientation_events) == 0:
+        print("  Warning: No reorientation events found")
+        return None
+    
+    print(f"  Found {len(reorientation_events)} reorientation start events across all tracks")
+    print(f"  TEMPORAL ALIGNMENT: Using {'frame-level' if trajectories_df is not None else 'binned (50ms)'} times")
     
     # Structure: bin_idx -> list of (rate, n_tracks) tuples for each cycle
     bin_data_by_cycle = {bin_idx: [] for bin_idx in range(n_bins)}
@@ -212,57 +281,50 @@ def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=Non
     for cycle in cycles:
         cycle_start = cycle['cycle_start_time']
         cycle_end = cycle['cycle_end_time']
-        onset_time = cycle['onset_time']
+        led_on_time = cycle['led_on_time']
         
-        # Extract events for this cycle
-        cycle_events = events_df[
-            (events_df['time'] >= cycle_start) & 
-            (events_df['time'] <= cycle_end)
+        # Extract reorientation events for this cycle
+        cycle_reorientations = reorientation_events[
+            (reorientation_events['time'] >= cycle_start) & 
+            (reorientation_events['time'] <= cycle_end)
         ].copy()
         
-        if len(cycle_events) == 0:
+        if len(cycle_reorientations) == 0:
             continue
         
-        # Calculate relative time from LED ON (cycle alignment point)
-        # Cycle time 0 = LED ON, not onset_frame
-        led_on_time = cycle['led_on_time']
-        cycle_events['time_rel_onset'] = cycle_events['time'] - led_on_time
+        # Calculate relative time from stimulus onset (cycle alignment point)
+        # Cycle time 0 = onset_frame (stimulus onset), NOT led_on_time
+        # Use onset_time which is the actual stimulus onset
+        onset_time = cycle['onset_time']
+        cycle_reorientations['time_rel_onset'] = cycle_reorientations['time'] - onset_time
         
         # Filter to analysis window
-        cycle_events = cycle_events[
-            (cycle_events['time_rel_onset'] >= t_min) & 
-            (cycle_events['time_rel_onset'] <= t_max)
+        cycle_reorientations = cycle_reorientations[
+            (cycle_reorientations['time_rel_onset'] >= t_min) & 
+            (cycle_reorientations['time_rel_onset'] <= t_max)
         ]
         
-        if len(cycle_events) == 0:
+        if len(cycle_reorientations) == 0:
             continue
         
-        # Bin using digitize (correctly handles bin boundaries)
-        # digitize returns bin index where bin_edges[i] <= x < bin_edges[i+1]
-        # Result is 1-indexed, so subtract 1 to get 0-indexed bin
-        cycle_events['time_bin'] = np.digitize(cycle_events['time_rel_onset'].values, bin_edges) - 1
-        cycle_events['time_bin'] = np.clip(cycle_events['time_bin'], 0, n_bins - 1)
-        
-        # For each bin, calculate turn rate per track, then aggregate
+        # MATLAB-style counting: For each bin, count reorientation times that fall within bin boundaries
+        # This matches ExperimentAggregator.m line 338: bin_reorientations = sum(reorientation_times >= bin_start & reorientation_times < bin_end)
         for bin_idx in range(n_bins):
-            bin_events = cycle_events[cycle_events['time_bin'] == bin_idx]
+            bin_start = bin_edges[bin_idx]
+            bin_end = bin_edges[bin_idx + 1]
             
-            if len(bin_events) == 0:
-                continue
-            
-            # Get unique tracks that have data in this bin
-            unique_tracks = bin_events['track_id'].unique()
-            n_tracks = len(unique_tracks)
-            
-            if n_tracks == 0:
-                continue
-            
-            # Gold standard: calculate per-track per-cycle bin rates, then aggregate
+            # Count reorientations per track in this bin (MATLAB-style)
             track_rates = []
+            unique_tracks = cycle_reorientations['track_id'].unique()
+            
             for track_id in unique_tracks:
-                track_bin_events = bin_events[bin_events['track_id'] == track_id]
-                track_reorientations = track_bin_events['is_reorientation'].sum()
-                track_rate = (track_reorientations / BIN_SIZE) * 60.0
+                track_reos = cycle_reorientations[cycle_reorientations['track_id'] == track_id]
+                # Count reorientation times that fall within bin boundaries (MATLAB-style)
+                track_reo_times = track_reos['time_rel_onset'].values
+                bin_reorientations = np.sum((track_reo_times >= bin_start) & (track_reo_times < bin_end))
+                
+                # Calculate rate: (reorientations / bin_duration) * 60 (matches MATLAB line 352)
+                track_rate = (bin_reorientations / BIN_SIZE) * 60.0
                 track_rates.append(track_rate)
             
             if len(track_rates) > 0:
@@ -367,11 +429,11 @@ def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=Non
     
     # Check for plausibility (typical larval turn rates: 0-15 turns/min)
     if overall_max > 50:
-        print(f"\n  ⚠️  WARNING: Max turn rate ({overall_max:.2f} turns/min) exceeds typical range (0-15 turns/min)")
+        print(f"\n  WARNING: Max turn rate ({overall_max:.2f} turns/min) exceeds typical range (0-15 turns/min)")
     elif overall_max > 20:
-        print(f"\n  ⚠️  CAUTION: Max turn rate ({overall_max:.2f} turns/min) is high but may be valid")
+        print(f"\n  CAUTION: Max turn rate ({overall_max:.2f} turns/min) is high but may be valid")
     else:
-        print(f"\n  ✓ Turn rates appear biologically plausible")
+        print(f"\n  Turn rates appear biologically plausible")
     
     # Create LED pattern for plotting - square wave with proper transitions
     # Create time points that include bin edges for clean square wave
@@ -521,6 +583,13 @@ def create_stimulus_locked_turn_rate_analysis(trajectories_file, events_file, h5
     events_df = pd.read_csv(events_file, nrows=500000)  # Load subset
     print(f"  Loaded {len(events_df)} event records")
     
+    # Load trajectories CSV if available (for frame-level accuracy)
+    trajectories_df = None
+    if trajectories_file and Path(trajectories_file).exists():
+        print(f"Loading trajectories data from {trajectories_file}...")
+        trajectories_df = pd.read_csv(trajectories_file, nrows=2000000)  # Load subset
+        print(f"  Loaded {len(trajectories_df)} trajectory frames (frame-level accuracy)")
+    
     # Extract actual cycles from H5 file (required, no fallback)
     cycles, led1_data = extract_cycles_from_h5(h5_file)
     
@@ -528,11 +597,11 @@ def create_stimulus_locked_turn_rate_analysis(trajectories_file, events_file, h5
         raise ValueError(f"No cycles found in {h5_file}. Cannot create analysis.")
     
     # Calculate turn rates from actual data
-    analysis_data = calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file)
+    # Use trajectories_df if available for frame-level temporal accuracy
+    analysis_data = calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file, trajectories_df=trajectories_df)
     
     if analysis_data is None:
-        print("  Warning: Could not calculate turn rates")
-        return
+        raise ValueError("Could not calculate turn rates. No valid data found.")
     
     bin_centers = analysis_data['bin_centers']
     mean_rates = analysis_data['mean_rates']

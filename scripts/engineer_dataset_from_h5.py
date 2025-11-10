@@ -997,13 +997,13 @@ def create_event_records(trajectory_df: pd.DataFrame,
     # They remain at full resolution in the trajectory DataFrame. Only derived features
     # like spine_curve_energy are aggregated for event records.
     agg_dict = {
-        'time': 'mean',
+        'time': 'first',  # Use first frame time in bin (not mean) to avoid temporal drift
         'speed': 'mean',
         'heading': 'mean',
         'x': 'mean',
         'y': 'mean',
         'stimulus_on': 'any',
-        'time_since_stimulus': 'mean',
+        'time_since_stimulus': 'first',  # Use first frame time_since_stimulus to avoid drift
         'is_turn': 'any',  # Simple heading change detection (backwards compatibility)
         'is_reorientation': 'any',  # Proper reorientation detection (USE THIS FOR TURN RATES)
         'is_pause': 'any',  # Event occurred if any frame in bin was paused
@@ -1127,18 +1127,18 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
         
         events_file = output_dir / f"{experiment_id}_events.csv"
         combined_events.to_csv(events_file, index=False)
-        print(f"  ✓ Saved {len(combined_events)} event records to {events_file}")
+        print(f"  Saved {len(combined_events)} event records to {events_file}")
         
         trajectories_file = output_dir / f"{experiment_id}_trajectories.csv"
         combined_trajectories.to_csv(trajectories_file, index=False)
-        print(f"  ✓ Saved trajectory data to {trajectories_file}")
+        print(f"  Saved trajectory data to {trajectories_file}")
         
         # Save Klein run tables if available
         if all_klein_run_tables:
             combined_klein_runs = pd.concat(all_klein_run_tables, ignore_index=True)
             klein_runs_file = output_dir / f"{experiment_id}_klein_run_table.csv"
             combined_klein_runs.to_csv(klein_runs_file, index=False)
-            print(f"  ✓ Saved {len(combined_klein_runs)} Klein run table rows to {klein_runs_file}")
+            print(f"  Saved {len(combined_klein_runs)} Klein run table rows to {klein_runs_file}")
             
             # Add to summary
             total_runs = int(len(combined_klein_runs))
@@ -1167,7 +1167,7 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
         summary_file = output_dir / f"{experiment_id}_summary.json"
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
-        print(f"  ✓ Saved summary to {summary_file}")
+        print(f"  Saved summary to {summary_file}")
     else:
         print("  WARNING: No tracks processed")
 
@@ -1210,7 +1210,7 @@ def main():
         experiment_id = args.experiment_id or h5_file.stem.replace(' ', '_')
         process_h5_file(h5_file, output_dir, experiment_id)
     
-    print(f"\n✓ Processing complete. Outputs in {output_dir}")
+    print(f"\nProcessing complete. Outputs in {output_dir}")
 
 if __name__ == '__main__':
     main()
