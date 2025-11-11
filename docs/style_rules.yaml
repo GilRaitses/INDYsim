@@ -1,0 +1,334 @@
+style_rules:
+  title: "Global Stylistic Constants for Correspondence and Proposals"
+  author: "Gil Raitses"
+  version: 1.0
+  purpose: >
+    Define universal style, tone, and rhetorical parameters for all written communications
+    including research proposals, outreach emails, academic statements, and agent-generated drafts.
+
+  tone_profile:
+    level: "Graduate / professional research"
+    qualities:
+      - precise
+      - grounded
+      - authentic
+      - structured
+      - non-performative
+    avoid:
+      - marketing tone
+      - performative enthusiasm
+      - detached academic jargon
+
+  rhetorical_constraints:
+    no_contrast_framing: true
+    no_tricolons: true
+    no_em_dashes: true
+    no_oxford_commas: true
+    no_meta_verbs: ["I'll plan to", "I would like to", "I hope to", "I plan to"]
+    no_hard_sentence_breaks: ["Period + This/That/These creates choppy flow"]
+    no_vague_clauses: true
+    no_symbolic_language: true
+    prefer_positive_formulation: true
+    prefer_flow_connectors: ["which", "and", "while"]
+    avoid_placeholder_phrases: ["as such", "thus", "in this context", "in order to"]
+
+  paragraph_style:
+    target_length: "3–4 sentences"
+    max_width: "85 characters"
+    structure_preference: "hourglass (broad → specific → bridge → purpose)"
+    spacing: "1 line between paragraphs"
+    indentation: false
+    alignment: "left"
+    closing_paragraph: "≤ 2 lines"
+
+  sentence_structure:
+    preferred_length: "12–18 words"
+    open_with: ["I", "My work", "In our lab"]
+    avoid_hard_breaks: 
+      - "Period + This/That/These at sentence start creates choppy flow"
+      - "Use 'which' or 'and' to maintain conversational rhythm"
+      - "Example: 'data. This connects' → 'data, which connects'"
+    avoid_passive_voice: true
+    avoid_auxiliary_chains: true
+    compound_sentences_limit: 1
+    declarative_priority: true
+
+  punctuation_rules:
+    no_em_dashes: true
+    commas: "minimal, rhythm-based only"
+    semicolons: "discouraged except for clear logical separation"
+    quotation_marks: "double quotes for formal citation, single for emphasis only"
+    parentheses: "used sparingly, only for factual clarification"
+
+  diction_preferences:
+    verbs:
+      prefer: ["build", "develop", "design", "analyze", "model", "construct", "focus", "explore"]
+      avoid: ["attempt", "try", "hope", "intend", "plan"]
+    flow_improvements:
+      avoid_repeated_sentence_starters:
+        - "I... I... I... creates monotonous rhythm (but OK if sentences are distinct ideas)"
+        - "Use connectors for closely related ideas: 'and have', 'while also', 'including'"
+        - "Example: 'I build X. I've developed Y' → consider joining if closely related"
+        - "Balance: avoid both choppy breaks AND overly long compound sentences"
+      avoid_hard_topic_shifts:
+        - "Period + new topic word (This/That/These/My) breaks conversational flow"
+        - "Fix: Use subordinate clauses: 'which', 'where', 'with'"
+        - "Example: 'data. This connects' → 'data, which connects'"
+        - "Don't force connections that make sentences too long (>25 words)"
+      maintain_rhythm:
+        - "Vary sentence length: short (8-12), medium (12-18), occasional long (18-25)"
+        - "Avoid three consecutive sentences starting same way"
+        - "Use natural pauses (periods) when ideas are distinct"
+        - "Use connectors (commas with 'which'/'and') when ideas flow together"
+    adjectives:
+      prefer: ["interpretable", "hierarchical", "transparent", "multi-scale", "structural", "statistical"]
+      avoid: ["amazing", "incredible", "compelling", "innovative", "exciting"]
+    connectives:
+      prefer: ["and", "while", "also", "further"]
+      avoid: ["but", "however", "whereas", "on the other hand"]
+
+  tone_matrix:
+    confidence: "direct, matter-of-fact, self-assured"
+    curiosity: "expressed through inquiry, not affect"
+    humility: "implicit through focus on work, not hedging"
+    professionalism: "collegial, concise, non-apologetic"
+
+  lexical_guidelines:
+    prefer_terms:
+      - "interpretable modeling"
+      - "functional envelope"
+      - "behavioral annotation"
+      - "statistical methodology"
+      - "temporal structure"
+      - "multi-scale segmentation"
+    avoid_terms:
+      - "cutting-edge"
+      - "groundbreaking"
+      - "revolutionary"
+      - "impactful"
+
+  closing_style:
+    default: "Best regards"
+    alternate: ["Sincerely", "Warm regards"]
+    signature_block:
+      include_name: true
+      include_affiliation: true
+      include_email: true
+      include_phone: false
+      formatting: "name bolded, others plain text"
+
+  version_notes:
+    last_updated: "2025-11-04"
+    applied_contexts:
+      - "PhD faculty outreach (Zuckerman Institute, Columbia)"
+      - "AI research proposals and term projects"
+      - "Recommendation request letters"
+      - "Personal and lab correspondence"
+      
+      style_rules:
+  title: "Global Stylistic Constants for Correspondence and Proposals"
+  author: "Gil Raitses"
+  version: 1.0
+  purpose: >
+    Define universal style, tone, and rhetorical parameters for all written communications
+    including research proposals, outreach emails, academic statements, and agent-generated drafts.
+
+  tone_profile:
+    level: "Graduate / professional research"
+    qualities:
+      - precise
+      - grounded
+      - authentic
+      - structured
+      - non-performative
+    avoid:
+      - marketing tone
+      - performative enthusiasm
+      - detached academic jargon
+
+  rhetorical_constraints:
+    no_contrast_framing: true
+    no_tricolons: true
+    no_em_dashes: true
+    no_oxford_commas: true
+    no_meta_verbs: ["I’ll plan to", "I would like to", "I hope to"]
+    no_vague_clauses: true
+    no_symbolic_language: true
+    prefer_positive_formulation: true
+    avoid_placeholder_phrases: ["as such", "thus", "in this context", "in order to"]
+
+  paragraph_style:
+    target_length: "3–4 sentences"
+    max_width: "85 characters"
+    structure_preference: "hourglass (broad → specific → bridge → purpose)"
+    spacing: "1 line between paragraphs"
+    indentation: false
+    alignment: "left"
+    closing_paragraph: "≤ 2 lines"
+
+  sentence_structure:
+    preferred_length: "12–18 words"
+    open_with: ["I", "This", "My work", "In our lab"]
+    avoid_passive_voice: true
+    avoid_auxiliary_chains: true
+    compound_sentences_limit: 1
+    declarative_priority: true
+
+  punctuation_rules:
+    no_em_dashes: true
+    commas: "minimal, rhythm-based only"
+    semicolons: "discouraged except for clear logical separation"
+    quotation_marks: "double quotes for formal citation, single for emphasis only"
+    parentheses: "used sparingly, only for factual clarification"
+
+  diction_preferences:
+    verbs:
+      prefer: ["build", "develop", "design", "analyze", "model", "construct", "focus", "explore"]
+      avoid: ["attempt", "try", "hope", "intend", "plan"]
+    adjectives:
+      prefer: ["interpretable", "hierarchical", "transparent", "multi-scale", "structural", "statistical"]
+      avoid: ["amazing", "incredible", "compelling", "innovative", "exciting"]
+    connectives:
+      prefer: ["and", "while", "also", "further"]
+      avoid: ["but", "however", "whereas", "on the other hand"]
+
+  tone_matrix:
+    confidence: "direct, matter-of-fact, self-assured"
+    curiosity: "expressed through inquiry, not affect"
+    humility: "implicit through focus on work, not hedging"
+    professionalism: "collegial, concise, non-apologetic"
+
+  lexical_guidelines:
+    prefer_terms:
+      - "interpretable modeling"
+      - "functional envelope"
+      - "behavioral annotation"
+      - "statistical methodology"
+      - "temporal structure"
+      - "multi-scale segmentation"
+    avoid_terms:
+      - "cutting-edge"
+      - "groundbreaking"
+      - "revolutionary"
+      - "impactful"
+
+  closing_style:
+    default: "Best regards"
+    alternate: ["Sincerely", "Warm regards"]
+    signature_block:
+      include_name: true
+      include_affiliation: true
+      include_email: true
+      include_phone: false
+      formatting: "name bolded, others plain text"
+
+  version_notes:
+    last_updated: "2025-11-04"
+    applied_contexts:
+      - "PhD faculty outreach (Zuckerman Institute, Columbia)"
+      - "AI research proposals and term projects"
+      - "Recommendation request letters"
+      - "Personal and lab correspondence"style_rules:
+  title: "Global Stylistic Constants for Correspondence and Proposals"
+  author: "Gil Raitses"
+  version: 1.0
+  purpose: >
+    Define universal style, tone, and rhetorical parameters for all written communications
+    including research proposals, outreach emails, academic statements, and agent-generated drafts.
+
+  tone_profile:
+    level: "Graduate / professional research"
+    qualities:
+      - precise
+      - grounded
+      - authentic
+      - structured
+      - non-performative
+    avoid:
+      - marketing tone
+      - performative enthusiasm
+      - detached academic jargon
+
+  rhetorical_constraints:
+    no_contrast_framing: true
+    no_tricolons: true
+    no_em_dashes: true
+    no_oxford_commas: true
+    no_meta_verbs: ["I’ll plan to", "I would like to", "I hope to"]
+    no_vague_clauses: true
+    no_symbolic_language: true
+    prefer_positive_formulation: true
+    avoid_placeholder_phrases: ["as such", "thus", "in this context", "in order to"]
+
+  paragraph_style:
+    target_length: "3–4 sentences"
+    max_width: "85 characters"
+    structure_preference: "hourglass (broad → specific → bridge → purpose)"
+    spacing: "1 line between paragraphs"
+    indentation: false
+    alignment: "left"
+    closing_paragraph: "≤ 2 lines"
+
+  sentence_structure:
+    preferred_length: "12–18 words"
+    open_with: ["I", "This", "My work", "In our lab"]
+    avoid_passive_voice: true
+    avoid_auxiliary_chains: true
+    compound_sentences_limit: 1
+    declarative_priority: true
+
+  punctuation_rules:
+    no_em_dashes: true
+    commas: "minimal, rhythm-based only"
+    semicolons: "discouraged except for clear logical separation"
+    quotation_marks: "double quotes for formal citation, single for emphasis only"
+    parentheses: "used sparingly, only for factual clarification"
+
+  diction_preferences:
+    verbs:
+      prefer: ["build", "develop", "design", "analyze", "model", "construct", "focus", "explore"]
+      avoid: ["attempt", "try", "hope", "intend", "plan"]
+    adjectives:
+      prefer: ["interpretable", "hierarchical", "transparent", "multi-scale", "structural", "statistical"]
+      avoid: ["amazing", "incredible", "compelling", "innovative", "exciting"]
+    connectives:
+      prefer: ["and", "while", "also", "further"]
+      avoid: ["but", "however", "whereas", "on the other hand"]
+
+  tone_matrix:
+    confidence: "direct, matter-of-fact, self-assured"
+    curiosity: "expressed through inquiry, not affect"
+    humility: "implicit through focus on work, not hedging"
+    professionalism: "collegial, concise, non-apologetic"
+
+  lexical_guidelines:
+    prefer_terms:
+      - "interpretable modeling"
+      - "functional envelope"
+      - "behavioral annotation"
+      - "statistical methodology"
+      - "temporal structure"
+      - "multi-scale segmentation"
+    avoid_terms:
+      - "cutting-edge"
+      - "groundbreaking"
+      - "revolutionary"
+      - "impactful"
+
+  closing_style:
+    default: "Best regards"
+    alternate: ["Sincerely", "Warm regards"]
+    signature_block:
+      include_name: true
+      include_affiliation: true
+      include_email: true
+      include_phone: false
+      formatting: "name bolded, others plain text"
+
+  version_notes:
+    last_updated: "2025-11-04"
+    applied_contexts:
+      - "PhD faculty outreach (Zuckerman Institute, Columbia)"
+      - "AI research proposals and term projects"
+      - "Recommendation request letters"
+      - "Personal and lab correspondence"

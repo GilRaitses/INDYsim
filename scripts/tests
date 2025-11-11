@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Check what spine_indices represent."""
+
+import h5py
+import numpy as np
+from pathlib import Path
+
+h5_file = Path(r"D:\INDYsim\data\GMR61@GMR61_T_Re_Sq_0to100PWM_30#C_Bl_7PWM_202508221246.h5")
+
+with h5py.File(h5_file, 'r') as f:
+    fps = 10.0
+    if 'metadata' in f and 'attrs' in f['metadata']:
+        if 'fps' in f['metadata']['attrs']:
+            fps = float(f['metadata']['attrs']['fps'])
+    
+    # Get first track
+    track_key = list(f['tracks'].keys())[0]
+    track = f['tracks'][track_key]
+    
+    print(f"Track: {track_key}")
+    
+    # Get positions
+    mid_pos = track['points']['mid'][:]
+    n_frames = len(mid_pos)
+    print(f"  Frames in track: {n_frames}")
+    
+    # Get spine data
+    if 'spine_points' in track['points'] and 'spine_indices' in track['points']:
+        spine_points = track['points']['spine_points'][:]
+        spine_indices = track['points']['spine_indices'][:]
+        
+        print(f"  Spine points: {len(spine_points)}")
+        print(f"  Spine indices: {len(spine_indices)}")
+        print(f"  First 10 spine_indices: {spine_indices[:10]}")
+        print(f"  Last 10 spine_indices: {spine_indices[-10:]}")
+        print(f"  Spine indices range: {spine_indices[0]} to {spine_indices[-1]}")
+        
+        # Check if spine_indices are frame indices or point indices
+        if spine_indices[0] == 0 and spine_indices[-1] < len(spine_points):
+            print(f"  -> spine_indices appear to be indices into spine_points array")
+            print(f"     (not global frame indices)")
+        elif spine_indices[0] > 0 or spine_indices[-1] >= len(spine_points):
+            print(f"  -> spine_indices might be global frame indices!")
+            print(f"     First frame: {spine_indices[0]}, Last frame: {spine_indices[-1]}")
+            print(f"     Global time: {spine_indices[0]/fps:.3f}s to {spine_indices[-1]/fps:.3f}s")
+        
+        # Check if spine_indices match n_frames
+        if len(spine_indices) == n_frames + 1:
+            print(f"  -> spine_indices has {len(spine_indices)} elements (n_frames+1)")
+            print(f"     This suggests they mark boundaries between frames")
+        elif len(spine_indices) == n_frames:
+            print(f"  -> spine_indices has {len(spine_indices)} elements (matches n_frames)")
+            print(f"     This suggests they are frame indices")
+    
+    # Check attrs for start_frame
+    print(f"\n  Track attributes:")
+    for key in track.attrs.keys():
+        val = track.attrs[key]
+        if 'frame' in key.lower() or 'time' in key.lower():
+            print(f"    {key}: {val}")
+

@@ -1,0 +1,102 @@
+{
+  "file": "data\\GMR61@GMR61_T_Re_Sq_0to100PWM_30#C_Bl_7PWM_202508221246.h5",
+  "global_quantities": {
+    "led1Val": {
+      "yData_shape": [
+        23991
+      ],
+      "yData_dtype": "float64",
+      "yData_length": 23991
+    },
+    "led2Val": {
+      "yData_shape": [
+        23991
+      ],
+      "yData_dtype": "float64",
+      "yData_length": 23991
+    }
+  },
+  "track_structure": {
+    "sample_track": "track_1",
+    "n_frames": 24001
+  },
+  "derived_quantities": {
+    "eti": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float64",
+      "description": "Elapsed time index per frame"
+    },
+    "led12Val_ton": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float64",
+      "description": "LED ON time per frame (interpolated)"
+    },
+    "led12Val_toff": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float64",
+      "description": "LED OFF time per frame (interpolated)"
+    },
+    "speed": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float64",
+      "description": "Speed per frame"
+    },
+    "deltatheta": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float64",
+      "description": "Angular speed per frame"
+    },
+    "spineLength": {
+      "shape": [
+        1,
+        24001
+      ],
+      "dtype": "float32",
+      "description": "Spine length per frame"
+    }
+  },
+  "reorientation_data": {
+    "detection_method": "MAGAT segmentation (via trajectories CSV)",
+    "h5_direct": false,
+    "requires_trajectories_csv": true,
+    "numHS_available": "check_trajectories_csv"
+  },
+  "run_data": {
+    "detection_method": "MAGAT segmentation (via trajectories CSV)",
+    "h5_direct": false,
+    "requires_trajectories_csv": true
+  },
+  "missing_dependencies": [],
+  "available_dependencies": [
+    "global_quantities/led1Val/yData",
+    "global_quantities/led2Val/yData",
+    "global_quantities/led12Val",
+    "global_quantities/led12Val_ton",
+    "global_quantities/led12Val_toff",
+    "elapsedTime",
+    "track.attrs.id",
+    "track.points.mid",
+    "track.derived_quantities.eti",
+    "track.derived_quantities.led12Val_ton",
+    "track.derived_quantities.led12Val_toff",
+    "track.derived_quantities.speed",
+    "track.derived_quantities.deltatheta",
+    "track.derived_quantities.spineLength"
+  ],
+  "status": "mostly_available"
+}

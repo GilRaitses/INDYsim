@@ -12,3 +12,7 @@ data/
 *.hdf5
 data/**/*.h5
 data/**/*.hdf5
+
+# MATLAB data and H5 files directories
+data/matlab_data/
+data/h5_files/
