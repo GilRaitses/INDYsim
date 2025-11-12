@@ -1,0 +1,59 @@
+from: boss-larry
+to: boss-larry
+date: 2025-11-12 16:35
+priority: Low
+status: Pending
+subject: Update Documentation for Converted H5 Files
+
+context: |
+  All 14 experiments have been converted to H5 format. Documentation needs to be updated to reflect conversion status, H5 file structure, and integration procedures.
+
+task: |
+  Update documentation to reflect current state of converted H5 files and provide integration guidance.
+
+tasks: |
+  1. Update Experiment Manifest:
+     - File: docs/logs/2025-11-11/experiment-manifest.md
+     - Action: Add conversion status for all 14 experiments
+     - Include: H5 file paths, sizes, validation status
+  
+  2. Document H5 File Structure:
+     - File: docs/logs/2025-11-12/h5-file-structure-guide.md (new)
+     - Content:
+       - H5 file structure overview
+       - ETI at root level (critical requirement)
+       - Global quantities structure
+       - Track structure
+       - Usage examples
+       - Integration points
+  
+  3. Create Integration Guide:
+     - File: docs/logs/2025-11-12/integration-guide.md (new)
+     - Content:
+       - How to use converted H5 files
+       - Integration with engineer_dataset_from_h5.py
+       - LED alignment usage
+       - Analysis pipeline integration
+       - Troubleshooting
+
+success_criteria: |
+  - Experiment manifest updated with conversion status
+  - H5 file structure documented clearly
+  - Integration guide created with examples
+  - Documentation is clear and actionable
+
+deliverables: |
+  - Updated docs/logs/2025-11-11/experiment-manifest.md
+  - New docs/logs/2025-11-12/h5-file-structure-guide.md
+  - New docs/logs/2025-11-12/integration-guide.md
+
+next_steps: |
+  After documentation complete:
+  - Use as reference for future work
+  - Update as integration testing reveals new information
+
+notes: |
+  This is parallel work - can be done alongside testing
+  Priority is Low - not blocking critical work
+  Keep documentation up-to-date as work progresses
+

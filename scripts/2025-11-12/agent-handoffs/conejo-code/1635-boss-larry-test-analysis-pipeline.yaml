@@ -1,0 +1,57 @@
+from: boss-larry
+to: conejo-code
+date: 2025-11-12 16:35
+priority: CRITICAL
+status: Pending
+subject: Test Analysis Pipeline with Converted H5 Files
+
+context: |
+  Task 0.1 (LED Alignment Test) is complete and approved. LED alignment is working correctly for the majority of files. Task 0.3 can now proceed to test the analysis pipeline with the converted H5 files.
+
+task: |
+  Test stimulus-locked turn rate analysis pipeline with converted H5 files to verify compatibility and functionality.
+
+test_files: |
+  Use files that passed LED alignment testing:
+  - data/h5_files/GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5
+  - data/h5_files/GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5
+  Note: File 3 (50-250 PWM range) can be handled separately if needed
+
+test_requirements: |
+  1. Run stimulus-locked turn rate analysis:
+     - Script: scripts/run_stimulus_locked_analysis_production.py
+     - Test with files that work correctly from Task 0.1
+  
+  2. Verify pipeline functionality:
+     - Pipeline runs without errors
+     - Turn rates computed correctly
+     - Timing alignment correct (spike at t=0)
+     - No path or structure issues
+  
+  3. Verify compatibility:
+     - Existing analysis scripts still work
+     - No breaking changes introduced
+     - Results are consistent
+
+success_criteria: |
+  - Analysis pipeline runs without errors
+  - Turn rates computed correctly
+  - Timing alignment verified (spike at t=0)
+  - No path or structure issues
+  - Compatible with existing scripts
+
+deliverables: |
+  - Test results document
+  - Any fixes or adjustments needed
+  - Evaluation request handoff to boss-larry
+
+next_steps: |
+  After testing complete:
+  - Create evaluation request handoff in boss-larry folder
+  - Document any issues found
+  - Request approval to proceed with full dataset analysis
+
+notes: |
+  This task was blocked until Task 0.1 completed. LED alignment is now working, so analysis pipeline testing can proceed.
+  Use files that passed LED alignment testing. File 3 (non-zero baseline) can be handled separately if needed.
+

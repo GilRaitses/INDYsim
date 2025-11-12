@@ -1,0 +1,313 @@
+[
+  {
+    "file": "D:\\INDYsim\\data\\h5_files\\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291713.h5",
+    "status": "PASS",
+    "errors": [],
+    "warnings": [
+      "ETI length (23962) does not match num_frames (24001)"
+    ],
+    "checks": {
+      "eti_at_root": {
+        "status": "PASS",
+        "shape": [
+          23962
+        ],
+        "dtype": "float64"
+      },
+      "root_structure": {
+        "status": "PASS",
+        "expected": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "actual": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "track_structure": {
+        "status": "PASS",
+        "num_tracks": 27,
+        "first_track_structure": {
+          "points": true,
+          "derived_quantities": true,
+          "state": true,
+          "metadata": true
+        },
+        "missing": []
+      },
+      "global_quantities": {
+        "status": "PASS",
+        "all_keys": [
+          "led1Val",
+          "led1ValDeriv",
+          "led1ValDiff"
+        ],
+        "led_keys_found": [
+          "led1Val"
+        ],
+        "led_details": {
+          "led1Val": {
+            "shape": [
+              23962
+            ],
+            "dtype": "float64"
+          }
+        }
+      },
+      "metadata": {
+        "status": "PASS",
+        "all_attrs": {
+          "eti_length": "23962",
+          "export_date": "2025-11-11 17:13:57",
+          "export_tier": "2",
+          "has_eti": "True",
+          "num_frames": "24001",
+          "num_tracks": "27"
+        },
+        "found_attrs": {
+          "has_eti": "True",
+          "export_tier": "2",
+          "num_tracks": "27",
+          "num_frames": "24001"
+        },
+        "missing_attrs": []
+      },
+      "file_size": {
+        "status": "PASS",
+        "size_mb": 127.01,
+        "expected_range": "100-300 MB"
+      },
+      "led_eti_length_match": {
+        "status": "PASS",
+        "length": 23962
+      }
+    }
+  },
+  {
+    "file": "D:\\INDYsim\\data\\h5_files\\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301228.h5",
+    "status": "PASS",
+    "errors": [],
+    "warnings": [
+      "ETI length (23997) does not match num_frames (24001)"
+    ],
+    "checks": {
+      "eti_at_root": {
+        "status": "PASS",
+        "shape": [
+          23997
+        ],
+        "dtype": "float64"
+      },
+      "root_structure": {
+        "status": "PASS",
+        "expected": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "actual": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "track_structure": {
+        "status": "PASS",
+        "num_tracks": 44,
+        "first_track_structure": {
+          "points": true,
+          "derived_quantities": true,
+          "state": true,
+          "metadata": true
+        },
+        "missing": []
+      },
+      "global_quantities": {
+        "status": "PASS",
+        "all_keys": [
+          "led1Val",
+          "led1ValDeriv",
+          "led1ValDiff",
+          "led2Val",
+          "led2ValDeriv",
+          "led2ValDiff"
+        ],
+        "led_keys_found": [
+          "led1Val",
+          "led2Val"
+        ],
+        "led_details": {
+          "led1Val": {
+            "shape": [
+              23997
+            ],
+            "dtype": "float64"
+          },
+          "led2Val": {
+            "shape": [
+              23997
+            ],
+            "dtype": "float64"
+          }
+        }
+      },
+      "metadata": {
+        "status": "PASS",
+        "all_attrs": {
+          "eti_length": "23997",
+          "export_date": "2025-11-11 17:24:21",
+          "export_tier": "2",
+          "has_eti": "True",
+          "num_frames": "24001",
+          "num_tracks": "44"
+        },
+        "found_attrs": {
+          "has_eti": "True",
+          "export_tier": "2",
+          "num_tracks": "44",
+          "num_frames": "24001"
+        },
+        "missing_attrs": []
+      },
+      "file_size": {
+        "status": "PASS",
+        "size_mb": 255.38,
+        "expected_range": "100-300 MB"
+      },
+      "led_eti_length_match": {
+        "status": "PASS",
+        "length": 23997
+      }
+    }
+  },
+  {
+    "file": "D:\\INDYsim\\data\\h5_files\\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301408.h5",
+    "status": "PASS",
+    "errors": [],
+    "warnings": [
+      "ETI length (24000) does not match num_frames (24001)"
+    ],
+    "checks": {
+      "eti_at_root": {
+        "status": "PASS",
+        "shape": [
+          24000
+        ],
+        "dtype": "float64"
+      },
+      "root_structure": {
+        "status": "PASS",
+        "expected": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "actual": [
+          "eti",
+          "experiment_info",
+          "global_quantities",
+          "led_data",
+          "metadata",
+          "stimulus",
+          "tracks"
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "track_structure": {
+        "status": "PASS",
+        "num_tracks": 55,
+        "first_track_structure": {
+          "points": true,
+          "derived_quantities": true,
+          "state": true,
+          "metadata": true
+        },
+        "missing": []
+      },
+      "global_quantities": {
+        "status": "PASS",
+        "all_keys": [
+          "led1Val",
+          "led1ValDeriv",
+          "led1ValDiff",
+          "led2Val",
+          "led2ValDeriv",
+          "led2ValDiff"
+        ],
+        "led_keys_found": [
+          "led1Val",
+          "led2Val"
+        ],
+        "led_details": {
+          "led1Val": {
+            "shape": [
+              24000
+            ],
+            "dtype": "float64"
+          },
+          "led2Val": {
+            "shape": [
+              24000
+            ],
+            "dtype": "float64"
+          }
+        }
+      },
+      "metadata": {
+        "status": "PASS",
+        "all_attrs": {
+          "eti_length": "24000",
+          "export_date": "2025-11-11 17:31:53",
+          "export_tier": "2",
+          "has_eti": "True",
+          "num_frames": "24001",
+          "num_tracks": "55"
+        },
+        "found_attrs": {
+          "has_eti": "True",
+          "export_tier": "2",
+          "num_tracks": "55",
+          "num_frames": "24001"
+        },
+        "missing_attrs": []
+      },
+      "file_size": {
+        "status": "PASS",
+        "size_mb": 226.65,
+        "expected_range": "100-300 MB"
+      },
+      "led_eti_length_match": {
+        "status": "PASS",
+        "length": 24000
+      }
+    }
+  }
+]

@@ -488,8 +488,21 @@ def main():
                        help='Path to trajectories CSV file')
     parser.add_argument('--events-file', type=str, default=None,
                        help='Path to events CSV file (for track_id if not in trajectories)')
+    # Get default H5 file from config
+    try:
+        import sys
+        config_path = Path(__file__).parent.parent / 'config.py'
+        if config_path.exists():
+            sys.path.insert(0, str(config_path.parent))
+            from config import H5_FILES_DIR, EXAMPLE_H5_FILE
+            default_h5 = EXAMPLE_H5_FILE if EXAMPLE_H5_FILE else (H5_FILES_DIR / 'GMR61_tier2_complete.h5')
+        else:
+            default_h5 = Path(__file__).parent.parent.parent / 'data' / 'h5_files' / 'GMR61_tier2_complete.h5'
+    except ImportError:
+        default_h5 = Path(__file__).parent.parent.parent / 'data' / 'h5_files' / 'GMR61_tier2_complete.h5'
+    
     parser.add_argument('--h5-file', type=str,
-                       default='/Users/gilraitses/mechanosensation/h5tests/GMR61_tier2_complete.h5',
+                       default=str(default_h5) if default_h5 else None,
                        help='Path to H5 file for stimulus cycle extraction')
     parser.add_argument('--output-dir', type=str,
                        default='output/visualizations',

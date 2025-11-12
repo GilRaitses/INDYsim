@@ -1,0 +1,62 @@
+from: boss-larry
+to: boss-larry
+date: 2025-11-12 16:35
+priority: CRITICAL
+status: In Progress
+subject: Validate H5 File Structure
+
+context: |
+  All 14 experiments have been successfully converted to H5 format. We need to validate the structure and completeness of all converted files to ensure data quality before proceeding with analysis.
+
+task: |
+  Comprehensive validation of H5 file structure across all 14 converted files to ensure data quality and completeness.
+
+validation_script: scripts/2025-11-11/validate_h5_files.py
+
+validation_requirements: |
+  1. Run validation on all 14 files:
+     python scripts/2025-11-11/validate_h5_files.py
+  
+  2. Spot-check at least 2 files from each ESET (8 files total minimum):
+     - ESET1 (T_Re_Sq_0to250PWM_30#C_Bl_7PWM): 2 files
+     - ESET2 (T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30): 2 files
+     - ESET3 (T_Re_Sq_50to250PWM_30#C_Bl_7PWM): 2 files
+     - ESET4 (T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30): 2 files
+  
+  3. Verify critical requirements:
+     - ETI at root level (CRITICAL requirement)
+     - Global quantities (LED values) present and correct
+     - Track structure complete
+     - Metadata complete (has_eti=True, export_tier=2)
+  
+  4. Check for issues:
+     - Corrupted files
+     - Missing data
+     - Structure inconsistencies
+
+success_criteria: |
+  - All files pass validation checks
+  - ETI at root level verified for all files
+  - Global quantities present and correct
+  - Track structure complete
+  - No corrupted files
+  - Spot-check confirms consistency across ESETs
+
+deliverables: |
+  - Validation report documenting:
+    - Results for all 14 files
+    - Spot-check results (2 files per ESET)
+    - Any issues found
+    - Recommendations
+  - Updated validation results JSON: scripts/2025-11-12/h5_validation_results.json
+
+next_steps: |
+  After validation complete:
+  - Proceed with integration testing (Task 0.1 already complete)
+  - Update experiment manifest with validation status
+
+notes: |
+  Can run in parallel with Task 0.1 (LED alignment testing) - but Task 0.1 is already complete
+  Use existing validation script from 2025-11-11
+  Document any discrepancies found
+

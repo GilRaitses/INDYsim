@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 import json
+import sys
 from scipy.stats import t as t_dist
 from cinnamoroll_palette import CINNAMOROLL_COLORS, CINNAMOROLL_PALETTE, setup_cinnamoroll_style
 
@@ -690,14 +691,40 @@ def main():
     parser.add_argument('--events-file', type=str,
                        default='data/engineered/GMR61_tier2_complete_events.csv',
                        help='Path to events CSV with is_turn column')
+    # Get defaults from config
+    try:
+        config_path = Path(__file__).parent.parent / 'config.py'
+        if config_path.exists():
+            sys.path.insert(0, str(config_path.parent))
+            from config import H5_FILES_DIR, EXAMPLE_H5_FILE, VISUALIZATIONS_DIR
+            default_h5 = EXAMPLE_H5_FILE if EXAMPLE_H5_FILE else (H5_FILES_DIR / 'GMR61_tier2_complete.h5')
+            default_output = VISUALIZATIONS_DIR / 'eda'
+        else:
+            default_h5 = Path(__file__).parent.parent.parent / 'data' / 'h5_files' / 'GMR61_tier2_complete.h5'
+            default_output = Path(__file__).parent.parent.parent / 'output' / 'figures' / 'eda'
+    except ImportError:
+        default_h5 = Path(__file__).parent.parent.parent / 'data' / 'h5_files' / 'GMR61_tier2_complete.h5'
+        default_output = Path(__file__).parent.parent.parent / 'output' / 'figures' / 'eda'
+    
     parser.add_argument('--h5-file', type=str,
-                       default='/Users/gilraitses/mechanosensation/h5tests/GMR61_tier2_complete.h5',
+                       default=str(default_h5) if default_h5 and default_h5.exists() else None,
                        help='Path to H5 file with cycles and LED data')
     parser.add_argument('--output-dir', type=str, 
-                       default='/Users/gilraitses/ecs630/labs/termprojectproposal/output/figures/eda',
+                       default=str(default_output),
                        help='Output directory for figures')
     
     args = parser.parse_args()
+    
+    # Handle None h5_file default
+    if args.h5_file is None:
+        # Try to find any H5 file
+        h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+        h5_files = list(h5_dir.glob('*.h5'))
+        if h5_files:
+            args.h5_file = str(h5_files[0])
+            print(f"Using first available H5 file: {args.h5_file}")
+        else:
+            print("WARNING: No H5 file specified and none found in data/h5_files/")
     
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

@@ -187,7 +187,20 @@ def inspect_h5_file(h5_path: Path):
         traceback.print_exc()
 
 def main():
-    h5_dir = Path("/Users/gilraitses/mechanosensation/h5tests")
+    # Use config for default path
+    try:
+        import sys
+        config_path = Path(__file__).parent.parent / 'config.py'
+        if config_path.exists():
+            sys.path.insert(0, str(config_path.parent))
+            from config import H5_FILES_DIR
+            h5_dir = H5_FILES_DIR
+        else:
+            # Fallback: relative path
+            h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+    except ImportError:
+        # Fallback: relative path
+        h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
     
     if len(sys.argv) > 1:
         # Inspect specific file

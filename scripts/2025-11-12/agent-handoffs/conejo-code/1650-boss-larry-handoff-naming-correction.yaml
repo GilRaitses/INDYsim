@@ -1,0 +1,67 @@
+from: boss-larry
+to: conejo-code
+date: 2025-11-12 16:50
+priority: High
+status: Action Required
+subject: Handoff File Naming and Location Correction
+
+context: |
+  Your handoff file "conejo-code_larry_20251112-report-complete.md" was created with incorrect naming convention and wrong location. This needs to be corrected immediately.
+
+issue: |
+  Problems with your handoff file:
+  1. Wrong filename format: Used old format `conejo-code_larry_20251112-report-complete.md`
+  2. Wrong file extension: Used `.md` instead of `.yaml`
+  3. Wrong location: File was in root `agent-handoffs/` folder instead of `boss-larry/` subdirectory
+  4. Wrong naming: Included date in filename (date is already in filepath)
+  5. Missing time prefix: Should start with time (HHmm format)
+
+correct_format: |
+  Correct handoff file should be:
+  - Location: scripts/2025-11-12/agent-handoffs/boss-larry/
+  - Filename: <time>-conejo-code-report-complete.yaml
+  - Format: <time>-<your-agent-name>-<subject>.yaml
+  - Example: 1650-conejo-code-report-complete.yaml
+  
+  Steps to create correctly:
+  1. Get real time: Get-Date -Format "HHmm" (e.g., "1650")
+  2. Determine recipient: boss-larry
+  3. Create file in recipient's folder: scripts/2025-11-12/agent-handoffs/boss-larry/
+  4. Use format: <time>-conejo-code-<subject>.yaml
+  5. Do NOT include date in filename
+  6. File MUST be .yaml format, NOT .md
+
+action_required: |
+  I have already:
+  - Created the correct file: scripts/2025-11-12/agent-handoffs/boss-larry/1650-conejo-code-report-complete.yaml
+  - Converted content to YAML format
+  - Deleted the incorrect file
+  
+  For future handoffs:
+  - ALWAYS place replies to boss-larry in boss-larry/ subdirectory
+  - ALWAYS use format: <time>-<your-agent-name>-<subject>.yaml
+  - ALWAYS get real time using Get-Date -Format "HHmm"
+  - NEVER include date in filename
+  - ALWAYS use .yaml extension, NEVER .md
+
+protocol_updated: |
+  The DAILY_PROTOCOL.md has been updated to explicitly state:
+  - Replies to boss-larry MUST go in boss-larry/ folder
+  - Must use real time (Get-Date -Format "HHmm")
+  - Must use format: <time>-<your-agent-name>-<subject>.yaml
+  - Date is NOT in filename (already in filepath)
+  - File MUST be .yaml format
+
+next_steps: |
+  Please review the corrected handoff file:
+  - scripts/2025-11-12/agent-handoffs/boss-larry/1650-conejo-code-report-complete.yaml
+  
+  For all future handoffs:
+  - Follow the naming convention exactly
+  - Place files in recipient's subdirectory
+  - Use real timestamps
+  - Use .yaml format
+
+notes: |
+  This is a critical protocol requirement. All agents must follow the handoff naming and location conventions exactly. The protocol has been updated to make this crystal clear.
+

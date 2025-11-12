@@ -178,10 +178,29 @@ def analyze_stimulus_from_h5(filepath):
             print("  Note: LED2 might be constant and stored differently, or may not be exported")
 
 if __name__ == '__main__':
-    files = [
-        '/Users/gilraitses/mechanosensation/h5tests/GMR61_202509051201_tier1 1.h5',
-        '/Users/gilraitses/mechanosensation/h5tests/GMR61_tier2_complete.h5'
-    ]
+    # Use config for default paths
+    try:
+        import sys
+        config_path = Path(__file__).parent.parent / 'config.py'
+        if config_path.exists():
+            sys.path.insert(0, str(config_path.parent))
+            from config import H5_FILES_DIR
+            h5_dir = H5_FILES_DIR
+        else:
+            h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+    except ImportError:
+        h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+    
+    # Example files (use actual files if they exist)
+    files = list(h5_dir.glob('*.h5'))[:2]  # First 2 H5 files found
+    if not files:
+        # Fallback to example names
+        files = [
+            h5_dir / 'GMR61_202509051201_tier1 1.h5',
+            h5_dir / 'GMR61_tier2_complete.h5'
+        ]
+        # Filter to existing files only
+        files = [f for f in files if f.exists()]
     
     for filepath in files:
         if Path(filepath).exists():

@@ -86,8 +86,31 @@ def check_pulse_duration(filepath):
                 print(f"  LED at midpoint between pulses (frame {mid_point_frame}): {led_data[mid_point_frame]:.1f}")
 
 if __name__ == '__main__':
-    filepath = '/Users/gilraitses/mechanosensation/h5tests/GMR61_202509051201_tier1 1.h5'
-    if Path(filepath).exists():
+    # Use config for default path
+    try:
+        import sys
+        config_path = Path(__file__).parent.parent.parent / 'config.py'
+        if config_path.exists():
+            sys.path.insert(0, str(config_path.parent))
+            from config import H5_FILES_DIR
+            h5_dir = H5_FILES_DIR
+        else:
+            h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+    except ImportError:
+        h5_dir = Path(__file__).parent.parent.parent / 'data' / 'h5_files'
+    
+    # Try example file or first available H5 file
+    filepath = h5_dir / 'GMR61_202509051201_tier1 1.h5'
+    if not filepath.exists():
+        h5_files = list(h5_dir.glob('*.h5'))
+        if h5_files:
+            filepath = h5_files[0]
+            print(f"Using first available H5 file: {filepath}")
+        else:
+            print(f"No H5 files found in {h5_dir}")
+            sys.exit(1)
+    
+    if filepath.exists():
         check_pulse_duration(filepath)
     else:
         print(f"File not found: {filepath}")

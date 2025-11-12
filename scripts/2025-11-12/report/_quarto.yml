@@ -1,0 +1,12 @@
+project:
+  type: default
+  output-dir: output
+  render:
+    - source/report_2025-11-12.qmd
+
+format:
+  html:
+    theme: default
+  pdf:
+    documentclass: article
+
