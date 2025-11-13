@@ -69,7 +69,16 @@
       padding: 0;
       color: var(--text-color);
       overflow-x: hidden;
+      background: linear-gradient(135deg, #FFF9F3 0%, #E8D7F1 25%, #B4D7EC 50%, #E8D7F1 75%, #FFF9F3 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
       background-color: var(--bg-color);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     canvas {
@@ -77,6 +86,8 @@
       top: 0;
       left: 0;
       z-index: -1;
+      opacity: 1;
+      visibility: visible;
     }
 
     #larvae-background {
@@ -242,10 +253,13 @@
       z-index: 2;
       text-align: left;
       opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
     }
 
     .abstract-text * {
       opacity: 1 !important;
+      visibility: visible !important;
       transition: none !important;
       animation: none !important;
     }
@@ -367,10 +381,10 @@
       border-radius: 8px;
       font-size: 0.8rem;
       z-index: 1000;
-      display: flex;
+      display: none; /* Hidden by default - not needed for static page */
       align-items: center;
       gap: 10px;
-      opacity: 0.7;
+      opacity: 0;
       transition: opacity 0.3s ease;
     }
 
@@ -632,8 +646,10 @@
     });
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(0xFFF9F3, 0.3); // Semi-transparent cream background
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Force immediate render
+    renderer.render(scene, camera);
 
     // Create rendering groups
     backgroundGroup = new THREE.Group();
@@ -1274,13 +1290,25 @@
       const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
       scene.add(ambientLight);
       
-      // Start abstract animation
+      // Start abstract animation immediately
       animateAbstract();
       
-      setTimeout(() => {
-        const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
-        if (keyboardShortcuts) keyboardShortcuts.style.opacity = '0';
-      }, 5000);
+      // Force abstract to be visible
+      const abstractContainer = document.getElementById('abstract-container');
+      if (abstractContainer) {
+        abstractContainer.style.opacity = '1';
+        abstractContainer.style.visibility = 'visible';
+        abstractContainer.style.display = 'block';
+      }
+      
+      // Hide keyboard controls hint (not needed for static page)
+      const keyboardShortcuts = document.querySelector('.keyboard-controls-hint');
+      if (keyboardShortcuts) {
+        keyboardShortcuts.style.display = 'none';
+      }
+      
+      // Force initial render
+      renderer.render(scene, camera);
       
       animate();
     }
@@ -1333,11 +1361,20 @@
       checkElementsInView();
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // Initialize immediately when script loads (don't wait for DOMContentLoaded)
+    // This ensures abstract and background show immediately
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        checkElementsInView();
+        setupSectionHover();
+        init();
+      });
+    } else {
+      // DOM already loaded
       checkElementsInView();
       setupSectionHover();
       init();
-    });
+    }
   </script>
 </body>
 </html>
