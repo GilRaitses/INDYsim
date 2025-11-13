@@ -1,6 +1,6 @@
 # Experiment Manifest: INDYsim Simulation Model Dataset
 
-**Date:** 2025-11-11  
+**Date:** 2025-11-11 (Updated: 2025-11-13)  
 **Prepared by:** larry  
 **Purpose:** Document all experiments and conditions used to build the simulation model
 
@@ -36,12 +36,12 @@
 
 **Experiments:** 4
 
-| Experiment ID | Timestamp | MAT File | Status |
-|--------------|-----------|----------|--------|
-| EXP-001 | 202510291652 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.mat` | Pending H5 conversion |
-| EXP-002 | 202510291713 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291713.mat` | Pending H5 conversion |
-| EXP-003 | 202510301228 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301228.mat` | Pending H5 conversion |
-| EXP-004 | 202510301408 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301408.mat` | Pending H5 conversion |
+| Experiment ID | Timestamp | MAT File | H5 File | Status |
+|--------------|-----------|----------|---------|--------|
+| EXP-001 | 202510291652 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5` | ✅ Converted & Validated |
+| EXP-002 | 202510291713 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291713.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291713.h5` | ✅ Converted & Validated |
+| EXP-003 | 202510301228 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301228.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301228.h5` | ✅ Converted & Validated |
+| EXP-004 | 202510301408 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301408.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510301408.h5` | ✅ Converted & Validated |
 
 **Simplified Name:** `R_0_250_30_B_7`
 
@@ -61,12 +61,12 @@
 
 **Experiments:** 4
 
-| Experiment ID | Timestamp | MAT File | Status |
-|--------------|-----------|----------|--------|
-| EXP-005 | 202510301513 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.mat` | Pending H5 conversion |
-| EXP-006 | 202510311441 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311441.mat` | Pending H5 conversion |
-| EXP-007 | 202510311510 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311510.mat` | Pending H5 conversion |
-| EXP-008 | 202510311634 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311634.mat` | Pending H5 conversion |
+| Experiment ID | Timestamp | MAT File | H5 File | Status |
+|--------------|-----------|----------|---------|--------|
+| EXP-005 | 202510301513 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5` | ✅ Converted & Validated |
+| EXP-006 | 202510311441 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311441.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311441.h5` | ✅ Converted & Validated |
+| EXP-007 | 202510311510 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311510.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311510.h5` | ✅ Converted & Validated |
+| EXP-008 | 202510311634 | `btd_GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311634.mat` | `GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510311634.h5` | ✅ Converted & Validated |
 
 **Simplified Name:** `R_0_250_30_B_5_15_30`
 
@@ -86,12 +86,12 @@
 
 **Experiments:** 4
 
-| Experiment ID | Timestamp | MAT File | Status |
-|--------------|-----------|----------|--------|
-| EXP-009 | 202510291435 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291435.mat` | Pending H5 conversion |
-| EXP-010 | 202510291502 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291502.mat` | Pending H5 conversion |
-| EXP-011 | 202510291532 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291532.mat` | Pending H5 conversion |
-| EXP-012 | 202510291601 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291601.mat` | Pending H5 conversion |
+| Experiment ID | Timestamp | MAT File | H5 File | Status |
+|--------------|-----------|----------|---------|--------|
+| EXP-009 | 202510291435 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291435.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291435.h5` | ✅ Converted & Validated |
+| EXP-010 | 202510291502 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291502.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291502.h5` | ✅ Converted & Validated |
+| EXP-011 | 202510291532 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291532.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291532.h5` | ✅ Converted & Validated |
+| EXP-012 | 202510291601 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291601.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#C_Bl_7PWM_202510291601.h5` | ✅ Converted & Validated |
 
 **Simplified Name:** `R_50_250_30_B_7`
 
@@ -111,10 +111,10 @@
 
 **Experiments:** 2
 
-| Experiment ID | Timestamp | MAT File | Status |
-|--------------|-----------|----------|--------|
-| EXP-013 | 202511051636 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051636.mat` | Pending H5 conversion |
-| EXP-014 | 202511051713 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051713.mat` | Pending H5 conversion |
+| Experiment ID | Timestamp | MAT File | H5 File | Status |
+|--------------|-----------|----------|---------|--------|
+| EXP-013 | 202511051636 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051636.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051636.h5` | ✅ Converted & Validated |
+| EXP-014 | 202511051713 | `btd_GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051713.mat` | `GMR61@GMR61_T_Re_Sq_50to250PWM_30#T_Bl_Sq_5to15PWM_30_202511051713.h5` | ✅ Converted & Validated |
 
 **Simplified Name:** `R_50_250_30_B_5_15_30`
 
@@ -178,15 +178,18 @@
 
 ### Current Status
 
-**Stage 1: MATLAB to H5 Conversion** ⏳ In Progress
+**Stage 1: MATLAB to H5 Conversion** ✅ **COMPLETE**
 - Conversion script: `src/@matlab_conversion/convert_matlab_to_h5.py`
-- Status: LED value alignment integration pending
-- Blocking issue: LED value timecode alignment (P0)
+- Status: ✅ All 14 experiments converted successfully (2025-11-12)
+- H5 files location: `data/h5_files/`
+- Total size: 3,065.2 MB (~3 GB)
+- Validation: ✅ All files validated (2025-11-13)
+- Validation report: `docs/logs/2025-11-13/h5-file-validation-report.md`
 
-**Stage 2: H5 Processing** ⏳ Pending
+**Stage 2: H5 Processing** ⏳ In Progress
 - Processing script: `scripts/engineer_dataset_from_h5.py`
 - Features: Turn rate, latency, stop fraction, tortuosity, dispersal, spine curve energy
-- Status: Waiting for H5 files
+- Status: LED alignment tested and approved (2025-11-12), analysis pipeline testing in progress
 
 **Stage 3: Model Fitting** ⏳ Pending
 - Event-hazard models for reorientations, pauses, reversals
@@ -279,7 +282,7 @@
 
 ---
 
-**Status:** Initial manifest created  
-**Last Updated:** 2025-11-11  
-**Next Update:** After H5 conversion completion
+**Status:** Updated with conversion and validation status  
+**Last Updated:** 2025-11-13  
+**Next Update:** After analysis pipeline testing completion
 

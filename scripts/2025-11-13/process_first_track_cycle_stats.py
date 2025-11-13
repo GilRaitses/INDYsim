@@ -9,16 +9,35 @@ import numpy as np
 import pandas as pd
 
 # Add scripts directory to path
-script_dir = Path(__file__).parent
-project_root = script_dir.parent.parent.parent  # scripts/2025-11-13 -> scripts/ -> project root
-scripts_dir = project_root / "scripts"
-sys.path.insert(0, str(scripts_dir))
+script_dir = Path(__file__).parent  # scripts/2025-11-13/
+scripts_dir = script_dir.parent  # scripts/
+project_root = scripts_dir.parent  # D:\INDYsim
 
-from engineer_dataset_from_h5 import load_h5_file, extract_stimulus_timing, extract_trajectory_features, align_trajectory_with_stimulus, create_event_records
+# Add both scripts/ and scripts/queue/ to path
+sys.path.insert(0, str(project_root))  # For absolute imports
+sys.path.insert(0, str(scripts_dir))  # For engineer_dataset_from_h5
+sys.path.insert(0, str(scripts_dir / "queue"))  # For create_eda_figures
 
-# Import extract_cycles_from_h5 from queue directory
-sys.path.insert(0, str(scripts_dir / "queue"))
-from create_eda_figures import extract_cycles_from_h5
+# Import with absolute paths
+import importlib.util
+
+# Load engineer_dataset_from_h5
+engineer_path = scripts_dir / "engineer_dataset_from_h5.py"
+spec = importlib.util.spec_from_file_location("engineer_dataset_from_h5", engineer_path)
+engineer_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(engineer_module)
+load_h5_file = engineer_module.load_h5_file
+extract_stimulus_timing = engineer_module.extract_stimulus_timing
+extract_trajectory_features = engineer_module.extract_trajectory_features
+align_trajectory_with_stimulus = engineer_module.align_trajectory_with_stimulus
+create_event_records = engineer_module.create_event_records
+
+# Load create_eda_figures
+eda_path = scripts_dir / "queue" / "create_eda_figures.py"
+spec = importlib.util.spec_from_file_location("create_eda_figures", eda_path)
+eda_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(eda_module)
+extract_cycles_from_h5 = eda_module.extract_cycles_from_h5
 
 def main():
     # First H5 file
@@ -49,14 +68,16 @@ def main():
     print(f"\n2. Processing track: {first_track_key}")
     print(f"   Total tracks in file: {len(track_keys)}")
     
-    # Extract stimulus timing
+    # Extract stimulus timing - CRITICAL: ETI is loaded in h5_data
     print("\n3. Extracting stimulus timing...")
+    if 'eti' not in h5_data or h5_data['eti'] is None:
+        raise ValueError("CRITICAL ERROR: ETI not found in h5_data. ETI must be loaded from H5 root level.")
     stimulus_df = extract_stimulus_timing(h5_data, fps)
     print(f"   Stimulus data points: {len(stimulus_df)}")
     
-    # Extract trajectory features
+    # Extract trajectory features - CRITICAL: Must pass ETI
     print("\n4. Extracting trajectory features...")
-    traj_df = extract_trajectory_features(track_data, fps)
+    traj_df = extract_trajectory_features(track_data, fps, eti=h5_data['eti'])
     print(f"   Trajectory frames: {len(traj_df)}")
     print(f"   Time range: {traj_df['time'].min():.1f}s to {traj_df['time'].max():.1f}s")
     
@@ -153,11 +174,11 @@ def main():
         print(f"\nCycle Totals:")
         print(f"  Reorientations: {n_cycle_reos}")
         print(f"  Turns: {n_cycle_turns}")
-        print(f"  Turn Rate: {turn_rate:.2f} min⁻¹")
+        print(f"  Turn Rate: {turn_rate:.2f} min^-1")
         print(f"\n{'-'*80}")
         print(f"Per-Bin Statistics (0.5s bins):")
         print(f"{'-'*80}")
-        print(f"{'Bin':<6} {'Time (rel)':<12} {'Reos':<6} {'Turns':<6} {'Rate (min⁻¹)':<12}")
+        print(f"{'Bin':<6} {'Time (rel)':<12} {'Reos':<6} {'Turns':<6} {'Rate (min^-1)':<12}")
         print(f"{'-'*80}")
         
         # Calculate per-bin statistics
@@ -213,4 +234,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 

@@ -7,3 +7,4 @@
 Write-Host "RSTUDIO_PANDOC set to: C:\Apps-SU\quarto\bin\pandoc.exe"
 Write-Host "You may need to restart R/RStudio/Quarto for changes to take effect"
 
+

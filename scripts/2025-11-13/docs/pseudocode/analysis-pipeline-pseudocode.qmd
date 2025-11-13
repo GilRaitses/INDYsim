@@ -18,6 +18,7 @@ format:
         \usepackage{amsmath}
         \usepackage{float}
         \usepackage{booktabs}
+        \usepackage{xcolor}
         \floatname{algorithm}{Algorithm}
 ---
 
@@ -46,7 +47,8 @@ This section provides a comprehensive reference table of all variables used thro
 \hline
 $h5\_file$ & str & Path to H5 trajectory file \\
 $h5\_data$ & dict & Loaded H5 file data structure \\
-$fps$ & float & Frames per second (frame rate) \\
+$eti$ & array & Experiment Time Index (REQUIRED for time calculation, loaded from H5 root) \\
+$fps$ & float & Frames per second (frame rate) - ONLY for pulse duration, NOT for time arrays \\
 $stimulus\_df$ & DataFrame & Stimulus timing data \\
 $track\_data$ & dict & Raw track data from H5 file \\
 $df$ & DataFrame & Trajectory DataFrame with features \\
@@ -244,8 +246,9 @@ $i$ & int & Index or cycle number \\
 
 \STATE Initialize progress monitor (PowerShell window)
 \STATE Load H5 file: $h5\_data \leftarrow \text{load\_h5\_file}(h5\_file)$
+\STATE \textcolor{red}{CRITICAL: Verify ETI loaded: $eti \leftarrow h5\_data[\text{eti}]$ (raise ValueError if missing)}
 \STATE Extract metadata: $fps \leftarrow h5\_data[\text{metadata}][\text{fps}]$
-\STATE Extract stimulus timing: $stimulus\_df \leftarrow \text{extract\_stimulus\_timing}(h5\_data)$
+\STATE Extract stimulus timing: $stimulus\_df \leftarrow \text{extract\_stimulus\_timing}(h5\_data)$ \textcolor{red}{(uses ETI internally)}
 
 \FOR{each track $t$ in $h5\_data[\text{tracks}]$}
     \STATE Process track $t$ (see Algorithm~\ref{alg:process-track})
@@ -272,7 +275,7 @@ $i$ & int & Index or cycle number \\
 \REQUIRE Track data $track\_data$, frame rate $fps$, stimulus data $stimulus\_df$
 \ENSURE Event records $event\_records$, trajectory $traj\_df$
 
-\STATE Extract trajectory features (see Algorithm~\ref{alg:extract-features})
+\STATE Extract trajectory features: $df \leftarrow \text{extract\_trajectory\_features}(track\_data, fps, eti=h5\_data[\text{eti}])$ \textcolor{red}{(ETI REQUIRED)}
 \STATE Align trajectory with stimulus (see Algorithm~\ref{alg:align-stimulus})
 \STATE Create event records (see Algorithm~\ref{alg:create-events})
 \STATE Calculate per-cycle statistics (see Algorithm~\ref{alg:per-cycle-stats})
@@ -289,12 +292,15 @@ $i$ & int & Index or cycle number \\
 \caption{Extract Trajectory Features}
 \label{alg:extract-features}
 \begin{algorithmic}[1]
-\REQUIRE Track data $track\_data$, frame rate $fps$
+\REQUIRE Track data $track\_data$, frame rate $fps$, ETI array $eti$ (REQUIRED)
 \ENSURE Trajectory DataFrame $df$ with features
 
+\STATE \textcolor{red}{CRITICAL: Verify ETI is provided (raise ValueError if None)}
 \STATE Load raw data: $x, y, heading, speed, curvature \leftarrow track\_data$
+\STATE \textcolor{red}{Calculate time: $time \leftarrow eti.copy()$ (NOT $np.arange(n\_frames) / fps$)}
 \STATE Calculate heading change: $\Delta\theta[i] \leftarrow \text{wrap\_angle}(heading[i] - heading[i-1])$
 \STATE Calculate acceleration: $accel[i] \leftarrow (speed[i] - speed[i-1]) / dt$
+\STATE \textcolor{red}{Validate: If $\max(time) > 1200$ seconds, raise ValueError (experiments are 20 min max)}
 
 \STATE Run MAGAT segmentation (see Algorithm~\ref{alg:magat-segmentation})
 \STATE Detect pauses (see Algorithm~\ref{alg:detect-pauses})
@@ -1098,6 +1104,43 @@ Use & Run detection (high curvature ends runs) \\
 \end{table}
 
 # Critical Implementation Notes
+
+## Time Calculation - CRITICAL ERROR FIXED
+
+\textcolor{red}{\textbf{CRITICAL ERROR FIXED: ETI MUST ALWAYS BE USED FOR TIME CALCULATION}}
+
+\textcolor{red}{Using frame-based time calculation (\texttt{np.arange(n\_frames) / frame\_rate}) is FORBIDDEN and causes tracks to exceed 20 minutes, which is physically impossible.}
+
+\textcolor{red}{\textbf{Error:}}
+\begin{itemize}
+    \item \textcolor{red}{Experiments are only 20 minutes long (1200 seconds)}
+    \item \textcolor{red}{Using \texttt{time = np.arange(n\_frames) / frame\_rate} assumes continuous frames}
+    \item \textcolor{red}{This produces durations of 37+ minutes for tracks with gaps}
+    \item \textcolor{red}{Example: Track with 22,722 frames at 10 Hz = 2272.2 seconds = 37.9 minutes (IMPOSSIBLE)}
+\end{itemize}
+
+\textcolor{red}{\textbf{Correct Implementation:}}
+\begin{itemize}
+    \item \textcolor{red}{ETI (Experiment Time Index) MUST be loaded from H5 root level}
+    \item \textcolor{red}{ETI MUST be passed to all functions that calculate time}
+    \item \textcolor{red}{Use \texttt{time = eti.copy()} or \texttt{time = eti[track\_frame\_indices]} for time arrays}
+    \item \textcolor{red}{frame\_rate is ONLY used for pulse duration calculations, NOT for time arrays}
+\end{itemize}
+
+\textcolor{red}{\textbf{Policy:}}
+\begin{itemize}
+    \item \textcolor{red}{See \texttt{docs/ETI\_TIME\_CALCULATION\_POLICY.md} for complete policy}
+    \item \textcolor{red}{All functions MUST raise ValueError if ETI is missing}
+    \item \textcolor{red}{All time calculations MUST validate that time does not exceed 1200 seconds}
+    \item \textcolor{red}{Functions that calculate time MUST accept ETI parameter}
+\end{itemize}
+
+\textcolor{red}{\textbf{Functions Fixed:}}
+\begin{itemize}
+    \item \textcolor{red}{\texttt{extract\_trajectory\_features()} - Now requires ETI parameter}
+    \item \textcolor{red}{\texttt{extract\_stimulus\_timing()} - Now uses ETI from h5\_data}
+    \item \textcolor{red}{\texttt{load\_h5\_file()} - Now loads ETI from root level}
+\end{itemize}
 
 ## START Event Detection
 

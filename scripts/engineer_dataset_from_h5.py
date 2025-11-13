@@ -39,6 +39,15 @@ def load_h5_file(h5_path: Path) -> Dict:
     
     data = {}
     with h5py.File(h5_path, 'r') as f:
+        # CRITICAL POLICY: ETI MUST ALWAYS BE LOADED FROM ROOT LEVEL
+        # See docs/ETI_TIME_CALCULATION_POLICY.md
+        if 'eti' in f:
+            data['eti'] = f['eti'][:]  # Load ETI array
+        else:
+            raise ValueError(f"CRITICAL ERROR: ETI not found at root level in {h5_path.name}. "
+                           "ETI is REQUIRED for time calculation. "
+                           "See docs/ETI_TIME_CALCULATION_POLICY.md")
+        
         # Load metadata
         if 'metadata' in f:
             data['metadata'] = dict(f['metadata'].attrs)
@@ -190,7 +199,7 @@ def load_h5_file(h5_path: Path) -> Dict:
     
     return data
 
-def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0) -> pd.DataFrame:
+def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti: np.ndarray = None, track_frame_indices: np.ndarray = None) -> pd.DataFrame:
     """
     Extract trajectory features from track data.
     
@@ -202,6 +211,10 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0) -> p
         Track data dictionary with head/mid/tail positions and derived features
     frame_rate : float
         Frame rate in Hz (default 10 fps from H5 metadata)
+    eti : ndarray, optional
+        Experiment Time Index array from H5 root. If provided, use ETI for time calculation.
+    track_frame_indices : ndarray, optional
+        Frame indices mapping track frames to ETI indices. If None, assumes continuous frames.
     
     Returns
     -------
@@ -220,8 +233,32 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0) -> p
     
     x = mid_pos[:, 0]
     y = mid_pos[:, 1]
-    frames = np.arange(n_frames)
-    time = frames / frame_rate
+    
+    # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
+    # Using frame_rate-based time calculation is FORBIDDEN (causes 37+ minute tracks)
+    # See docs/ETI_TIME_CALCULATION_POLICY.md
+    if eti is None:
+        raise ValueError("CRITICAL ERROR: ETI is REQUIRED for time calculation. "
+                        "ETI must be loaded from H5 root level and passed to this function. "
+                        "See docs/ETI_TIME_CALCULATION_POLICY.md")
+    
+    # Use ETI for time - map track frames to ETI if needed
+    if track_frame_indices is not None and len(track_frame_indices) == n_frames:
+        # Track has frame indices mapping to ETI
+        time = eti[track_frame_indices]
+    elif len(eti) == n_frames:
+        # ETI length matches track frames - use directly
+        time = eti.copy()
+    else:
+        # Mismatch - this should not happen, but provide helpful error
+        raise ValueError(f"CRITICAL ERROR: ETI length ({len(eti)}) doesn't match track frames ({n_frames}). "
+                        f"This indicates a data structure issue. Check H5 file structure.")
+    
+    # CRITICAL VALIDATION: Check if calculated duration exceeds expected experiment duration (20 minutes = 1200 seconds)
+    max_time = time.max() if len(time) > 0 else 0
+    if max_time > 1200:  # 20 minutes
+        raise ValueError(f"CRITICAL ERROR: Time exceeds 20 minutes: {max_time:.1f}s ({max_time/60:.1f} min). "
+                        f"Experiments are only 20 minutes long. This indicates ETI data corruption or incorrect usage.")
     
     # Use pre-computed derived features if available (tier2_complete is gold standard)
     if 'derived' in track_data and isinstance(track_data['derived'], dict):
@@ -881,27 +918,42 @@ def extract_stimulus_timing(h5_data: Dict, frame_rate: float = 10.0) -> pd.DataF
     
     Uses stimulus onset frames to create 10-second pulses (fixed duration).
     
+    CRITICAL: Uses ETI for time calculation. frame_rate parameter is only used for pulse duration calculations.
+    
     Parameters
     ----------
     h5_data : dict
-        H5 data dictionary with 'led_data' and 'stimulus' groups
+        H5 data dictionary with 'led_data' and 'stimulus' groups. MUST contain 'eti' at root level.
     frame_rate : float
-        Frame rate in Hz (default 10 fps)
+        Frame rate in Hz (default 10 fps) - ONLY used for pulse duration calculations, NOT for time array
     
     Returns
     -------
     pd.DataFrame
         DataFrame with columns: time, stimulus_on, intensity, time_since_stimulus, etc.
     """
-    # Get LED1 data (red pulsing) and create time array
+    # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
+    # See docs/ETI_TIME_CALCULATION_POLICY.md
+    if 'eti' not in h5_data or h5_data['eti'] is None:
+        raise ValueError("CRITICAL ERROR: ETI not found in h5_data. "
+                       "ETI must be loaded from H5 root level. "
+                       "See docs/ETI_TIME_CALCULATION_POLICY.md")
+    
+    eti = h5_data['eti']
+    n_frames = len(eti)
+    
+    # Use ETI directly for time array (NOT frame_rate-based calculation)
+    times = eti.copy()
+    
+    # Get LED1 data (red pulsing)
     if 'led1Val' in h5_data:
         led1_values = h5_data['led1Val']
-        n_frames = len(led1_values)
-        times = np.arange(n_frames) / frame_rate
+        if len(led1_values) != n_frames:
+            raise ValueError(f"CRITICAL ERROR: LED1 length ({len(led1_values)}) doesn't match ETI length ({n_frames})")
     elif 'led_data' in h5_data:
         led1_values = h5_data['led_data']
-        n_frames = len(led1_values)
-        times = np.arange(n_frames) / frame_rate
+        if len(led1_values) != n_frames:
+            raise ValueError(f"CRITICAL ERROR: LED data length ({len(led1_values)}) doesn't match ETI length ({n_frames})")
     else:
         return pd.DataFrame()
     
@@ -1174,8 +1226,11 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
             except:
                 track_id = len(all_trajectories) + 1
             
-            # Extract trajectory features
-            traj_df = extract_trajectory_features(track_data, frame_rate=frame_rate)
+            # Extract trajectory features - CRITICAL: Must pass ETI
+            if 'eti' not in h5_data or h5_data['eti'] is None:
+                raise ValueError(f"CRITICAL ERROR: ETI not available in h5_data. "
+                                "ETI must be loaded from H5 root level.")
+            traj_df = extract_trajectory_features(track_data, frame_rate=frame_rate, eti=h5_data['eti'])
             if len(traj_df) == 0:
                 continue
             

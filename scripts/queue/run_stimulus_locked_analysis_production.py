@@ -161,7 +161,13 @@ def main():
                 })
                 update_progress(progress_file, progress)
                 
-                traj_df = eng_module.extract_trajectory_features(track_data, frame_rate=frame_rate)
+                # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
+                # See docs/ETI_TIME_CALCULATION_POLICY.md
+                if 'eti' not in h5_data or h5_data['eti'] is None:
+                    raise ValueError(f"CRITICAL ERROR: ETI not available in h5_data for track {track_key}. "
+                                    "ETI must be loaded from H5 root level. "
+                                    "See docs/ETI_TIME_CALCULATION_POLICY.md")
+                traj_df = eng_module.extract_trajectory_features(track_data, frame_rate=frame_rate, eti=h5_data['eti'])
                 if len(traj_df) == 0:
                     progress['messages'].append({
                         'time': datetime.now().isoformat(),

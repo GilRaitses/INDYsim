@@ -42,3 +42,4 @@ When ready, copy final versions to `docs/reports/`:
 - `source/report_2025-11-12.qmd` → `docs/reports/2025-11-12/source/`
 - `output/report_2025-11-12.html` → `docs/reports/2025-11-12/output/`
 
+
