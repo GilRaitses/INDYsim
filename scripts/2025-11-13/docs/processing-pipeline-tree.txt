@@ -1,0 +1,152 @@
+STIMULUS-LOCKED TURN RATE ANALYSIS PIPELINE
+============================================
+
+run_stimulus_locked_analysis_production.py
+│
+├─ INITIALIZATION
+│  ├─ Load H5 file path
+│  ├─ Create progress monitor (PowerShell window)
+│  └─ Initialize progress tracking JSON
+│
+├─ STEP 1: GENERATE EVENTS CSV
+│  │
+│  ├─ Load H5 File
+│  │  ├─ Validate H5 file exists
+│  │  ├─ Load H5 data structure
+│  │  └─ Extract metadata (fps, experiment_id)
+│  │
+│  ├─ Extract Stimulus Timing
+│  │  ├─ Load LED data (led1Val, led2Val)
+│  │  ├─ Detect stimulus onsets
+│  │  └─ Create stimulus_df with timing
+│  │
+│  └─ Process Each Track (LOOP)
+│     │
+│     ├─ Extract Trajectory Features (extract_trajectory_features)
+│     │  ├─ Load track data (x, y, heading, speed, curvature)
+│     │  ├─ Calculate derived quantities
+│     │  │  ├─ heading_change (Δθ)
+│     │  │  ├─ acceleration
+│     │  │  └─ spine_curve_energy
+│     │  │
+│     │  ├─ MAGAT Segmentation
+│     │  │  ├─ Detect Runs
+│     │  │  │  ├─ Find run starts (speed high, head aligned)
+│     │  │  │  ├─ Find run ends (curvature high OR head swinging OR speed low)
+│     │  │  │  └─ Apply quality filters (minRunTime, minRunLength, minRunSpeed)
+│     │  │  │
+│     │  │  ├─ Detect Head Swings
+│     │  │  │  ├─ Periods where body_theta > threshold
+│     │  │  │  └─ Filter by duration and amplitude
+│     │  │  │
+│     │  │  └─ Detect Reorientations
+│     │  │     └─ Gaps between runs (periods NOT in runs)
+│     │  │
+│     │  ├─ Pause Detection
+│     │  │  ├─ Detect pauses (speed < threshold for min duration)
+│     │  │  └─ Mark pause frames
+│     │  │
+│     │  └─ Turn Detection (NEW!)
+│     │     ├─ Filter reorientations that contain pauses
+│     │     ├─ Create is_turn boolean array
+│     │     └─ Store turns in segmentation: {turns, is_turn, n_turns}
+│     │
+│     ├─ Align Trajectory with Stimulus
+│     │  ├─ Match trajectory times to stimulus times
+│     │  ├─ Add LED values (led1Val, led2Val)
+│     │  ├─ Calculate period-relative timing (led12Val_ton, led12Val_toff)
+│     │  └─ Add stimulus flags (stimulus_on, stimulus_onset)
+│     │
+│     ├─ Create Event Records (create_event_records)
+│     │  ├─ Bin trajectory into 0.05s bins
+│     │  ├─ Detect START events (False→True transitions)
+│     │  │  ├─ is_reorientation_start
+│     │  │  ├─ is_turn_start
+│     │  │  └─ is_pause_start
+│     │  │
+│     │  └─ Aggregate per bin
+│     │     ├─ Count only START events (not duration frames)
+│     │     ├─ Aggregate LED values
+│     │     └─ Aggregate derived quantities
+│     │
+│     ├─ Calculate Per-Cycle Statistics (NEW!)
+│     │  ├─ Extract cycles from H5 (extract_cycles_from_h5)
+│     │  │  ├─ Find stimulus onset frames
+│     │  │  ├─ Detect LED ON/OFF times
+│     │  │  └─ Calculate cycle boundaries (baseline + pulse)
+│     │  │
+│     │  ├─ For Each Cycle
+│     │  │  ├─ Count reorientations in cycle
+│     │  │  ├─ Count turns in cycle
+│     │  │  ├─ Calculate cycle turn rate
+│     │  │  │
+│     │  │  └─ For Each Bin (0.5s bins)
+│     │  │     ├─ Count reorientations per bin
+│     │  │     ├─ Count turns per bin
+│     │  │     ├─ Calculate bin turn rate
+│     │  │     └─ Calculate time relative to onset (t=0)
+│     │  │
+│     │  └─ Display Summary Table
+│     │     ├─ Cycle header (number, pulse duration)
+│     │     ├─ Cycle totals (reos, turns, rate)
+│     │     ├─ Per-bin breakdown
+│     │     └─ Track totals
+│     │
+│     └─ Collect Klein Run Table (if available)
+│        └─ Store run table from trajectory attributes
+│
+│  └─ Combine All Tracks
+│     ├─ Concatenate event records
+│     ├─ Concatenate trajectories
+│     └─ Concatenate Klein run tables
+│
+├─ SAVE OUTPUTS
+│  ├─ Save events CSV (*_events.csv)
+│  ├─ Save trajectories CSV (*_trajectories.csv)
+│  └─ Save Klein run table CSV (*_klein_run_table.csv)
+│
+└─ STEP 2: STIMULUS-LOCKED TURN RATE ANALYSIS
+   │
+   ├─ Load Events & Trajectories CSVs
+   │
+   ├─ Extract Cycles from H5
+   │  └─ Same as Step 1 cycle extraction
+   │
+   ├─ Calculate Stimulus-Locked Turn Rate
+   │  ├─ For each cycle
+   │  │  ├─ Define analysis window (baseline + pulse)
+   │  │  ├─ Extract reorientation start times
+   │  │  │  └─ Use is_reorientation_start (START events only!)
+   │  │  │
+   │  │  ├─ Bin reorientations by time relative to onset
+   │  │  │  └─ Count: sum(reorientation_times >= bin_start & < bin_end)
+   │  │  │
+   │  │  └─ Calculate rate per bin
+   │  │     └─ Formula: (count / bin_duration) * 60 (min⁻¹)
+   │  │
+   │  └─ Average across cycles
+   │     └─ Create PSTH (Peri-Stimulus Time Histogram)
+   │
+   ├─ Generate Figures (create_eda_figures.py)
+   │  ├─ Stimulus-locked turn rate plot
+   │  ├─ Cycle-by-cycle tracking
+   │  └─ Salience envelope
+   │
+   └─ Save Analysis Results
+      ├─ Turn rate CSV
+      └─ Figures (PNG/PDF)
+
+KEY DEFINITIONS:
+===============
+• Reorientation: Period between runs (MAGAT segmentation)
+• Turn: Reorientation that contains a pause (requires pause!)
+• Head Swing: Wide head movement during reorientation
+• START Event: False→True transition (counts only event onset, not duration)
+
+CRITICAL FIXES:
+===============
+✓ Turns = Reorientations with pauses (proper behavioral definition)
+✓ Count only START events (not all frames during events)
+✓ Per-cycle and per-bin statistics calculated on-the-fly
+✓ Real-time console output with detailed summaries
+

@@ -1,0 +1,24 @@
+[
+  {
+    "file": "GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5",
+    "h5_path": "D:\\INDYsim\\data\\h5_files\\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5",
+    "status": "error",
+    "timestamp": "2025-11-13T14:59:46.706390",
+    "errors": [
+      "Production script does not have expected structure"
+    ],
+    "warnings": [],
+    "checks": {}
+  },
+  {
+    "file": "GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5",
+    "h5_path": "D:\\INDYsim\\data\\h5_files\\GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5",
+    "status": "error",
+    "timestamp": "2025-11-13T14:59:46.706390",
+    "errors": [
+      "Production script does not have expected structure"
+    ],
+    "warnings": [],
+    "checks": {}
+  }
+]

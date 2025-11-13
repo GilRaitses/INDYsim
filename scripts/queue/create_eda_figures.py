@@ -251,11 +251,48 @@ def calculate_stimulus_locked_turn_rate_from_data(events_df, cycles, h5_file=Non
     print("  Using is_reorientation (MAGAT-based reorientation detection)")
     print("  FIXED: Counting reorientation start times directly (MATLAB-style) instead of summing boolean values")
     
+    # CRITICAL: Check if events CSV already has is_reorientation_start column (from fixed create_event_records)
+    # If so, use that directly - it's already counting only start events
+    if 'is_reorientation_start' in events_df.columns:
+        print("  Using is_reorientation_start column from events CSV (already counting only start events)")
+        reorientation_events = events_df[events_df['is_reorientation_start'] == True].copy()
+        if len(reorientation_events) == 0:
+            print("  Warning: No reorientation start events found in events CSV")
+            return None
+        print(f"  Found {len(reorientation_events)} reorientation START events from events CSV")
     # TEMPORAL ALIGNMENT FIX: Use trajectories CSV for frame-level accuracy if available
     # This avoids temporal drift from binning/averaging in events CSV
-    if trajectories_df is not None and 'is_reorientation' in trajectories_df.columns:
+    # CRITICAL FIX: Only count reorientation START events (transitions from False to True)
+    # Not all frames where is_reorientation==True (which would count entire reorientation duration)
+    elif trajectories_df is not None and 'is_reorientation' in trajectories_df.columns:
         print("  Using trajectories CSV for frame-level reorientation times (maximum accuracy)")
-        reorientation_events = trajectories_df[trajectories_df['is_reorientation'] == True].copy()
+        print("  CRITICAL: Detecting reorientation START events only (False->True transitions)")
+        
+        # Group by track_id and detect start events (transitions from False to True)
+        reorientation_starts = []
+        for track_id in trajectories_df['track_id'].unique():
+            track_data = trajectories_df[trajectories_df['track_id'] == track_id].sort_values('time')
+            is_reo = track_data['is_reorientation'].values
+            
+            # Detect transitions: False->True (start events)
+            if len(is_reo) > 1:
+                # Pad with False at start to detect first True as start
+                is_reo_padded = np.concatenate([[False], is_reo])
+                start_mask = (~is_reo_padded[:-1]) & is_reo_padded[1:]
+                start_indices = np.where(start_mask)[0]
+                
+                # Get times for start events
+                start_times = track_data.iloc[start_indices]['time'].values
+                for start_time in start_times:
+                    reorientation_starts.append({'track_id': track_id, 'time': start_time})
+        
+        if len(reorientation_starts) > 0:
+            reorientation_events = pd.DataFrame(reorientation_starts)
+            print(f"  Found {len(reorientation_events)} reorientation START events (not counting duration frames)")
+        else:
+            print("  WARNING: No reorientation start events detected, falling back to events_df")
+            reorientation_events = events_df[events_df['is_reorientation'] == True].copy()
+        
         if 'track_id' not in reorientation_events.columns:
             print("  WARNING: trajectories_df missing track_id column, falling back to events_df")
             reorientation_events = events_df[events_df['is_reorientation'] == True].copy()

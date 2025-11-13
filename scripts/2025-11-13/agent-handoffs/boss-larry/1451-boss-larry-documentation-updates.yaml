@@ -1,0 +1,59 @@
+from: boss-larry
+to: boss-larry
+date: 2025-11-13 14:51
+priority: Medium
+status: Complete
+subject: Documentation Updates for H5 Files
+
+context: |
+  All 14 experiments have been converted to H5 format. LED alignment testing is complete. We need to update documentation to reflect the current state of the project and provide guidance for using the converted H5 files.
+
+task: |
+  Update documentation for converted H5 files, including experiment manifest, H5 file structure guide, and integration guide.
+
+documentation_tasks: |
+  1. Update experiment manifest:
+     - File: docs/logs/2025-11-11/experiment-manifest.md
+     - Action: Add validation status for all 14 experiments
+     - Include: Conversion status, validation status, file locations
+  
+  2. Document H5 file structure:
+     - File: docs/logs/2025-11-13/h5-file-structure-guide.md (new)
+     - Content:
+       - H5 file structure overview
+       - ETI at root level (critical requirement)
+       - Global quantities (LED values) structure
+       - Track structure (points, derived_quantities, state, metadata)
+       - Metadata attributes
+       - Usage examples
+  
+  3. Create integration guide:
+     - File: docs/logs/2025-11-13/integration-guide.md (new)
+     - Content:
+       - How to use converted H5 files with analysis pipeline
+       - LED alignment usage
+       - Period-relative timing variables
+       - Common workflows
+       - Troubleshooting
+
+success_criteria: |
+  - Experiment manifest updated with all 14 experiments
+  - H5 file structure guide complete and clear
+  - Integration guide provides clear instructions
+  - Documentation is accurate and up-to-date
+
+deliverables: |
+  - Updated experiment manifest
+  - H5 file structure guide (new)
+  - Integration guide (new)
+
+next_steps: |
+  After documentation complete:
+  - Review with team
+  - Update as needed based on integration testing results
+
+notes: |
+  This is parallel work - can be done alongside integration testing
+  Update documentation as validation and testing results become available
+  Keep documentation clear and actionable
+

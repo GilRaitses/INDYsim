@@ -11,8 +11,6 @@ import threading
 from pathlib import Path
 from datetime import datetime
 import json
-import numpy as np
-import pandas as pd
 
 def launch_progress_monitor(progress_file: Path, h5_file: Path):
     """Launch a new PowerShell window with progress monitoring."""
@@ -43,7 +41,7 @@ def update_progress(progress_file: Path, status: dict):
         json.dump(status, f, indent=2)
 
 def main():
-    h5_file = Path(r"D:\INDYsim\data\h5_files\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5")
+    h5_file = Path(r"D:\INDYsim\data\h5_files\GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5")
     
     if not h5_file.exists():
         print(f"ERROR: H5 file not found: {h5_file}")
@@ -88,8 +86,7 @@ def main():
         progress['progress_pct'] = 5
         update_progress(progress_file, progress)
         
-        # engineer_dataset_from_h5.py is in scripts/ (parent of queue/)
-        sys.path.insert(0, str(script_dir.parent))
+        sys.path.insert(0, str(Path(__file__).parent.parent))
         from engineer_dataset_from_h5 import process_h5_file, load_h5_file
         import h5py
         
@@ -202,185 +199,12 @@ def main():
                 all_event_records.append(event_records)
                 all_trajectories.append(aligned_df)
                 
-                # Calculate per-cycle statistics and display summary table
-                print(f"\n{'='*80}")
-                print(f"TRACK {idx}/{total} SUMMARY: {track_key}")
-                print(f"{'='*80}")
-                
-                # Fix: Use start events for counting
-                n_turns = event_records['is_turn_start'].sum() if 'is_turn_start' in event_records.columns else (event_records['is_turn'].sum() if 'is_turn' in event_records.columns else 0)
-                n_reorientations = event_records['is_reorientation_start'].sum() if 'is_reorientation_start' in event_records.columns else (event_records['is_reorientation'].sum() if 'is_reorientation' in event_records.columns else 0)
-                
-                # Extract cycles and calculate per-cycle statistics
-                try:
-                    # Import extract_cycles_from_h5 - handle both relative and absolute imports
-                    script_dir = Path(__file__).parent
-                    sys.path.insert(0, str(script_dir))
-                    try:
-                        from create_eda_figures import extract_cycles_from_h5
-                    except ImportError:
-                        # Try absolute import
-                        eda_figures_path = script_dir / "create_eda_figures.py"
-                        if eda_figures_path.exists():
-                            import importlib.util
-                            spec = importlib.util.spec_from_file_location("create_eda_figures", eda_figures_path)
-                            create_eda_figures = importlib.util.module_from_spec(spec)
-                            spec.loader.exec_module(create_eda_figures)
-                            extract_cycles_from_h5 = create_eda_figures.extract_cycles_from_h5
-                        else:
-                            raise ImportError(f"Could not find create_eda_figures.py at {eda_figures_path}")
-                    
-                    cycles, _ = extract_cycles_from_h5(h5_file)
-                    
-                    if len(cycles) > 0:
-                        print(f"\nCycles found: {len(cycles)}")
-                        
-                        # Calculate per-cycle statistics
-                        BIN_SIZE = 0.5  # 0.5 second bins
-                        baseline_period = 10.0
-                        
-                        # Get reorientation start times from aligned trajectory
-                        # Check if create_event_records already added is_reorientation_start
-                        if 'is_reorientation_start' in aligned_df.columns:
-                            reo_starts = aligned_df[aligned_df['is_reorientation_start'] == True].copy()
-                        elif 'is_reorientation' in aligned_df.columns:
-                            # Detect start events (False->True transitions)
-                            aligned_df_sorted = aligned_df.sort_values('time').reset_index(drop=True)
-                            is_reo = aligned_df_sorted['is_reorientation'].values
-                            if len(is_reo) > 1:
-                                is_reo_padded = np.concatenate([[False], is_reo])
-                                start_mask = (~is_reo_padded[:-1]) & is_reo_padded[1:]
-                                reo_starts = aligned_df_sorted[start_mask].copy()
-                            else:
-                                reo_starts = pd.DataFrame()
-                        else:
-                            reo_starts = pd.DataFrame()
-                        
-                        # Get turn start times
-                        if 'is_turn_start' in aligned_df.columns:
-                            turn_starts = aligned_df[aligned_df['is_turn_start'] == True].copy()
-                        elif 'is_turn' in aligned_df.columns:
-                            aligned_df_sorted = aligned_df.sort_values('time').reset_index(drop=True)
-                            is_turn = aligned_df_sorted['is_turn'].values
-                            if len(is_turn) > 1:
-                                is_turn_padded = np.concatenate([[False], is_turn])
-                                start_mask = (~is_turn_padded[:-1]) & is_turn_padded[1:]
-                                turn_starts = aligned_df_sorted[start_mask].copy()
-                            else:
-                                turn_starts = pd.DataFrame()
-                        else:
-                            turn_starts = pd.DataFrame()
-                        
-                        # Ensure time column exists
-                        if len(reo_starts) > 0 and 'time' not in reo_starts.columns:
-                            reo_starts = pd.DataFrame()
-                        if len(turn_starts) > 0 and 'time' not in turn_starts.columns:
-                            turn_starts = pd.DataFrame()
-                        
-                        total_reos = 0
-                        total_turns = 0
-                        
-                        for cycle in cycles:
-                            cycle_start = cycle['cycle_start_time']
-                            cycle_end = cycle['cycle_end_time']
-                            onset_time = cycle['onset_time']
-                            pulse_dur = cycle['pulse_duration']
-                            
-                            # Count reorientations in this cycle
-                            cycle_reos = reo_starts[
-                                (reo_starts['time'] >= cycle_start) & 
-                                (reo_starts['time'] <= cycle_end)
-                            ] if len(reo_starts) > 0 else pd.DataFrame()
-                            n_cycle_reos = len(cycle_reos)
-                            
-                            # Count turns in this cycle
-                            cycle_turns = turn_starts[
-                                (turn_starts['time'] >= cycle_start) & 
-                                (turn_starts['time'] <= cycle_end)
-                            ] if len(turn_starts) > 0 else pd.DataFrame()
-                            n_cycle_turns = len(cycle_turns)
-                            
-                            # Calculate turn rate (reorientations per minute) for entire cycle
-                            cycle_duration_min = (cycle_end - cycle_start) / 60.0
-                            if cycle_duration_min > 0:
-                                turn_rate = (n_cycle_reos / cycle_duration_min) if n_cycle_reos > 0 else 0.0
-                            else:
-                                turn_rate = 0.0
-                            
-                            total_reos += n_cycle_reos
-                            total_turns += n_cycle_turns
-                            
-                            # Print cycle summary header
-                            print(f"\nCycle {cycle['cycle_num']} (Pulse: {pulse_dur:.1f}s)")
-                            print(f"{'='*80}")
-                            print(f"Total Reorientations: {n_cycle_reos} | Total Turns: {n_cycle_turns} | Turn Rate: {turn_rate:.2f} min⁻¹")
-                            print(f"{'-'*80}")
-                            
-                            # Calculate per-bin statistics
-                            n_bins = int(np.ceil((cycle_end - cycle_start) / BIN_SIZE))
-                            bin_rates = []
-                            
-                            for bin_idx in range(n_bins):
-                                bin_start = cycle_start + (bin_idx * BIN_SIZE)
-                                bin_end = min(cycle_start + ((bin_idx + 1) * BIN_SIZE), cycle_end)
-                                
-                                # Count reorientations in this bin
-                                bin_reos = reo_starts[
-                                    (reo_starts['time'] >= bin_start) & 
-                                    (reo_starts['time'] < bin_end)
-                                ] if len(reo_starts) > 0 else pd.DataFrame()
-                                n_bin_reos = len(bin_reos)
-                                
-                                # Count turns in this bin
-                                bin_turns = turn_starts[
-                                    (turn_starts['time'] >= bin_start) & 
-                                    (turn_starts['time'] < bin_end)
-                                ] if len(turn_starts) > 0 else pd.DataFrame()
-                                n_bin_turns = len(bin_turns)
-                                
-                                # Calculate turn rate for this bin (reorientations per minute)
-                                bin_duration_min = (bin_end - bin_start) / 60.0
-                                if bin_duration_min > 0:
-                                    bin_rate = (n_bin_reos / bin_duration_min) if n_bin_reos > 0 else 0.0
-                                else:
-                                    bin_rate = 0.0
-                                
-                                bin_rates.append(bin_rate)
-                                
-                                # Time relative to onset (t=0 is onset)
-                                time_rel_onset = (bin_start + bin_end) / 2.0 - onset_time
-                                
-                                print(f"  Bin {bin_idx+1:2d} | t={time_rel_onset:6.1f}s | Reos: {n_bin_reos:2d} | Turns: {n_bin_turns:2d} | Rate: {bin_rate:6.2f} min⁻¹")
-                        
-                        print(f"\n{'='*80}")
-                        print(f"TRACK TOTALS: Reorientations: {total_reos} | Turns: {total_turns}")
-                        
-                        # Overall turn rate
-                        track_duration_min = (aligned_df['time'].max() - aligned_df['time'].min()) / 60.0
-                        overall_rate = (total_reos / track_duration_min) if track_duration_min > 0 else 0.0
-                        print(f"\nOverall turn rate: {overall_rate:.2f} reorientations/min")
-                        print(f"Track duration: {track_duration_min:.1f} minutes")
-                        
-                    else:
-                        print("  No cycles found in H5 file")
-                        print(f"  Total reorientations: {n_reorientations}")
-                        print(f"  Total turns: {n_turns}")
-                        
-                except Exception as e:
-                    print(f"\n  ERROR calculating per-cycle stats: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    print(f"  Falling back to simple summary:")
-                    print(f"  Total reorientations: {n_reorientations}")
-                    print(f"  Total turns: {n_turns}")
-                    print(f"  Note: Turns > Reorientations is normal - turns use simple detection (>30°),")
-                    print(f"        reorientations use MAGAT behavioral segmentation (more strict)")
-                
-                print(f"{'='*80}\n")
-                
+                # Update after completion
+                n_turns = event_records['is_turn'].sum()
+                n_reorientations = event_records['is_reorientation'].sum() if 'is_reorientation' in event_records.columns else 0
                 progress['messages'].append({
                     'time': datetime.now().isoformat(),
-                    'text': f'Track {idx}/{total}: Complete - {n_reorientations} reorientations, {n_turns} turns'
+                    'text': f'Track {idx}/{total}: Complete - {n_turns} turns, {n_reorientations} reorientations'
                 })
                 # Keep only last 20 messages
                 if len(progress['messages']) > 20:

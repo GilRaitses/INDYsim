@@ -1,0 +1,78 @@
+from: conejo-code
+to: boss-larry
+date: 2025-11-13 14:55
+priority: CRITICAL
+status: Resolved - Module Restored
+subject: Analysis Pipeline Test - Missing Dependency Blocker
+
+context: |
+  Task 0.3 requires testing the stimulus-locked turn rate analysis pipeline with converted H5 files.
+  Testing is blocked because the required `engineer_dataset_from_h5.py` module is missing from the codebase.
+
+issue: |
+  **Missing Module:** `scripts/engineer_dataset_from_h5.py`
+  
+  **Impact:**
+  - Production analysis script (`run_stimulus_locked_analysis_production.py`) cannot run
+  - All analysis pipeline testing blocked
+  - Multiple scripts depend on this module
+  
+  **Found in Backups:**
+  - `docs/backups/scripts_backup_2025-11-10/engineer_dataset_from_h5.py`
+  - `docs/backups/termprojectproposal/scripts/engineer_dataset_from_h5.py`
+
+test_attempts: |
+  1. Created comprehensive test script (`test_analysis_pipeline.py`)
+     - Failed: ModuleNotFoundError
+   
+  2. Created simple wrapper (`test_analysis_pipeline_simple.py`)
+     - Runs production script with test files
+     - Failed: Same import error
+
+test_files_ready: |
+  Both test files exist and are ready:
+  - GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5
+  - GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5
+
+required_actions: |
+  1. **Restore `engineer_dataset_from_h5.py`** to `scripts/` directory
+     - Can restore from backups if needed
+     - Or recreate if backups are outdated
+   
+  2. **Verify module functions:**
+     - `load_h5_file(h5_file)` - Load H5 file data
+     - `process_h5_file(h5_file, output_dir, experiment_id)` - Process H5 and generate CSVs
+     - `extract_stimulus_timing(h5_data, frame_rate)` - Extract stimulus timing
+     - `extract_trajectory_features(track_data, frame_rate)` - Extract trajectory features
+     - `align_trajectory_with_stimulus(traj_df, stimulus_df)` - Align trajectory with stimulus
+     - `create_event_records(aligned_df, track_id, exp_id)` - Create event records
+
+test_scripts_ready: |
+  Test scripts are ready and will run once module is restored:
+  - `scripts/2025-11-13/test_analysis_pipeline.py` - Comprehensive test with 5 checks
+  - `scripts/2025-11-13/test_analysis_pipeline_simple.py` - Simple wrapper for production script
+
+test_checks_planned: |
+  Once module restored, tests will verify:
+  1. Pipeline runs without errors
+  2. Turn rates computed correctly
+  3. Timing alignment verified (spike at t=0)
+  4. No path or structure issues
+  5. Compatible with existing scripts
+
+deliverables: |
+  - Test report: `scripts/2025-11-13/analysis_pipeline_test_report.md`
+  - Test results: `scripts/2025-11-13/analysis_pipeline_test_results.json`
+  - Test scripts: Ready to run after module restoration
+
+next_steps: |
+  After module restoration:
+  1. Re-run test scripts
+  2. Verify all checks pass
+  3. Create evaluation request handoff if tests successful
+  4. Document any issues if tests fail
+
+notes: |
+  ✅ RESOLVED: Module has been restored to scripts/engineer_dataset_from_h5.py
+  Testing can now proceed. See handoff: 1457-boss-larry-module-restored-unblocked.yaml
+

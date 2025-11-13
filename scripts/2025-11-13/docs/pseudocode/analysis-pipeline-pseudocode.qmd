@@ -1,0 +1,1184 @@
+---
+title: "Stimulus-Locked Turn Rate Analysis Pipeline - Pseudocode Guide"
+author: "INDYsim Analysis Pipeline"
+date: "`r Sys.Date()`"
+format:
+  pdf:
+    documentclass: article
+    geometry: margin=1in
+    fontsize: 11pt
+    colorlinks: true
+    toc: true
+    number-sections: true
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{algorithm}
+        \usepackage{algorithmic}
+        \usepackage{amsmath}
+        \usepackage{float}
+        \usepackage{booktabs}
+        \floatname{algorithm}{Algorithm}
+---
+
+```{=latex}
+\newpage
+\tableofcontents
+\newpage
+```
+
+# Overview
+
+This document provides a detailed pseudocode guide for the stimulus-locked turn rate analysis pipeline. The pipeline processes H5 trajectory files, performs MAGAT segmentation, detects behavioral events, and calculates stimulus-locked turn rates.
+
+# Variable Reference
+
+This section provides a comprehensive reference table of all variables used throughout the pipeline.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{3cm}p{2cm}p{9cm}}
+\hline
+\textbf{Variable} & \textbf{Type} & \textbf{Description} \\
+\hline
+\multicolumn{3}{l}{\textbf{File and Data Structures}} \\
+\hline
+$h5\_file$ & str & Path to H5 trajectory file \\
+$h5\_data$ & dict & Loaded H5 file data structure \\
+$fps$ & float & Frames per second (frame rate) \\
+$stimulus\_df$ & DataFrame & Stimulus timing data \\
+$track\_data$ & dict & Raw track data from H5 file \\
+$df$ & DataFrame & Trajectory DataFrame with features \\
+$traj\_df$ & DataFrame & Trajectory DataFrame (alias for $df$) \\
+$aligned\_df$ & DataFrame & Trajectory aligned with stimulus timing \\
+$events\_df$ & DataFrame & Event records DataFrame (from CSV) \\
+$trajectories\_df$ & DataFrame & Trajectories DataFrame (from CSV) \\
+$event\_records$ & DataFrame & Binned event records for single track \\
+\hline
+\multicolumn{3}{l}{\textbf{Trajectory Features}} \\
+\hline
+$x, y$ & array & Position coordinates (cm or mm) \\
+$heading$ & array & Heading angle (radians, $[0, 2\pi)$) \\
+$speed$ & array & Instantaneous speed (mm/s or cm/s) \\
+$curvature$ & array & Trajectory curvature (rad/cm) \\
+$\Delta\theta$ & array & Heading change (radians, wrapped to $[-\pi, +\pi]$) \\
+$accel$ & array & Acceleration (mm/s$^2$ or cm/s$^2$) \\
+$dt$ & array & Time differences between frames (seconds) \\
+$time$ & array & Time array (seconds) \\
+$n\_frames$ & int & Total number of frames in track \\
+\hline
+\multicolumn{3}{l}{\textbf{Behavioral States (Boolean Arrays)}} \\
+\hline
+$is\_run$ & array[bool] & True during run periods \\
+$is\_reorientation$ & array[bool] & True during reorientation periods \\
+$is\_turn$ & array[bool] & True during turn periods (reorientations with pauses) \\
+$is\_pause$ & array[bool] & True during pause periods \\
+$is\_head\_swing$ & array[bool] & True during head swing periods \\
+$is\_reversal$ & array[bool] & True during reversal periods \\
+\hline
+\multicolumn{3}{l}{\textbf{START Event Detection}} \\
+\hline
+$is\_reorientation\_start$ & array[bool] & True at reorientation START events (False$\rightarrow$True transitions) \\
+$is\_turn\_start$ & array[bool] & True at turn START events \\
+$is\_pause\_start$ & array[bool] & True at pause START events \\
+$is\_reo\_padded$ & array[bool] & Padded boolean array for transition detection \\
+$reo\_start\_mask$ & array[bool] & Mask identifying START transitions \\
+\hline
+\multicolumn{3}{l}{\textbf{MAGAT Segmentation}} \\
+\hline
+$runs$ & list & List of run intervals: $[(start\_idx, end\_idx), ...]$ \\
+$head\_swings$ & list & List of head swing intervals \\
+$reorientations$ & list & List of reorientation intervals \\
+$turns$ & list & List of turn intervals (reorientations with pauses) \\
+$segmentation$ & dict & Complete segmentation dictionary \\
+$magat\_segmentation$ & dict & MAGAT segmentation results \\
+\hline
+\multicolumn{3}{l}{\textbf{MAGAT Thresholds}} \\
+\hline
+$curv\_cut$ & float & Curvature threshold (default: 0.4 rad/cm) \\
+$theta\_cut$ & float & Body bend threshold (default: $\pi/2$ rad) \\
+$stop\_speed\_cut$ & float & Speed threshold for run end (default: 2.0 mm/s) \\
+$start\_speed\_cut$ & float & Speed threshold for run start (default: 3.0 mm/s) \\
+$minRunTime$ & float & Minimum run duration (default: 2.5s) \\
+$minRunLength$ & float & Minimum run path length (optional) \\
+$minRunSpeed$ & float & Minimum average run speed (optional) \\
+\hline
+\multicolumn{3}{l}{\textbf{MAGAT Intermediate Variables}} \\
+\hline
+$body\_theta$ & array & Body bend angle (radians) \\
+$vel\_dp$ & array & Velocity dot product (head alignment) \\
+$high\_curv$ & array[bool] & High curvature condition \\
+$head\_swinging$ & array[bool] & Head swinging condition \\
+$speed\_low$ & array[bool] & Low speed condition \\
+$not\_a\_run$ & array[bool] & Not-a-run condition (OR of end conditions) \\
+$speed\_high$ & array[bool] & High speed condition \\
+$head\_aligned$ & array[bool] & Head aligned condition \\
+$is\_a\_run$ & array[bool] & Is-a-run condition (AND of start conditions) \\
+$head\_swing\_start$ & array[bool] & Head swing start condition \\
+$head\_swing\_stop$ & array[bool] & Head swing stop condition \\
+\hline
+\multicolumn{3}{l}{\textbf{Pause Detection}} \\
+\hline
+$speed\_threshold$ & float & Speed threshold for pause (default: 0.001 mm/s) \\
+$min\_duration$ & float & Minimum pause duration (default: 0.2s) \\
+$pause\_starts$ & list & List of pause start frame indices \\
+$pause\_ends$ & list & List of pause end frame indices \\
+$duration$ & float & Duration of a pause (seconds) \\
+\hline
+\multicolumn{3}{l}{\textbf{Turn Extraction}} \\
+\hline
+$reo\_start, reo\_end$ & int & Reorientation start/end frame indices \\
+$reo\_pause\_frames$ & array[bool] & Pause frames within a reorientation \\
+\hline
+\multicolumn{3}{l}{\textbf{Stimulus Alignment}} \\
+\hline
+$led1Val$ & array & LED1 value (interpolated) \\
+$led12Val\_ton$ & array & Time within LED ON period \\
+$led12Val\_toff$ & array & Time within LED OFF period \\
+$stimulus\_on$ & array[bool] & True when stimulus is ON \\
+$stimulus\_onset$ & array[bool] & True at stimulus onset transitions \\
+$stim\_idx$ & int & Index of nearest stimulus time \\
+$threshold$ & float & LED value threshold for stimulus detection \\
+\hline
+\multicolumn{3}{l}{\textbf{Event Record Creation}} \\
+\hline
+$track\_id$ & int & Track identifier \\
+$exp\_id$ & int & Experiment identifier \\
+$experiment\_id$ & str & Experiment ID string \\
+$bin\_size$ & float & Bin size for event records (default: 0.05s) \\
+$b$ & int & Bin index \\
+$bin\_start$ & float & Start time of bin (seconds) \\
+$bin\_end$ & float & End time of bin (seconds) \\
+$bin\_data$ & DataFrame & Data within bin \\
+\hline
+\multicolumn{3}{l}{\textbf{Cycle Extraction}} \\
+\hline
+$cycles$ & list & List of cycle dictionaries \\
+$c$ & dict & Single cycle dictionary \\
+$cycle\_num$ & int & Cycle number \\
+$onset\_frame$ & int & Stimulus onset frame index \\
+$onset\_time$ & float & Stimulus onset time (t=0 reference, seconds) \\
+$led\_on\_frame$ & int & LED ON frame index \\
+$led\_on\_time$ & float & LED ON time (seconds) \\
+$led\_off\_frame$ & int & LED OFF frame index \\
+$led\_off\_time$ & float & LED OFF time (seconds) \\
+$pulse\_duration$ & float & Pulse duration (seconds) \\
+$eti$ & float & Elapsed time index (OFF to next onset, seconds) \\
+$baseline\_start\_time$ & float & Baseline start time (10s before onset) \\
+$cycle\_start\_time$ & float & Cycle start time (analysis window start) \\
+$cycle\_end\_time$ & float & Cycle end time (analysis window end) \\
+\hline
+\multicolumn{3}{l}{\textbf{Per-Cycle Statistics}} \\
+\hline
+$cycle\_start$ & float & Cycle start time (seconds) \\
+$cycle\_end$ & float & Cycle end time (seconds) \\
+$reo\_starts$ & DataFrame & Reorientation start events \\
+$turn\_starts$ & DataFrame & Turn start events \\
+$cycle\_reos$ & DataFrame & Reorientations within cycle \\
+$n\_cycle\_reos$ & int & Number of reorientations in cycle \\
+$cycle\_turns$ & DataFrame & Turns within cycle \\
+$n\_cycle\_turns$ & int & Number of turns in cycle \\
+$cycle\_duration\_min$ & float & Cycle duration in minutes \\
+$turn\_rate$ & float & Turn rate for cycle (min$^{-1}$) \\
+$n\_bins$ & int & Number of bins in cycle \\
+$bin\_reos$ & DataFrame & Reorientations within bin \\
+$n\_bin\_reos$ & int & Number of reorientations in bin \\
+$n\_bin\_turns$ & int & Number of turns in bin \\
+$bin\_duration\_min$ & float & Bin duration in minutes \\
+$bin\_rate$ & float & Turn rate for bin (min$^{-1}$) \\
+$time\_rel\_onset$ & float & Time relative to stimulus onset (seconds) \\
+\hline
+\multicolumn{3}{l}{\textbf{Stimulus-Locked Turn Rate}} \\
+\hline
+$bin\_edges$ & array & Bin edge times (seconds, relative to onset) \\
+$t\_reo$ & float & Reorientation start time (seconds) \\
+$t\_rel$ & float & Time relative to onset (seconds) \\
+$bin\_idx$ & int & Bin index \\
+$counts$ & array & Event counts per bin \\
+$n\_cycles$ & int & Number of cycles \\
+$bin\_duration$ & float & Bin duration (seconds) \\
+$bin\_centers$ & array & Bin center times (seconds) \\
+\hline
+\multicolumn{3}{l}{\textbf{Turn Rate Formulas}} \\
+\hline
+$R$ & float & Turn rate (reorientations per minute, min$^{-1}$) \\
+$N$ & int & Number of reorientation start events \\
+$T$ & float & Time duration (seconds) \\
+$R_{\text{bin}}$ & float & Bin turn rate (min$^{-1}$) \\
+$N_{\text{bin},i}$ & int & Reorientation count in bin for cycle $i$ \\
+$\Delta t_{\text{bin}}$ & float & Bin duration (seconds) \\
+\hline
+\multicolumn{3}{l}{\textbf{Angle Wrapping}} \\
+\hline
+$\theta_1$ & float & Initial angle (radians) \\
+$\theta_2$ & float & Final angle (radians) \\
+$\Delta\theta_{\text{raw}}$ & float & Raw angular difference (radians) \\
+$\Delta\theta$ & float & Wrapped angular difference (radians, $[-\pi, +\pi]$) \\
+$\pi$ & float & Half circle ($\pi = 3.14159...$ rad = $180°$) \\
+$2\pi$ & float & Full circle ($2\pi = 6.28319...$ rad = $360°$) \\
+\hline
+\multicolumn{3}{l}{\textbf{Additional Formulas}} \\
+\hline
+$\bar{\theta}$ & float & Mean heading (circular mean, radians) \\
+$L$ & float & Path length (cm or mm) \\
+$\kappa$ & float & Curvature (rad/cm or rad/mm) \\
+$s$ & float & Arc length (cm or mm) \\
+$n$ & int & Number of samples \\
+$i$ & int & Index or cycle number \\
+\hline
+\end{tabular}
+\caption{Complete variable reference for the analysis pipeline}
+\label{tab:variable-reference}
+\end{table}
+
+# Main Pipeline
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Main Analysis Pipeline}
+\label{alg:main}
+\begin{algorithmic}[1]
+\REQUIRE H5 file path $h5\_file$
+\ENSURE Events CSV, trajectories CSV, turn rate figures
+
+\STATE Initialize progress monitor (PowerShell window)
+\STATE Load H5 file: $h5\_data \leftarrow \text{load\_h5\_file}(h5\_file)$
+\STATE Extract metadata: $fps \leftarrow h5\_data[\text{metadata}][\text{fps}]$
+\STATE Extract stimulus timing: $stimulus\_df \leftarrow \text{extract\_stimulus\_timing}(h5\_data)$
+
+\FOR{each track $t$ in $h5\_data[\text{tracks}]$}
+    \STATE Process track $t$ (see Algorithm~\ref{alg:process-track})
+\ENDFOR
+
+\STATE Combine all event records: $events \leftarrow \text{concatenate}(all\_event\_records)$
+\STATE Combine all trajectories: $trajectories \leftarrow \text{concatenate}(all\_trajectories)$
+\STATE Save $events$ to CSV: $\text{experiment\_id}\_events.csv$
+\STATE Save $trajectories$ to CSV: $\text{experiment\_id}\_trajectories.csv$
+
+\STATE Calculate stimulus-locked turn rate (see Algorithm~\ref{alg:stimulus-locked})
+\STATE Generate figures and save results
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Track Processing
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Process Single Track}
+\label{alg:process-track}
+\begin{algorithmic}[1]
+\REQUIRE Track data $track\_data$, frame rate $fps$, stimulus data $stimulus\_df$
+\ENSURE Event records $event\_records$, trajectory $traj\_df$
+
+\STATE Extract trajectory features (see Algorithm~\ref{alg:extract-features})
+\STATE Align trajectory with stimulus (see Algorithm~\ref{alg:align-stimulus})
+\STATE Create event records (see Algorithm~\ref{alg:create-events})
+\STATE Calculate per-cycle statistics (see Algorithm~\ref{alg:per-cycle-stats})
+
+\RETURN $event\_records$, $traj\_df$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Feature Extraction
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Extract Trajectory Features}
+\label{alg:extract-features}
+\begin{algorithmic}[1]
+\REQUIRE Track data $track\_data$, frame rate $fps$
+\ENSURE Trajectory DataFrame $df$ with features
+
+\STATE Load raw data: $x, y, heading, speed, curvature \leftarrow track\_data$
+\STATE Calculate heading change: $\Delta\theta[i] \leftarrow \text{wrap\_angle}(heading[i] - heading[i-1])$
+\STATE Calculate acceleration: $accel[i] \leftarrow (speed[i] - speed[i-1]) / dt$
+
+\STATE Run MAGAT segmentation (see Algorithm~\ref{alg:magat-segmentation})
+\STATE Detect pauses (see Algorithm~\ref{alg:detect-pauses})
+\STATE Extract turns from reorientations (see Algorithm~\ref{alg:extract-turns})
+
+\STATE Create DataFrame $df$ with columns:
+\STATE \quad $[time, x, y, heading, speed, curvature, \Delta\theta, accel,$
+\STATE \quad $is\_run, is\_reorientation, is\_turn, is\_pause, ...]$
+
+\RETURN $df$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# MAGAT Segmentation
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{MAGAT Track Segmentation}
+\label{alg:magat-segmentation}
+\begin{algorithmic}[1]
+\REQUIRE Trajectory data with $speed$, $curvature$, $body\_theta$, $vel\_dp$
+\ENSURE Runs, head swings, reorientations
+
+\STATE Define thresholds:
+\STATE \quad $curv\_cut \leftarrow 0.4$ (curvature threshold)
+\STATE \quad $theta\_cut \leftarrow \pi/2$ (body bend threshold)
+\STATE \quad $stop\_speed\_cut \leftarrow 2.0$ mm/s
+\STATE \quad $start\_speed\_cut \leftarrow 3.0$ mm/s
+
+\STATE Find run end conditions:
+\STATE \quad $high\_curv \leftarrow |curvature| > curv\_cut$
+\STATE \quad $head\_swinging \leftarrow |body\_theta| > theta\_cut$
+\STATE \quad $speed\_low \leftarrow speed < stop\_speed\_cut$
+\STATE \quad $not\_a\_run \leftarrow high\_curv \vee head\_swinging \vee speed\_low$
+
+\STATE Find run start conditions:
+\STATE \quad $speed\_high \leftarrow speed \geq start\_speed\_cut$
+\STATE \quad $head\_aligned \leftarrow vel\_dp \geq \cos(45°)$
+\STATE \quad $is\_a\_run \leftarrow \neg not\_a\_run \wedge speed\_high \wedge head\_aligned$
+
+\STATE Match run starts and ends to create run intervals
+\STATE Apply quality filters:
+\STATE \quad Filter runs with duration $< minRunTime$ (default: 2.5s)
+\STATE \quad Filter runs with path length $< minRunLength$ (optional)
+\STATE \quad Filter runs with avg speed $< minRunSpeed$ (optional)
+
+\STATE Detect head swings:
+\STATE \quad $head\_swing\_start \leftarrow |body\_theta| > 20°$ AND $\neg is\_run$
+\STATE \quad $head\_swing\_stop \leftarrow |body\_theta| < 10°$ OR sign change
+\STATE \quad Match starts and stops to create head swing intervals
+
+\STATE Detect reorientations:
+\STATE \quad Reorientations = gaps between runs (periods where $\neg is\_run$)
+
+\RETURN $runs$, $head\_swings$, $reorientations$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Pause Detection
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Detect Pauses}
+\label{alg:detect-pauses}
+\begin{algorithmic}[1]
+\REQUIRE Speed array $speed$, time array $time$
+\ENSURE Pause boolean array $is\_pause$
+
+\STATE Define thresholds:
+\STATE \quad $speed\_threshold \leftarrow 0.001$ (mm/s or cm/s)
+\STATE \quad $min\_duration \leftarrow 0.2$ seconds
+
+\STATE $is\_pause \leftarrow speed < speed\_threshold$
+
+\STATE Find pause start/end events:
+\FOR{$i = 1$ to $len(speed)$}
+    \IF{$is\_pause[i]$ AND $\neg is\_pause[i-1]$}
+        \STATE $pause\_starts.\text{append}(i)$
+    \ELSIF{$\neg is\_pause[i]$ AND $is\_pause[i-1]$}
+        \STATE $pause\_ends.\text{append}(i)$
+    \ENDIF
+\ENDFOR
+
+\STATE Filter by minimum duration:
+\FOR{each pause $(start, end)$}
+    \STATE $duration \leftarrow time[end] - time[start]$
+    \IF{$duration \geq min\_duration$}
+        \STATE Mark frames $[start:end]$ as valid pause
+    \ENDIF
+\ENDFOR
+
+\RETURN $is\_pause$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Turn Extraction
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Extract Turns from Reorientations}
+\label{alg:extract-turns}
+\begin{algorithmic}[1]
+\REQUIRE Reorientations $reorientations$, pause array $is\_pause$
+\ENSURE Turns array $turns$, boolean array $is\_turn$
+
+\STATE Initialize: $turns \leftarrow []$, $is\_turn \leftarrow \text{zeros}(n\_frames)$
+
+\FOR{each reorientation $(reo\_start, reo\_end)$ in $reorientations$}
+    \STATE Extract pause frames in reorientation:
+    \STATE \quad $reo\_pause\_frames \leftarrow is\_pause[reo\_start:reo\_end+1]$
+    
+    \IF{$\exists$ pause in $reo\_pause\_frames$}
+        \STATE This reorientation contains a pause $\Rightarrow$ it's a turn
+        \STATE $turns.\text{append}((reo\_start, reo\_end))$
+        \STATE $is\_turn[reo\_start:reo\_end+1] \leftarrow \text{True}$
+    \ENDIF
+\ENDFOR
+
+\RETURN $turns$, $is\_turn$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Stimulus Alignment
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Align Trajectory with Stimulus}
+\label{alg:align-stimulus}
+\begin{algorithmic}[1]
+\REQUIRE Trajectory $traj\_df$, stimulus data $stimulus\_df$
+\ENSURE Aligned trajectory $aligned\_df$
+
+\STATE For each row in $traj\_df$:
+\FOR{each time $t$ in $traj\_df[\text{time}]$}
+    \STATE Find nearest stimulus time: $stim\_idx \leftarrow \text{argmin}(|stimulus\_df[\text{time}] - t|)$
+    \STATE Interpolate LED values: $led1Val \leftarrow \text{interpolate}(stimulus\_df[\text{led1Val}], t)$
+    \STATE Calculate period-relative timing:
+    \STATE \quad $led12Val\_ton \leftarrow$ time within LED ON period
+    \STATE \quad $led12Val\_toff \leftarrow$ time within LED OFF period
+    \STATE Add stimulus flags:
+    \STATE \quad $stimulus\_on \leftarrow led1Val > threshold$
+    \STATE \quad $stimulus\_onset \leftarrow$ transition from OFF to ON
+\ENDFOR
+
+\RETURN $aligned\_df$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Event Record Creation
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Create Event Records}
+\label{alg:create-events}
+\begin{algorithmic}[1]
+\REQUIRE Aligned trajectory $aligned\_df$, track ID $track\_id$, experiment ID $exp\_id$
+\ENSURE Event records DataFrame $event\_records$
+
+\STATE Define bin size: $bin\_size \leftarrow 0.05$ seconds
+
+\STATE Sort trajectory by time: $aligned\_df \leftarrow \text{sort}(aligned\_df, \text{by}=time)$
+
+\STATE Detect START events (False $\rightarrow$ True transitions):
+\STATE \quad $is\_reo\_padded \leftarrow [\text{False}] + is\_reorientation$
+\STATE \quad $reo\_start\_mask \leftarrow \neg is\_reo\_padded[:-1] \wedge is\_reo\_padded[1:]$
+\STATE \quad $is\_reorientation\_start[reo\_start\_mask] \leftarrow \text{True}$
+
+\STATE Repeat for $is\_turn\_start$ and $is\_pause\_start$
+
+\STATE Bin trajectory into $bin\_size$ bins:
+\FOR{each bin $b$}
+    \STATE $bin\_start \leftarrow b \times bin\_size$
+    \STATE $bin\_end \leftarrow (b+1) \times bin\_size$
+    \STATE $bin\_data \leftarrow aligned\_df[\text{where}(time \in [bin\_start, bin\_end))]$
+    
+    \STATE Aggregate:
+    \STATE \quad $time \leftarrow \text{first}(bin\_data[\text{time}])$
+    \STATE \quad $is\_reorientation\_start \leftarrow \text{any}(bin\_data[\text{is\_reorientation\_start}])$
+    \STATE \quad $is\_turn\_start \leftarrow \text{any}(bin\_data[\text{is\_turn\_start}])$
+    \STATE \quad $led1Val \leftarrow \text{mean}(bin\_data[\text{led1Val}])$
+    \STATE \quad ... (other aggregations)
+\ENDFOR
+
+\RETURN $event\_records$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Per-Cycle Statistics
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Calculate Per-Cycle Statistics}
+\label{alg:per-cycle-stats}
+\begin{algorithmic}[1]
+\REQUIRE H5 file $h5\_file$, aligned trajectory $aligned\_df$
+\ENSURE Console output with per-cycle statistics
+
+\STATE Extract cycles from H5:
+\STATE \quad $cycles \leftarrow \text{extract\_cycles\_from\_h5}(h5\_file)$
+
+\STATE Extract reorientation start times:
+\STATE \quad $reo\_starts \leftarrow aligned\_df[\text{where}(is\_reorientation\_start == \text{True})]$
+
+\STATE Extract turn start times:
+\STATE \quad $turn\_starts \leftarrow aligned\_df[\text{where}(is\_turn\_start == \text{True})]$
+
+\FOR{each cycle $c$ in $cycles$}
+    \STATE $cycle\_start \leftarrow c[\text{cycle\_start\_time}]$
+    \STATE $cycle\_end \leftarrow c[\text{cycle\_end\_time}]$
+    \STATE $onset\_time \leftarrow c[\text{onset\_time}]$
+    
+    \STATE Count reorientations in cycle:
+    \STATE \quad $cycle\_reos \leftarrow reo\_starts[\text{where}(time \in [cycle\_start, cycle\_end])]$
+    \STATE \quad $n\_cycle\_reos \leftarrow \text{len}(cycle\_reos)$
+    
+    \STATE Count turns in cycle:
+    \STATE \quad $cycle\_turns \leftarrow turn\_starts[\text{where}(time \in [cycle\_start, cycle\_end])]$
+    \STATE \quad $n\_cycle\_turns \leftarrow \text{len}(cycle\_turns)$
+    
+    \STATE Calculate cycle turn rate:
+    \STATE \quad $cycle\_duration\_min \leftarrow (cycle\_end - cycle\_start) / 60.0$
+    \STATE \quad $turn\_rate \leftarrow n\_cycle\_reos / cycle\_duration\_min$
+    
+    \STATE Print cycle summary header
+    
+    \STATE Calculate per-bin statistics:
+    \STATE \quad $bin\_size \leftarrow 0.5$ seconds
+    \STATE \quad $n\_bins \leftarrow \lceil (cycle\_end - cycle\_start) / bin\_size \rceil$
+    
+    \FOR{each bin $b = 0$ to $n\_bins-1$}
+        \STATE $bin\_start \leftarrow cycle\_start + b \times bin\_size$
+        \STATE $bin\_end \leftarrow \min(cycle\_start + (b+1) \times bin\_size, cycle\_end)$
+        
+        \STATE Count reorientations in bin:
+        \STATE \quad $bin\_reos \leftarrow reo\_starts[\text{where}(time \in [bin\_start, bin\_end))]$
+        \STATE \quad $n\_bin\_reos \leftarrow \text{len}(bin\_reos)$
+        
+        \STATE Count turns in bin:
+        \STATE \quad $n\_bin\_turns \leftarrow \text{len}(turn\_starts[\text{where}(time \in [bin\_start, bin\_end))])$
+        
+        \STATE Calculate bin turn rate:
+        \STATE \quad $bin\_duration\_min \leftarrow (bin\_end - bin\_start) / 60.0$
+        \STATE \quad $bin\_rate \leftarrow n\_bin\_reos / bin\_duration\_min$
+        
+        \STATE Calculate time relative to onset:
+        \STATE \quad $time\_rel\_onset \leftarrow (bin\_start + bin\_end)/2 - onset\_time$
+        
+        \STATE Print bin statistics: $b$, $time\_rel\_onset$, $n\_bin\_reos$, $n\_bin\_turns$, $bin\_rate$
+    \ENDFOR
+\ENDFOR
+
+\STATE Print track totals
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Stimulus-Locked Turn Rate Calculation
+
+```{=latex}
+\begin{algorithm}[H]
+\caption{Calculate Stimulus-Locked Turn Rate}
+\label{alg:stimulus-locked}
+\begin{algorithmic}[1]
+\REQUIRE Events CSV $events\_df$, trajectories CSV $trajectories\_df$, H5 file $h5\_file$
+\ENSURE Turn rate PSTH (Peri-Stimulus Time Histogram)
+
+\STATE Extract cycles: $cycles \leftarrow \text{extract\_cycles\_from\_h5}(h5\_file)$
+
+\STATE Extract reorientation start times:
+\IF{$is\_reorientation\_start$ column exists in $events\_df$}
+    \STATE Use $events\_df[\text{is\_reorientation\_start}]$ directly
+\ELSIF{$trajectories\_df$ provided AND $is\_reorientation$ exists}
+    \STATE Detect False $\rightarrow$ True transitions in $trajectories\_df$
+    \STATE Extract start times for each track
+\ELSE
+    \STATE Fallback to $events\_df[\text{is\_reorientation}]$ (less accurate)
+\ENDIF
+
+\STATE Define analysis bins: $bin\_edges \leftarrow [-10, -9.5, ..., 0, 0.5, ..., pulse\_duration]$
+
+\FOR{each cycle $c$ in $cycles$}
+    \STATE $onset\_time \leftarrow c[\text{onset\_time}]$
+    \STATE $cycle\_start \leftarrow c[\text{cycle\_start\_time}]$
+    \STATE $cycle\_end \leftarrow c[\text{cycle\_end\_time}]$
+    
+    \FOR{each reorientation start time $t\_reo$}
+        \STATE Calculate time relative to onset: $t\_rel \leftarrow t\_reo - onset\_time$
+        \IF{$t\_rel \in [cycle\_start - onset\_time, cycle\_end - onset\_time]$}
+            \STATE Find bin: $bin\_idx \leftarrow \text{find\_bin}(t\_rel, bin\_edges)$
+            \STATE Increment count: $counts[bin\_idx] \leftarrow counts[bin\_idx] + 1$
+        \ENDIF
+    \ENDFOR
+\ENDFOR
+
+\STATE Calculate turn rate per bin:
+\FOR{each bin $b$}
+    \STATE $bin\_duration \leftarrow bin\_edges[b+1] - bin\_edges[b]$ (seconds)
+    \STATE $bin\_duration\_min \leftarrow bin\_duration / 60.0$
+    \STATE $turn\_rate[b] \leftarrow counts[b] / (n\_cycles \times bin\_duration\_min)$
+\ENDFOR
+
+\RETURN $turn\_rate$, $bin\_centers$
+\end{algorithmic}
+\end{algorithm}
+```
+
+# Key Formulas
+
+## Turn Rate Calculation
+
+### Formula
+
+The turn rate (reorientations per minute) is calculated as:
+
+$$R = \frac{N}{T \times 60}$$
+
+### Term Breakdown
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Term} & \textbf{Description} \\
+\hline
+$R$ (Turn Rate) & \textbf{Definition}: Average number of reorientation start events per minute \\
+ & \textbf{Units}: min$^{-1}$ (reorientations per minute) \\
+ & \textbf{Typical Range}: 0.1 - 10 min$^{-1}$ for larval behavior \\
+ & \textbf{Resolution}: Limited by bin size (default: 0.05s bins) and frame rate (typically 10 Hz) \\
+ & \textbf{Interpretation}: Higher values indicate more frequent reorientation behavior \\
+\hline
+$N$ (Reorientation Starts) & \textbf{Definition}: Count of reorientation START events (False $\rightarrow$ True transitions) \\
+ & \textbf{Units}: dimensionless (count) \\
+ & \textbf{Critical Note}: Only START events are counted, NOT all frames during reorientations \\
+ & \textbf{Detection}: Pad array: $[\text{False}] + is\_reorientation$, detect transitions, count \\
+ & \textbf{Resolution}: Frame-level accuracy (typically 0.1s at 10 Hz) \\
+ & \textbf{Example}: If reorientation lasts 2s (20 frames), only 1 event counted (the start) \\
+\hline
+$T$ (Time Duration) & \textbf{Definition}: Total time period over which reorientations are counted \\
+ & \textbf{Units}: seconds \\
+ & \textbf{Typical Values}: Per track: 5-30 min; Per cycle: 10-40s; Per bin: 0.5s \\
+ & \textbf{Resolution}: Limited by frame rate (typically 0.1s at 10 Hz) \\
+ & \textbf{Calculation}: $T = t_{\text{end}} - t_{\text{start}}$ where $t$ is in seconds \\
+\hline
+60 (Conversion) & \textbf{Purpose}: Convert from events per second to events per minute \\
+ & \textbf{Derivation}: 1 minute = 60 seconds, so $\frac{\text{events}}{\text{second}} \times 60 = \frac{\text{events}}{\text{minute}}$ \\
+\hline
+\end{tabular}
+\caption{Term breakdown for turn rate calculation}
+\label{tab:turn-rate-terms}
+\end{table}
+
+### Formula Derivation
+
+Starting from the definition of rate:
+
+$$R = \frac{\text{number of events}}{\text{time period}}$$
+
+Substituting our terms:
+
+$$R = \frac{N}{T}$$
+
+To convert to per-minute units:
+
+$$R = \frac{N}{T} \times \frac{60 \text{ seconds}}{1 \text{ minute}} = \frac{N}{T \times 60}$$
+
+### Example Calculation
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{Given} & \textbf{Value} \\
+\hline
+$N$ (reorientation starts) & 25 events \\
+$T$ (time duration) & 5.0 minutes = 300 seconds \\
+\hline
+\textbf{Calculation} & \\
+\hline
+If $T$ in minutes: & $R = \frac{N}{T} = \frac{25}{5} = 5.0 \text{ min}^{-1}$ \\
+If $T$ in seconds: & $R = \frac{N}{T} \times 60 = \frac{25}{300} \times 60 = 5.0 \text{ min}^{-1}$ \\
+\hline
+\end{tabular}
+\caption{Example turn rate calculation}
+\label{tab:turn-rate-example}
+\end{table}
+
+### Resolution and Precision
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{5cm}p{9cm}}
+\hline
+\textbf{Aspect} & \textbf{Value} \\
+\hline
+Temporal Resolution & Limited by frame rate (10 Hz = 0.1s) \\
+Event Detection Resolution & Frame-level (0.1s at 10 Hz) \\
+Statistical Precision & Improves with longer observation time $T$ \\
+Minimum Detectable Rate & $\frac{1}{T \times 60}$ min$^{-1}$ (one event in duration $T$) \\
+\hline
+\end{tabular}
+\caption{Resolution and precision for turn rate calculation}
+\label{tab:turn-rate-resolution}
+\end{table}
+
+---
+
+## Stimulus-Locked Turn Rate
+
+### Formula
+
+For stimulus-locked analysis, the rate is calculated per bin:
+
+$$R_{\text{bin}} = \frac{\sum_{i=1}^{n_{\text{cycles}}} N_{\text{bin},i}}{n_{\text{cycles}} \times \Delta t_{\text{bin}} \times 60}$$
+
+### Term Breakdown
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Term} & \textbf{Description} \\
+\hline
+$R_{\text{bin}}$ & \textbf{Definition}: Average turn rate for specific time bin relative to stimulus onset \\
+ & \textbf{Units}: min$^{-1}$ (reorientations per minute) \\
+ & \textbf{Range}: 0 - 20 min$^{-1}$ (can spike during stimulus) \\
+ & \textbf{Resolution}: Limited by bin size (0.5s per-cycle, 0.05s event records) \\
+ & \textbf{Use}: Creates Peri-Stimulus Time Histogram (PSTH) \\
+\hline
+$N_{\text{bin},i}$ & \textbf{Definition}: Count of reorientation starts in bin for cycle $i$ \\
+ & \textbf{Units}: dimensionless (count) \\
+ & \textbf{Detection}: For cycle $i$ with onset $t_{\text{onset},i}$, count events in \\
+ & \quad $[t_{\text{onset},i} + t_{\text{bin\_start}}, t_{\text{onset},i} + t_{\text{bin\_end}})$ \\
+ & \textbf{Range}: 0, 1, 2, ... (typically 0-5 per bin per cycle) \\
+\hline
+$n_{\text{cycles}}$ & \textbf{Definition}: Total number of stimulus cycles \\
+ & \textbf{Units}: dimensionless (count) \\
+ & \textbf{Typical}: 10-50 cycles per experiment \\
+ & \textbf{Impact}: More cycles $\Rightarrow$ better statistical precision \\
+\hline
+$\Delta t_{\text{bin}}$ & \textbf{Definition}: Time width of analysis bin \\
+ & \textbf{Units}: seconds \\
+ & \textbf{Typical}: 0.5s (per-cycle), 0.05s (events), 0.5-1.0s (PSTH) \\
+ & \textbf{Trade-off}: Smaller bins = higher resolution but noisier \\
+\hline
+$\sum N_{\text{bin},i}$ & \textbf{Definition}: Sum of reorientation counts across all cycles \\
+ & \textbf{Units}: dimensionless (count) \\
+ & \textbf{Range}: 0 - 100 (depends on $n_{\text{cycles}}$ and behavior) \\
+\hline
+60 (Conversion) & \textbf{Purpose}: Convert events/second to events/minute \\
+\hline
+\end{tabular}
+\caption{Term breakdown for stimulus-locked turn rate}
+\label{tab:stimulus-locked-terms}
+\end{table}
+
+### Formula Derivation
+
+Starting from the basic turn rate formula applied to a single bin:
+
+$$R_{\text{bin},i} = \frac{N_{\text{bin},i}}{\Delta t_{\text{bin}} \times 60}$$
+
+This gives the rate for cycle $i$ in this bin. To average across all cycles:
+
+$$R_{\text{bin}} = \frac{1}{n_{\text{cycles}}} \sum_{i=1}^{n_{\text{cycles}}} R_{\text{bin},i}$$
+
+Substituting:
+
+$$R_{\text{bin}} = \frac{1}{n_{\text{cycles}}} \sum_{i=1}^{n_{\text{cycles}}} \frac{N_{\text{bin},i}}{\Delta t_{\text{bin}} \times 60}$$
+
+Rearranging:
+
+$$R_{\text{bin}} = \frac{\sum_{i=1}^{n_{\text{cycles}}} N_{\text{bin},i}}{n_{\text{cycles}} \times \Delta t_{\text{bin}} \times 60}$$
+
+### Example Calculation
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{Given} & \textbf{Value} \\
+\hline
+$n_{\text{cycles}}$ & 20 cycles \\
+$\Delta t_{\text{bin}}$ & 0.5 seconds \\
+Bin counts $N_{\text{bin},i}$ & $[0, 1, 2, 0, 1, 0, 3, 1, 0, 2, 1, 0, 1, 2, 0, 1, 1, 0, 2, 1]$ \\
+$\sum N_{\text{bin},i}$ & 21 reorientations \\
+\hline
+\textbf{Calculation} & \\
+\hline
+Direct formula: & $R_{\text{bin}} = \frac{21}{20 \times 0.5 \times 60} = \frac{21}{600} = 0.035 \text{ min}^{-1}$ \\
+\hline
+\textbf{Alternative (intuitive)} & \\
+\hline
+Average per cycle: & $\bar{N} = \frac{21}{20} = 1.05$ reorientations/cycle \\
+Rate per cycle: & $R_{\text{cycle}} = \frac{1.05}{0.5 \times 60} = 0.035 \text{ min}^{-1}$ \\
+\hline
+\end{tabular}
+\caption{Example stimulus-locked turn rate calculation}
+\label{tab:stimulus-locked-example}
+\end{table}
+
+### Resolution and Precision
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{5cm}p{9cm}}
+\hline
+\textbf{Aspect} & \textbf{Value} \\
+\hline
+Temporal Resolution & Limited by bin size $\Delta t_{\text{bin}}$ and frame rate \\
+Spatial Resolution & Limited by frame rate (0.1s at 10 Hz) \\
+Statistical Precision & Standard error: $\text{SE} = \frac{\sqrt{\sum N_{\text{bin},i}}}{n_{\text{cycles}} \times \Delta t_{\text{bin}} \times 60}$ \\
+ & Improves with $\sqrt{n_{\text{cycles}}}$ (more cycles = better precision) \\
+Minimum Detectable Rate & $\frac{1}{n_{\text{cycles}} \times \Delta t_{\text{bin}} \times 60}$ min$^{-1}$ \\
+\hline
+\end{tabular}
+\caption{Resolution and precision for stimulus-locked turn rate}
+\label{tab:stimulus-locked-resolution}
+\end{table}
+
+### Bin Alignment
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{4cm}p{10cm}}
+\hline
+\textbf{Bin Type} & \textbf{Time Range} \\
+\hline
+Baseline bins & $t \in [-10, 0)$ seconds (before stimulus) \\
+Stimulus bins & $t \in [0, \text{pulse\_duration}]$ seconds (during stimulus) \\
+Example edges & $[-10, -9.5, -9.0, ..., -0.5, 0, 0.5, ..., 30.0]$ seconds \\
+\hline
+\end{tabular}
+\caption{Bin alignment relative to stimulus onset (t=0)}
+\label{tab:bin-alignment}
+\end{table}
+
+---
+
+## Angle Wrapping
+
+### Formula
+
+Angular differences are wrapped to $[-\pi, +\pi]$:
+
+$$\Delta\theta = \begin{cases}
+\theta_2 - \theta_1 + 2\pi & \text{if } \Delta\theta_{\text{raw}} < -\pi \\
+\theta_2 - \theta_1 - 2\pi & \text{if } \Delta\theta_{\text{raw}} > +\pi \\
+\theta_2 - \theta_1 & \text{otherwise}
+\end{cases}$$
+
+where $\Delta\theta_{\text{raw}} = \theta_2 - \theta_1$ (unwrapped difference)
+
+### Term Breakdown
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Term} & \textbf{Description} \\
+\hline
+$\theta_1$ (Initial) & \textbf{Definition}: Heading angle at start of measurement period \\
+ & \textbf{Units}: radians \\
+ & \textbf{Range}: $[0, 2\pi)$ or $(-\pi, +\pi]$ depending on convention \\
+ & \textbf{Resolution}: Limited by tracking precision (typically 0.01-0.1 radians) \\
+\hline
+$\theta_2$ (Final) & \textbf{Definition}: Heading angle at end of measurement period \\
+ & \textbf{Units}: radians \\
+ & \textbf{Range}: $[0, 2\pi)$ or $(-\pi, +\pi]$ depending on convention \\
+ & \textbf{Resolution}: Same as $\theta_1$ \\
+\hline
+$\Delta\theta_{\text{raw}}$ & \textbf{Definition}: Unwrapped angular difference: $\theta_2 - \theta_1$ \\
+ & \textbf{Units}: radians \\
+ & \textbf{Range}: $(-\infty, +\infty)$ (can exceed $[-\pi, +\pi]$) \\
+ & \textbf{Problem}: Exceeds $[-\pi, +\pi]$ when angles wrap around $2\pi$ boundary \\
+ & \textbf{Example}: $\theta_1 = 350°$, $\theta_2 = 10°$ $\Rightarrow$ $\Delta\theta_{\text{raw}} = -6.0$ rad (wrong) \\
+\hline
+$\Delta\theta$ (Wrapped) & \textbf{Definition}: Angular difference wrapped to $[-\pi, +\pi]$ \\
+ & \textbf{Units}: radians \\
+ & \textbf{Range}: $[-\pi, +\pi]$ (always) \\
+ & \textbf{Interpretation}: Positive = counter-clockwise (left), Negative = clockwise (right) \\
+ & \textbf{Resolution}: Same as angle measurements (0.01-0.1 radians) \\
+\hline
+$2\pi$ (Full Circle) & \textbf{Value}: $2\pi = 6.283185307...$ rad = $360°$ \\
+ & \textbf{Purpose}: Used to wrap angles back into $[-\pi, +\pi]$ range \\
+\hline
+$\pi$ (Half Circle) & \textbf{Value}: $\pi = 3.141592654...$ rad = $180°$ \\
+ & \textbf{Purpose}: Boundary of wrapped range $[-\pi, +\pi]$ \\
+\hline
+\end{tabular}
+\caption{Term breakdown for angle wrapping}
+\label{tab:angle-wrap-terms}
+\end{table}
+
+### Formula Derivation
+
+The wrapping formula ensures the shortest angular path:
+
+1. **Calculate raw difference**: $\Delta\theta_{\text{raw}} = \theta_2 - \theta_1$
+
+2. **Check if wrapping needed**:
+   - If $\Delta\theta_{\text{raw}} < -\pi$: Add $2\pi$ to get equivalent angle in $[-\pi, +\pi]$
+   - If $\Delta\theta_{\text{raw}} > +\pi$: Subtract $2\pi$ to get equivalent angle in $[-\pi, +\pi]$
+   - Otherwise: Use raw difference
+
+3. **Mathematical justification**: Angles are periodic modulo $2\pi$, so:
+   - $\theta + 2\pi \equiv \theta$ (same direction)
+   - Adding/subtracting $2\pi$ doesn't change the actual direction
+
+### Example Calculations
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{2.5cm}p{5cm}p{6.5cm}}
+\hline
+\textbf{Example} & \textbf{Input} & \textbf{Result} \\
+\hline
+1: No wrapping & $\theta_1 = 45°$, $\theta_2 = 90°$ & $\Delta\theta_{\text{raw}} = 0.786$ rad $< \pi$ \\
+ & & $\Delta\theta = 0.786$ rad = $45°$ (counter-clockwise) \\
+\hline
+2: Wrap negative & $\theta_1 = 350°$, $\theta_2 = 10°$ & $\Delta\theta_{\text{raw}} = -5.933$ rad $< -\pi$ \\
+ & & Add $2\pi$: $\Delta\theta = +0.350$ rad = $+20°$ \\
+ & & Shortest path: $+20°$ (not $-340°$) \\
+\hline
+3: Wrap positive & $\theta_1 = 10°$, $\theta_2 = 350°$ & $\Delta\theta_{\text{raw}} = +5.933$ rad $> +\pi$ \\
+ & & Subtract $2\pi$: $\Delta\theta = -0.350$ rad = $-20°$ \\
+ & & Shortest path: $-20°$ (not $+340°$) \\
+\hline
+4: Large turn & $\theta_1 = 0°$, $\theta_2 = 200°$ & $\Delta\theta_{\text{raw}} = +3.490$ rad $> +\pi$ \\
+ & & Subtract $2\pi$: $\Delta\theta = -2.793$ rad = $-160°$ \\
+ & & $200°$ turn $\equiv$ $-160°$ turn (shorter path) \\
+\hline
+\end{tabular}
+\caption{Example calculations for angle wrapping}
+\label{tab:angle-wrap-examples}
+\end{table}
+
+### Implementation
+
+In Python/NumPy:
+
+```python
+import numpy as np
+
+def wrap_angle_diff(theta1, theta2):
+    """
+    Calculate angular difference with proper wrapping.
+    
+    Parameters:
+    -----------
+    theta1 : array-like
+        Initial angles in radians
+    theta2 : array-like
+        Final angles in radians
+    
+    Returns:
+    --------
+    delta_theta : ndarray
+        Wrapped angular difference in [-π, +π]
+    """
+    delta_theta = theta2 - theta1
+    
+    # Wrap to [-π, +π]
+    delta_theta = np.where(delta_theta < -np.pi, 
+                           delta_theta + 2*np.pi, 
+                           delta_theta)
+    delta_theta = np.where(delta_theta > np.pi, 
+                           delta_theta - 2*np.pi, 
+                           delta_theta)
+    
+    return delta_theta
+```
+
+### Resolution and Precision
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{5cm}p{9cm}}
+\hline
+\textbf{Aspect} & \textbf{Value} \\
+\hline
+Angular Resolution & Limited by tracking precision \\
+ & Typical: 0.01-0.1 radians ($0.6°$ - $6°$) \\
+ & High-quality: 0.001 radians ($0.06°$) \\
+Wrapping Precision & Exact (no approximation) \\
+Edge Cases & Exactly $\pm\pi$: Both directions equally valid (choose $+\pi$) \\
+ & Very small differences: Wrapping doesn't affect (difference $< \pi$) \\
+\hline
+\end{tabular}
+\caption{Resolution and precision for angle wrapping}
+\label{tab:angle-wrap-resolution}
+\end{table}
+
+### Use Cases
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{4cm}p{10cm}}
+\hline
+\textbf{Use Case} & \textbf{Formula} \\
+\hline
+Heading Change & $\Delta\theta = \text{wrap\_angle\_diff}(heading[i-1], heading[i])$ \\
+Turn Magnitude & $|\Delta\theta|$ gives turn size (independent of direction) \\
+Turn Direction & $\text{sign}(\Delta\theta)$ gives direction (positive = left, negative = right) \\
+Run Drift & $\Delta\theta = \text{wrap\_angle\_diff}(run\_start\_theta, run\_end\_theta)$ \\
+Reorientation Magnitude & $\Delta\theta = \text{wrap\_angle\_diff}(reo\_prev\_dir, reo\_next\_dir)$ \\
+\hline
+\end{tabular}
+\caption{Use cases for angle wrapping}
+\label{tab:angle-wrap-uses}
+\end{table}
+
+---
+
+## Additional Formulas
+
+### Mean Heading (Circular Mean)
+
+For averaging angles (e.g., run mean heading):
+
+$$\bar{\theta} = \text{atan2}\left(\frac{1}{n}\sum_{i=1}^{n} \sin(\theta_i), \frac{1}{n}\sum_{i=1}^{n} \cos(\theta_i)\right)$$
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Aspect} & \textbf{Description} \\
+\hline
+Purpose & Average angles accounting for circularity ($0° \equiv 360°$) \\
+Method & Convert to Cartesian coordinates, average, convert back \\
+Why needed & Simple arithmetic mean fails (e.g., mean of $350°$ and $10°$ should be $0°$, not $180°$) \\
+\hline
+\end{tabular}
+\caption{Circular mean heading breakdown}
+\label{tab:circular-mean}
+\end{table}
+
+### Path Length
+
+Cumulative distance along trajectory:
+
+$$L = \sum_{i=1}^{n-1} \sqrt{(x_{i+1} - x_i)^2 + (y_{i+1} - y_i)^2}$$
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Aspect} & \textbf{Description} \\
+\hline
+Purpose & Total distance traveled (not Euclidean displacement) \\
+Units & cm or mm (same as position units) \\
+Resolution & Frame-level (typically 0.01-0.1 cm per frame) \\
+Use & Run length, total path length \\
+\hline
+\end{tabular}
+\caption{Path length breakdown}
+\label{tab:path-length}
+\end{table}
+
+### Curvature
+
+Rate of change of heading:
+
+$$\kappa = \frac{d\theta}{ds} = \frac{\Delta\theta}{\Delta s}$$
+
+where $s$ is arc length.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{3cm}p{11cm}}
+\hline
+\textbf{Aspect} & \textbf{Description} \\
+\hline
+Purpose & Measure of how sharply trajectory curves \\
+Units & rad/cm or rad/mm \\
+Typical Range & 0 (straight) to 10 rad/cm (very curved) \\
+Use & Run detection (high curvature ends runs) \\
+\hline
+\end{tabular}
+\caption{Curvature breakdown}
+\label{tab:curvature}
+\end{table}
+
+# Critical Implementation Notes
+
+## START Event Detection
+
+**CRITICAL**: Only count START events (False $\rightarrow$ True transitions), not all frames during events.
+
+```python
+# Correct approach:
+is_reo_padded = [False] + is_reorientation
+reo_start_mask = (~is_reo_padded[:-1]) & is_reo_padded[1:]
+is_reorientation_start[reo_start_mask] = True
+
+# Count only starts:
+n_reorientations = is_reorientation_start.sum()  # Correct
+# NOT: n_reorientations = is_reorientation.sum()  # Wrong - counts duration!
+```
+
+## Turn Definition
+
+**CRITICAL**: Turns are reorientations that contain pauses. This is a behavioral requirement.
+
+```python
+# Correct approach:
+for reo_start, reo_end in reorientations:
+    reo_pause_frames = is_pause[reo_start:reo_end+1]
+    if np.any(reo_pause_frames):
+        turns.append((reo_start, reo_end))  # This is a turn
+```
+
+## Cycle Extraction
+
+Cycles are defined relative to stimulus onset (t=0), with:
+- Baseline period: 10 seconds before onset
+- Pulse period: from onset to LED OFF
+- Analysis window: baseline + pulse
+
+# Data Structures
+
+## Segmentation Dictionary
+
+```python
+segmentation = {
+    'runs': [(start_idx, end_idx), ...],
+    'head_swings': [(start_idx, end_idx), ...],
+    'reorientations': [(start_idx, end_idx), ...],
+    'turns': [(start_idx, end_idx), ...],  # NEW: reorientations with pauses
+    'is_run': np.array([bool, ...]),
+    'is_head_swing': np.array([bool, ...]),
+    'is_reorientation': np.array([bool, ...]),  # Start events only
+    'is_turn': np.array([bool, ...]),  # NEW: turns (reorientations with pauses)
+    'n_runs': int,
+    'n_head_swings': int,
+    'n_reorientations': int,
+    'n_turns': int  # NEW
+}
+```
+
+## Cycle Dictionary
+
+```python
+cycle = {
+    'cycle_num': int,
+    'onset_frame': int,  # Stimulus onset frame (t=0 reference)
+    'onset_time': float,  # Stimulus onset time (t=0)
+    'led_on_frame': int,
+    'led_on_time': float,
+    'led_off_frame': int,
+    'led_off_time': float,
+    'pulse_duration': float,
+    'eti': float,  # Elapsed time index (OFF to next onset)
+    'baseline_start_time': float,  # 10s before onset
+    'cycle_start_time': float,  # Start of analysis window
+    'cycle_end_time': float  # End of analysis window (LED OFF)
+}
+```
+
+# References
+
+- MAGAT Segmentation: Based on `@MaggotTrack/segmentTrack.m` from magniphyq repository
+- Klein Run Table: Based on Mason Klein's 18-column run table methodology
+- Turn Rate Calculation: Matches MATLAB `ExperimentAggregator.m` methodology
+
+
+
+

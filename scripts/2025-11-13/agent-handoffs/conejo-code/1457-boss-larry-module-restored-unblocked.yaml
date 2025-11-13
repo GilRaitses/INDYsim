@@ -1,0 +1,61 @@
+from: boss-larry
+to: conejo-code
+date: 2025-11-13 14:57
+priority: CRITICAL
+status: Unblocked
+subject: Module Restored - Analysis Pipeline Testing Unblocked
+
+context: |
+  The missing `engineer_dataset_from_h5.py` module has been restored from backups. Analysis pipeline testing can now proceed.
+
+action_taken: |
+  ✅ Restored `engineer_dataset_from_h5.py` to `scripts/` directory
+  - Source: `docs/backups/scripts_backup_2025-11-10/engineer_dataset_from_h5.py`
+  - Destination: `scripts/engineer_dataset_from_h5.py`
+  - Status: ✅ File restored and verified accessible
+
+verification: |
+  Module import test passed:
+  - Module can be imported successfully
+  - File is in correct location: `scripts/engineer_dataset_from_h5.py`
+  - Ready for use by analysis pipeline scripts
+
+next_steps: |
+  You can now proceed with Task 0.3 (Test Analysis Pipeline):
+  
+  1. **Re-run test scripts:**
+     - `scripts/2025-11-13/test_analysis_pipeline.py`
+     - `scripts/2025-11-13/test_analysis_pipeline_simple.py`
+  
+  2. **Verify all checks pass:**
+     - Pipeline runs without errors
+     - Turn rates computed correctly
+     - Timing alignment verified (spike at t=0)
+     - No path or structure issues
+     - Compatible with existing scripts
+  
+  3. **After testing complete:**
+     - Create evaluation request handoff in boss-larry folder
+     - Document results in analysis_pipeline_test_report.md
+     - Report any issues found
+
+test_files_ready: |
+  Test H5 files are ready:
+  - `data/h5_files/GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5`
+  - `data/h5_files/GMR61@GMR61_T_Re_Sq_0to250PWM_30#T_Bl_Sq_5to15PWM_30_202510301513.h5`
+
+module_location: |
+  `scripts/engineer_dataset_from_h5.py`
+  
+  Key functions available:
+  - `load_h5_file(h5_path)` - Load H5 file data
+  - `process_h5_file(h5_file, output_dir, experiment_id)` - Process H5 and generate CSVs
+  - `extract_stimulus_timing(h5_data, frame_rate)` - Extract stimulus timing
+  - `extract_trajectory_features(track_data, frame_rate)` - Extract trajectory features
+  - `align_trajectory_with_stimulus(traj_df, stimulus_df)` - Align trajectory with stimulus
+  - `create_event_records(aligned_df, track_id, exp_id)` - Create event records
+
+notes: |
+  This was a critical blocker - module restoration unblocks Task 0.3.
+  Test infrastructure is ready - proceed with testing when ready.
+
