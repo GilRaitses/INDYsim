@@ -1,0 +1,46 @@
+---
+from: boss-larry
+to: conejo-code
+date: 2025-11-14
+time: 1610
+subject: validate-analysis-results
+priority: P0
+status: pending
+
+task: |
+  Validate analysis pipeline results after ETI fixes applied.
+
+context: |
+  Analysis pipeline is running with critical ETI fixes:
+  - ETI time calculation policy enforced
+  - Track frame to ETI mapping using startFrame
+  - Overflow handling for tracks exceeding ETI length
+  - Time validation allowing exactly 20 minutes
+
+  Need to verify results are correct and match expectations.
+
+requirements: |
+  1. Wait for analysis pipeline to complete (all 51 tracks)
+  2. Verify turn rate calculations are reasonable (0.1-10 min⁻¹)
+  3. Check reorientation counts match expectations
+  4. Validate timing alignment (spike at t=0 in stimulus-locked analysis)
+  5. Compare key metrics with MATLAB reference if available
+  6. Check for any data quality issues
+
+deliverables: |
+  - Validation report: `scripts/2025-11-14/analysis_results_validation.md`
+  - Summary of any issues found
+  - Comparison with MATLAB reference (if available)
+
+success_criteria: |
+  - Turn rates within expected range
+  - Reorientation counts reasonable
+  - Timing alignment verified
+  - No data corruption detected
+  - Results match MATLAB reference within tolerance
+
+notes: |
+  - All track data points should be preserved
+  - ETI mapping should be correct for all tracks
+  - Overflow cases handled gracefully
+
