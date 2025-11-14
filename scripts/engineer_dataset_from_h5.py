@@ -808,28 +808,18 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
     })
     
     # After df is created, handle fallback turn detection if needed
-    if 'is_turn' not in df.columns and 'is_pause' in df.columns:
-        # Fallback: turns = reorientations that contain pauses
-        is_pause = df['is_pause'].values
-        # Find reorientation start frames
-        reo_start_frames = np.where(is_reorientation)[0]
-        for start_idx in reo_start_frames:
-            # Find end of this reorientation (next run start or end of data)
-            end_idx = start_idx + 1
-            while end_idx < n_frames and not is_run[end_idx]:
-                end_idx += 1
-            if end_idx >= n_frames:
-                end_idx = n_frames - 1
-            
-            # Check if this reorientation contains any pause
-            reo_pause_frames = is_pause[start_idx:end_idx+1]
-            if np.any(reo_pause_frames):
-                is_turn[start_idx:end_idx+1] = True
-        
-        df['is_turn'] = is_turn  # Fallback turn detection
-    elif 'is_turn' not in df.columns:
-        # No pause detection available, set is_turn to False
-        df['is_turn'] = np.zeros(n_frames, dtype=bool)
+    # CRITICAL: Use MAGAT definition (turns = reorientations with head swings)
+    if 'is_turn' not in df.columns:
+        # Fallback: if MAGAT segmentation failed, try to detect turns from head swings
+        # This requires head swing information from segmentation
+        if 'magat_segmentation' in locals() and magat_segmentation is not None:
+            # Use the turn detection from above (already set in df)
+            pass  # Already handled above
+        else:
+            # No segmentation available - cannot determine turns without head swing info
+            # Set is_turn to False (turns require MAGAT segmentation)
+            df['is_turn'] = np.zeros(n_frames, dtype=bool)
+            print(f"    Warning: No MAGAT segmentation available, cannot detect turns (requires head swing info)")
     
     # Add MAGAT-computed spineTheta fields if available
     if spine_theta_magat_computed and spine_theta_magat is not None:
@@ -864,20 +854,33 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         df['turn_event_id'] = turn_event_ids
         df['is_reversal'] = is_reversal
     
-    # NOW extract turns from reorientations (turns = reorientations that contain pauses)
-    # This must happen AFTER pause detection so is_pause column exists
-    if 'magat_segmentation' in locals() and magat_segmentation is not None and 'is_pause' in df.columns:
-        # Extract turns from reorientations (turns = reorientations that contain pauses)
-        # Turns require pauses and can only happen after a run is segmented
+    # CRITICAL FIX: Extract turns from reorientations using MAGAT definition
+    # MAGAT Definition: Turns = reorientations with numHS >= 1 (at least 1 head swing)
+    # NOT: Turns = reorientations with pauses (this was WRONG)
+    # Reference: @MaggotReorientation/MaggotReorientation.m, load_multi_data_gr21a.m line 169
+    # See docs/logs/2025-11-14/MAGAT_TURN_DEFINITION_ANALYSIS.md
+    if 'magat_segmentation' in locals() and magat_segmentation is not None:
+        # Extract turns from reorientations (turns = reorientations with head swings)
+        # This matches MAGAT's definition: turnStartTime = reorientation with numHS >= 1
         turns = []
         is_turn = np.zeros(n_frames, dtype=bool)
         
-        is_pause = df['is_pause'].values
-        for reo_start, reo_end in magat_segmentation['reorientations']:
-            # Check if this reorientation contains any pause
-            reo_pause_frames = is_pause[reo_start:reo_end+1] if reo_end < len(is_pause) else is_pause[reo_start:]
-            if np.any(reo_pause_frames):
-                # This reorientation contains a pause → it's a turn
+        reorientations = magat_segmentation['reorientations']
+        head_swings = magat_segmentation.get('head_swings', [])
+        
+        # Associate head swings with reorientations (count numHS per reorientation)
+        for reo_idx, (reo_start, reo_end) in enumerate(reorientations):
+            # Count head swings within this reorientation
+            numHS = 0
+            for hs_start, hs_end in head_swings:
+                # Head swing is within reorientation if it overlaps
+                # Overlap: hs_start <= reo_end and hs_end >= reo_start
+                if hs_start <= reo_end and hs_end >= reo_start:
+                    numHS += 1
+            
+            # MAGAT definition: Turn = reorientation with numHS >= 1
+            if numHS >= 1:
+                # This reorientation has at least 1 head swing → it's a turn
                 turns.append((reo_start, reo_end))
                 is_turn[reo_start:reo_end+1] = True
         
@@ -886,10 +889,10 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         magat_segmentation['is_turn'] = is_turn
         magat_segmentation['n_turns'] = len(turns)
         
-        print(f"    Turns (reorientations with pauses): {len(turns)}")
+        print(f"    Turns (reorientations with numHS >= 1): {len(turns)} out of {len(reorientations)} reorientations")
         
         # Set is_turn in DataFrame
-        df['is_turn'] = is_turn  # Proper turn detection: reorientations that contain pauses
+        df['is_turn'] = is_turn  # MAGAT turn detection: reorientations with head swings
     elif 'is_turn' not in df.columns:
         # No segmentation or no pause detection - set is_turn to False
         df['is_turn'] = np.zeros(n_frames, dtype=bool)
