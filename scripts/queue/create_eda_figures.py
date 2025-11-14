@@ -73,7 +73,7 @@ def extract_cycles_from_h5(h5_file):
             print(f"  ETI length: {len(eti)} frames")
             
             # Extract cycles - detect pulse duration from LED values using ETI
-            threshold = 50.0
+            threshold = 20.0  # LED ON/OFF detection threshold
             pulse_durations = []
             
             for i, onset_frame in enumerate(onset_frames):
