@@ -29,6 +29,8 @@ def extract_cycles_from_h5(h5_file):
     Extract actual stimulus cycles from H5 file.
     Returns cycles with actual pulse duration and timing.
     
+    CRITICAL: Uses ETI for all time calculations. Pulse duration is fixed at 10 seconds.
+    
     Uses the same approach as visualize_behavioral_events_stepwise.py
     """
     
@@ -38,13 +40,19 @@ def extract_cycles_from_h5(h5_file):
     print(f"Extracting cycles from {h5_file}...")
     try:
         with h5py.File(h5_file, 'r') as f:
-            fps = 10.0
+            # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
+            # See docs/ETI_TIME_CALCULATION_POLICY.md
+            if 'eti' not in f:
+                raise ValueError("CRITICAL ERROR: ETI not found at root level in H5 file. "
+                               "ETI is REQUIRED for time calculation.")
+            eti = f['eti'][:]  # Load ETI array
             
             # Get onset frames
             if 'stimulus' in f and 'onset_frames' in f['stimulus']:
                 onset_frames = f['stimulus']['onset_frames'][:]
                 onset_frames = np.sort(onset_frames)
-                onset_times = onset_frames / fps
+                # CRITICAL: Use ETI to convert frame indices to actual time
+                onset_times = eti[onset_frames.astype(int)]
             else:
                 print("  No stimulus onsets found")
                 return cycles, None
@@ -62,99 +70,107 @@ def extract_cycles_from_h5(h5_file):
             
             print(f"  Found {len(onset_frames)} stimulus onsets")
             print(f"  LED1 data: {len(led1_data)} frames")
+            print(f"  ETI length: {len(eti)} frames")
             
-            # Extract cycles - use onset_frame as t=0, find LED OFF, calculate ETI
+            # Extract cycles - detect pulse duration from LED values using ETI
             threshold = 50.0
             pulse_durations = []
             
             for i, onset_frame in enumerate(onset_frames):
                 onset_frame_int = int(onset_frame)
-                onset_time = onset_frame_int / fps
                 
-                # Use onset_frame as the reference point (t=0) - DO NOT look backwards
-                # The onset_frame is the actual stimulus onset time
+                # CRITICAL: Use ETI to get actual time (NOT frame/fps)
+                if onset_frame_int >= len(eti):
+                    print(f"  WARNING: Onset frame {onset_frame_int} exceeds ETI length {len(eti)}, skipping")
+                    continue
+                
+                onset_time = eti[onset_frame_int]  # Use ETI for actual time
+                
+                # Use onset_frame as the reference point (t=0)
                 led_on_frame = onset_frame_int
                 led_on_time = onset_time
                 
-                # Find when LED turns OFF after onset
+                # Detect when LED turns OFF after onset (using LED values)
+                # Search for drop below threshold
                 pulse_window_start = onset_frame_int
-                pulse_window_end = min(onset_frame_int + 600, len(led1_data))  # Check up to 60 seconds
+                pulse_window_end = min(onset_frame_int + 200, len(led1_data), len(eti))  # Check up to ~20 seconds
                 pulse_window = led1_data[pulse_window_start:pulse_window_end]
                 
                 drop_indices = np.where(pulse_window < threshold)[0]
                 
                 if len(drop_indices) > 0:
+                    # Found LED drop - use ETI to calculate actual pulse duration
                     led_off_frame = pulse_window_start + drop_indices[0]
-                    led_off_time = led_off_frame / fps
-                    pulse_duration = led_off_time - led_on_time
-                else:
-                    # If no drop found, calculate ETI (time to next onset)
-                    if i < len(onset_frames) - 1:
-                        next_onset_frame = int(onset_frames[i+1])
-                        next_onset_time = next_onset_frame / fps
-                        # Use ETI to determine pulse duration: pulse ends when next cycle starts
-                        # But we need the actual pulse duration, not ETI
-                        # Check if LED is still ON at next onset
-                        if next_onset_frame < len(led1_data) and led1_data[next_onset_frame] >= threshold:
-                            # LED still ON at next onset - use next onset as OFF
-                            led_off_frame = next_onset_frame
-                            led_off_time = next_onset_time
-                            pulse_duration = led_off_time - led_on_time
-                        else:
-                            # LED already OFF - find the actual drop point
-                            # Look between onset and next onset
-                            search_end = min(next_onset_frame, len(led1_data))
-                            search_window = led1_data[onset_frame_int:search_end]
-                            drop_in_window = np.where(search_window < threshold)[0]
-                            if len(drop_in_window) > 0:
-                                led_off_frame = onset_frame_int + drop_in_window[0]
-                                led_off_time = led_off_frame / fps
+                    if led_off_frame < len(eti):
+                        led_off_time = eti[led_off_frame]  # Use ETI for actual time
+                        pulse_duration = led_off_time - led_on_time  # Calculate from ETI
+                    else:
+                        # Fallback: use next onset if available
+                        if i < len(onset_frames) - 1:
+                            next_onset_frame = int(onset_frames[i+1])
+                            if next_onset_frame < len(eti):
+                                led_off_frame = next_onset_frame
+                                led_off_time = eti[next_onset_frame]
                                 pulse_duration = led_off_time - led_on_time
                             else:
-                                # No drop found, use next onset as end
-                                led_off_frame = next_onset_frame
-                                led_off_time = next_onset_time
-                                pulse_duration = led_off_time - led_on_time
-                    else:
-                        # Last cycle - check if LED drops before end of data
-                        search_end = min(onset_frame_int + 600, len(led1_data))
-                        search_window = led1_data[onset_frame_int:search_end]
-                        drop_in_window = np.where(search_window < threshold)[0]
-                        if len(drop_in_window) > 0:
-                            led_off_frame = onset_frame_int + drop_in_window[0]
-                            led_off_time = led_off_frame / fps
-                            pulse_duration = led_off_time - led_on_time
+                                pulse_duration = 10.0  # Default fallback
+                                led_off_frame = onset_frame_int + 100
+                                led_off_time = led_on_time + pulse_duration
                         else:
-                            led_off_frame = len(led1_data) - 1
-                            led_off_time = led_off_frame / fps
-                            pulse_duration = led_off_time - led_on_time
+                            pulse_duration = 10.0  # Default fallback
+                            led_off_frame = onset_frame_int + 100
+                            led_off_time = led_on_time + pulse_duration
+                else:
+                    # No drop found - check if next onset exists
+                    if i < len(onset_frames) - 1:
+                        next_onset_frame = int(onset_frames[i+1])
+                        if next_onset_frame < len(eti):
+                            # Use next onset as LED off (pulse continues until next cycle)
+                            led_off_frame = next_onset_frame
+                            led_off_time = eti[next_onset_frame]  # Use ETI
+                            pulse_duration = led_off_time - led_on_time  # Calculate from ETI
+                        else:
+                            pulse_duration = 10.0  # Default fallback
+                            led_off_frame = onset_frame_int + 100
+                            led_off_time = led_on_time + pulse_duration
+                    else:
+                        # Last cycle - use default
+                        pulse_duration = 10.0  # Default fallback
+                        led_off_frame = min(onset_frame_int + 100, len(eti) - 1)
+                        if led_off_frame < len(eti):
+                            led_off_time = eti[led_off_frame]
+                        else:
+                            led_off_time = led_on_time + pulse_duration
+                
+                pulse_durations.append(pulse_duration)
                 
                 # Calculate ETI (elapsed time index) - time from LED OFF to next onset
                 if i < len(onset_frames) - 1:
                     next_onset_frame = int(onset_frames[i+1])
-                    next_onset_time = next_onset_frame / fps
-                    eti = next_onset_time - led_off_time
+                    if next_onset_frame < len(eti):
+                        next_onset_time = eti[next_onset_frame]  # Use ETI
+                        eti_value = next_onset_time - led_off_time
+                    else:
+                        eti_value = None
                 else:
-                    eti = None
-                
-                pulse_durations.append(pulse_duration)
+                    eti_value = None
                 
                 # Analysis window: 10 seconds BEFORE onset (t=0) + full pulse duration
-                # Cycle is aligned to onset_frame (t=0), NOT led_on_time
+                # Cycle is aligned to onset_frame (t=0)
                 baseline_period = 10.0
                 baseline_start_time = max(0, onset_time - baseline_period)
-                analysis_end_time = led_off_time
+                analysis_end_time = led_off_time  # End of detected pulse
                 
                 cycle = {
                     'cycle_num': i + 1,
                     'onset_frame': onset_frame_int,  # Stimulus onset frame (t=0 reference)
-                    'onset_time': onset_time,  # Stimulus onset time (t=0 reference)
+                    'onset_time': onset_time,  # Stimulus onset time (t=0 reference) - from ETI
                     'led_on_frame': led_on_frame,  # Same as onset_frame (for compatibility)
-                    'led_on_time': led_on_time,  # Same as onset_time (t=0)
+                    'led_on_time': led_on_time,  # Same as onset_time (t=0) - from ETI
                     'led_off_frame': led_off_frame,
-                    'led_off_time': led_off_time,
-                    'pulse_duration': pulse_duration,
-                    'eti': eti,  # Elapsed time index (time from OFF to next onset)
+                    'led_off_time': led_off_time,  # Detected from LED values, time from ETI
+                    'pulse_duration': pulse_duration,  # Detected from LED drop, calculated using ETI
+                    'eti': eti_value,  # Elapsed time index (time from OFF to next onset) - from ETI
                     'baseline_start_time': baseline_start_time,
                     'cycle_start_time': baseline_start_time,  # Start of analysis window (10s before onset)
                     'cycle_end_time': analysis_end_time  # End of analysis window (LED OFF)
@@ -162,12 +178,12 @@ def extract_cycles_from_h5(h5_file):
                 cycles.append(cycle)
             
             if len(pulse_durations) > 0:
-                print(f"  Pulse durations: min={min(pulse_durations):.1f}s, max={max(pulse_durations):.1f}s, mean={np.mean(pulse_durations):.1f}s")
+                print(f"  Pulse durations (detected from LED, calculated with ETI): min={min(pulse_durations):.1f}s, max={max(pulse_durations):.1f}s, mean={np.mean(pulse_durations):.1f}s")
                 # Print ETI values for validation
                 eti_values = [c['eti'] for c in cycles if c.get('eti') is not None]
                 if len(eti_values) > 0:
                     print(f"  ETI (time from OFF to next onset): min={min(eti_values):.1f}s, max={max(eti_values):.1f}s, mean={np.mean(eti_values):.1f}s")
-                print(f"  Cycle alignment: t=0 is stimulus onset_frame (NOT looking backwards)")
+                print(f"  Cycle alignment: t=0 is stimulus onset_frame, using ETI for all time calculations")
         
         return cycles, led1_data
     except FileNotFoundError as e:
