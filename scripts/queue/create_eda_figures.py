@@ -80,7 +80,7 @@ def extract_cycles_from_h5(h5_file):
             # Extract cycles - detect pulse duration from LED values using ETI
             # Blue light has lower intensity, so use lower threshold
             if is_blue_light:
-                threshold = 7.0  # Lower threshold for blue light (typically 7 PWM)
+                threshold = 5.0  # Lower threshold for blue light
                 print(f"  Detected blue light - using threshold: {threshold}")
             else:
                 threshold = 20.0  # Higher threshold for red light
