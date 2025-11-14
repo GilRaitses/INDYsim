@@ -1,0 +1,76 @@
+---
+format:
+  pdf:
+    documentclass: article
+    geometry: margin=1in
+    fontsize: 11pt
+    number-sections: false
+    include-in-header:
+      text: |
+        \usepackage{graphicx}
+        \usepackage{fancyhdr}
+        \pagestyle{fancy}
+        \fancyhf{}
+        \fancyhead[L]{Video Footage - Flaco Owl Documentary}
+        \fancyhead[R]{Fifth Avenue Studios}
+        \fancyfoot[L]{\today}
+        \fancyfoot[C]{\thepage}
+        \fancyfoot[R]{Gil Raitses}
+---
+
+\section{Video Footage Delivery}
+
+\textbf{From:} Fifth Avenue Studios
+
+\textbf{To:} Nick Hasse, Head of Production
+
+\textbf{Email:} nick@spinningnancy.com
+
+\textbf{Date:} \today
+
+\section{Footage Included}
+
+This WeTransfer package contains three video files documenting Flaco the owl's first landing on Fifth Avenue on February 4, 2024, the night he was freed from the Central Park Zoo:
+
+\begin{itemize}
+\item \textbf{Video File 1:} IMG\_3787.MOV (14.06 seconds) - Full HD 1080p
+\item \textbf{Video File 2:} IMG\_3788.mov (15.83 seconds) - Full HD 1080p
+\item \textbf{Video File 3:} IMG\_3789.mov (24.70 seconds) - HD 720p
+\item \textbf{Analysis Reports:} Individual Video Quality Analysis Reports (PDF) for each video file
+\end{itemize}
+
+\section{Important Notice}
+
+\textbf{CONFIDENTIAL - DO NOT SHARE OR DISTRIBUTE}
+
+This video footage is provided for review purposes only. The footage is \textbf{confidential and proprietary} to Fifth Avenue Studios.
+
+\textbf{You may NOT:}
+
+\begin{itemize}
+\item Share, distribute, or forward this footage to any third parties
+\item Post, upload, or publish this footage on any platform (including social media, websites, or video sharing platforms)
+\item Use this footage in any way without a signed licensing agreement
+\item Make copies or derivatives of this footage
+\end{itemize}
+
+\textbf{You may:}
+
+\begin{itemize}
+\item Review the footage for evaluation purposes
+\item Share the footage internally within your organization for evaluation only
+\end{itemize}
+
+\section{Contact}
+
+If you have any questions, please contact:
+
+\textbf{Gil Raitses} \\
+Fifth Avenue Studios \\
+Email: gilraitses@gmail.com \\
+Phone: (212) 365-0255
+
+\vspace{0.5cm}
+
+\noindent\textit{This footage documents Flaco the owl's first landing on Fifth Avenue on February 4, 2024, the night he was freed from the Central Park Zoo. Filmed by Eitan Raitses.}
+

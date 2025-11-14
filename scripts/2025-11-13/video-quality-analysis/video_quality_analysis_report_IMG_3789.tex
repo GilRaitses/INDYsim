@@ -1,0 +1,558 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  11pt,
+]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{needspace}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Video Quality Analysis Report}
+\fancyhead[R]{Fifth Avenue Studios}
+\fancyfoot[L]{\today}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{Gil Raitses}
+\setlength{\extrarowheight}{1pt}
+\renewcommand{\arraystretch}{1.0}
+\makeatletter
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
+\makeatother
+\makeatletter
+\@ifundefined{shadecolor}{\definecolor{shadecolor}{rgb}{.97, .97, .97}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Video Quality Analysis Report},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Video Quality Analysis Report}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Flaco Owl Documentary Footage - Fifth Avenue Studios}
+\author{}
+\date{2025-11-13}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This report analyzes 24.70 seconds of video footage documenting Flaco
+the owl's first landing on Fifth Avenue on February 4, 2024, the night
+he was freed from the Central Park Zoo. This clip distinguishes itself
+as the longest of the three clips (24.70s) and features the best
+sharpness score (66.03) among all clips, making it the sharpest footage
+available. Technical analysis reveals HD resolution (1280 × 720 pixels,
+30 fps) with overall quality score of 49.4/100, requiring
+post-processing for brightness adjustment and stability. Unlike the
+other clips, this footage contains one clear/focused segment
+(13.5-16.0s, 2.5 seconds) with a quality score of 65.0, providing a
+ready-to-use segment without post-processing. The footage achieves
+98.0\% usability (24.21 seconds usable) with 16.0\% meeting high-quality
+standards (3.95 seconds), and uniquely offers two separate usable
+segments (0-19s and 20-24.7s) providing editing flexibility. Content
+analysis shows 1 frame with dog detection, the only clip with any animal
+detection. Valuation analysis indicates a rate of \$105.47 per usable
+second, resulting in an estimated value range of \$2,553 - \$2,761. This
+clip offers the longest duration, best sharpness, and includes a
+production-ready clear segment.
+\end{abstract}
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[borderline west={3pt}{0pt}{shadecolor}, frame hidden, interior hidden, sharp corners, breakable, boxrule=0pt, enhanced]}{\end{tcolorbox}}\fi
+
+\needspace{8cm}
+\section{Executive Summary}
+
+This report provides a technical and narrative analysis of video footage
+documenting Flaco the owl's first-night landing on Fifth Avenue after
+being freed from the Central Park Zoo. The footage has been evaluated
+for documentary production suitability and content significance.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Executive Summary Findings}
+\label{tab-exec-summary}
+\begin{tabular}{p{3cm}p{8cm}}
+\toprule
+\textbf{Finding} & \textbf{Value} \\
+\midrule
+Total Duration & 24.70 seconds \\
+Usable Footage & 24.21 seconds (98.0\%) \\
+High Quality Segments & 3.95 seconds (16.0\%) \\
+Narrative Significance & 90/100 (high importance) \\
+Estimated Value Range & \$2,553 - \$2,761 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures_3789/value_range.pdf}
+\caption{Longest clip duration (24.70s) provides the most footage despite lower per-second rate, resulting in competitive total value range (\$2,553 - \$2,761). Bar chart comparing Conservative (\$2,553), Recommended and Optimistic (\$2,761) valuation estimates.}
+\label{fig-value-range}
+\end{figure}
+
+\needspace{8cm}
+\section{Technical Specifications}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Technical Specifications}
+\label{tab-tech-specs}
+\begin{tabular}{p{3cm}p{7.5cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Resolution & 1280 × 720 pixels (HD 720p, Landscape) \\
+Frame Rate & 30.00 fps \\
+Duration & 24.70 seconds \\
+Total Frames & 741 frames \\
+File Size & 7.25 MB \\
+File Format & QuickTime (.mov) \\
+Video Codec & H.264 (AVC) \\
+Color Depth & 8-bit \\
+Pixel Format & YUV 4:2:0 \\
+Aspect Ratio & 16:9 (Landscape) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{10cm}
+\section{Visual Quality Metrics}
+
+\subsection{Core Quality Metrics}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Core Quality Metrics}
+\label{tab-quality-metrics}
+\begin{tabular}{p{3.5cm}p{2cm}p{5.5cm}}
+\toprule
+\textbf{Metric} & \textbf{Score} & \textbf{Assessment} \\
+\midrule
+Sharpness & 66.03 & Moderate Sharpness \\
+Brightness & 59.7/255 & Underexposed \\
+Contrast & 43.43 & High Contrast \\
+Noise Level & 7.92 & Clean \\
+Exposure & 92.6/100 & Good Exposure \\
+Stability & 6.61 & Unstable/Shaky \\
+Smoothness & 0.934 & Very Smooth \\
+Color Compression & 0.979 & Minimal Compression \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{12cm}
+\subsection{Quality Assessment}
+
+\textbf{Strengths:}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Quality Strengths}
+\label{tab-strengths}
+\begin{tabular}{p{2cm}p{7cm}}
+\toprule
+\textbf{Strength} & \textbf{Description} \\
+\midrule
+Sharpness & Moderate sharpness (66.03) better than other clips \\
+Exposure & Well-exposed footage with minimal over/under exposure \\
+Noise Level & Clean footage with minimal noise (7.92) \\
+Smoothness & High temporal smoothness (0.934) \\
+Compression & Minimal color compression artifacts (0.979) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Post-Processing Considerations:}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Post-Processing Requirements}
+\label{tab-post-processing}
+\begin{tabular}{p{2cm}p{4cm}p{3cm}}
+\toprule
+\textbf{Issue} & \textbf{Description} & \textbf{Required Action} \\
+\midrule
+Brightness & Footage is underexposed (brightness: 59.7) & Requires brightness adjustment \\
+Stability & Camera shake present (stability: 6.61) & Requires stabilization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3789/quality_metrics_radar.pdf}
+\caption{This clip features the best sharpness score (66.03) among all three clips, making it the sharpest footage available. Lower scores in brightness and stability indicate areas requiring post-processing enhancement. Radar chart showing normalized quality scores across six dimensions.}
+\label{fig-quality-radar}
+\end{figure}
+
+\needspace{22cm}
+\section{Content Significance Analysis}
+
+\subsection{Subject Detection}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Subject Detection Metrics}
+\label{tab-subject-detection}
+\begin{tabular}{p{4.5cm}p{5.5cm}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Frames Analyzed & 50 frames \\
+Frames with Subject (Bird/Owl) & 0 frames (0.0\%) \\
+Frames with Dog & 1 frame \\
+Frames with Interaction & 0 frames \\
+Subject Visible Throughout & No \\
+Interaction Moments Detected & No \\
+Rare/Unique Event & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Event Significance}
+
+This footage documents a rare and historic event: Flaco the owl's first
+landing on Fifth Avenue on the night he was freed from the Central Park
+Zoo. This represents an important moment in the narrative arc of the
+documentary, capturing the first public appearance of Flaco after his
+escape. This clip is unique among the three as the only one with any
+animal detection (1 frame with dog), and provides the longest continuous
+footage (24.70 seconds) for extended narrative sequences.
+
+\needspace{20cm}
+\section{Narrative Significance (Story Value)}
+
+\needspace{12cm}
+\subsection{Narrative Score: 90/100}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Narrative Significance Factors}
+\label{tab-narrative-factors}
+\begin{tabular}{p{3cm}p{6cm}}
+\toprule
+\textbf{Factor} & \textbf{Contribution} \\
+\midrule
+Rare/Unique Event & First-night landing on Fifth Ave \\
+Historic Moment & First appearance after zoo escape \\
+Subject Visibility & Subject not detected in analyzed frames \\
+Multiple-Use Potential & Can be used multiple times throughout documentary \\
+Story Importance & High importance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Multiple-Use Potential:} This footage can be strategically
+reused throughout the documentary in:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Multiple-Use Applications}
+\label{tab-multiple-use}
+\begin{tabular}{p{3.5cm}p{7.5cm}}
+\toprule
+\textbf{Use Case} & \textbf{Description} \\
+\midrule
+Opening Sequence & Can be used in documentary opening \\
+Transitional Moments & Suitable for scene transitions \\
+Key Narrative Scenes & Can feature in important story moments \\
+Closing Sequences & Appropriate for documentary conclusion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3789/narrative_significance.pdf}
+\caption{Narrative score of 90/100 reflects historic moment value enhanced by longest duration (24.70s) providing extended narrative coverage and unique animal detection (dog). Pie chart showing narrative significance score of 90/100.}
+\label{fig-narrative}
+\end{figure}
+
+\needspace{25cm}
+\section{Usability Analysis}
+
+\subsection{Usability Breakdown}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3789/usability_breakdown.pdf}
+\caption{Longest clip (24.70s) with 98.0\% usability, uniquely offering two separate usable segments providing editing flexibility. Bar chart comparing total duration (24.70s, 100\%), usable seconds (24.21s, 98.0\%) and high-quality seconds (3.95s, 16.0\%).}
+\label{fig-usability-breakdown}
+\end{figure}
+
+\subsection{Per-Second Breakdown}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Per-Second Breakdown}
+\label{tab-per-second}
+\begin{tabular}{p{2.5cm}cc}
+\toprule
+\textbf{Category} & \textbf{Seconds} & \textbf{Percentage} \\
+\midrule
+Total Duration & 24.70 & 100.0\% \\
+Usable Seconds & 24.21 & 98.0\% \\
+High Quality Seconds & 3.95 & 16.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Usable Segments:} 2 segments (0.00s - 19.00s, 20.00s - 24.70s)
+
+\subsection{Clear, Focused Segments}
+
+One clear/focused segment identified: 13.50s - 16.00s (2.50 seconds)
+with quality score of 65.0. The footage requires post-processing
+(brightness adjustment and stabilization) to achieve optimal clarity for
+broadcast use.
+
+\needspace{25cm}
+\section{Valuation Analysis}
+
+\subsection{Valuation Breakdown}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{figures_3789/valuation_breakdown.pdf}
+\caption{Lower per-second rate (\$105.47) reflects HD 720p resolution multiplier (0.75×) and quality multiplier (0.50×), but longest duration compensates for lower rate. Waterfall chart showing how base rate (\$50.00) is modified by sequential multipliers: Quality (0.50×), Resolution (0.75×), Content Significance (1.50×), Narrative Significance (2.50×) and Multiple-Use (1.50×).}
+\label{fig-valuation-breakdown}
+\end{figure}
+
+\needspace{8cm}
+\subsection{Rate Calculation}
+
+\enlargethispage{2cm}
+\vspace{-0.5cm}
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Rate Calculation}
+\label{tab-rate-calculation}
+\begin{tabular}{p{3.5cm}p{1.8cm}p{4.2cm}}
+\toprule
+\textbf{Factor} & \textbf{Multiplier} & \textbf{Value} \\
+\midrule
+Base Rate (per usable second) & 1.00× & \$50.00 \\
+Quality Multiplier & 0.50× & \\
+Resolution Multiplier & 0.75× & \\
+Content Significance Multiplier & 1.50× & \\
+Narrative Significance Multiplier & 2.50× & \\
+Multiple-Use Multiplier & 1.50× & \\
+\textbf{Final Rate per Second} & & \textbf{\$105.47} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{8cm}
+\subsection{Estimated Value Range}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Estimated Value Range}
+\label{tab-value-range}
+\begin{tabular}{p{3cm}p{5cm}p{3cm}}
+\toprule
+\textbf{Estimate Type} & \textbf{Calculation} & \textbf{Value} \\
+\midrule
+Conservative & All usable seconds × \$105.47 & \$2,553 \\
+Optimistic & Premium segments at 1.5× rate & \$2,761 \\
+\textbf{Recommended Range} & & \textbf{\$2,553 - \$2,761} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{12cm}
+\subsection{Value Factors}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Value Factors}
+\label{tab-value-factors}
+\begin{tabular}{p{3cm}p{7cm}}
+\toprule
+\textbf{Factor} & \textbf{Description} \\
+\midrule
+Usability & High usability (98.0\% usable) - most of the clip is production-ready \\
+Archival Value & Rare/unique event adds archival and narrative value \\
+Story Value & Story moment with reuse potential increases value \\
+Multiple-Use & Footage can be used multiple times throughout documentary structure \\
+Editing Flexibility & Multiple usable segments (2) provide editing flexibility \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+
+This footage represents an important moment in Flaco the owl's story,
+documenting his first landing on Fifth Avenue after being freed from the
+Central Park Zoo. This clip distinguishes itself as the longest of the
+three (24.70 seconds) and features the best sharpness score (66.03)
+among all clips, making it the sharpest footage available. Unlike the
+other clips, this footage contains one clear/focused segment
+(13.5-16.0s, 2.5 seconds) with a quality score of 65.0, providing a
+production-ready segment that requires no post-processing. The footage
+uniquely offers two separate usable segments (0-19s and 20-24.7s)
+providing editing flexibility, and is the only clip with any animal
+detection (1 frame with dog). While brightness and stability require
+post-processing for the full clip, the combination of longest duration,
+best sharpness, and a ready-to-use clear segment makes this footage
+valuable for extended narrative sequences and editing flexibility. The
+estimated licensing value range of \$2,553 - \$2,761 reflects the longer
+duration compensating for the lower per-second rate due to HD 720p
+resolution.
+
+
+
+\end{document}

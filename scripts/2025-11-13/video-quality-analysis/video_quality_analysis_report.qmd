@@ -1,0 +1,408 @@
+---
+title: "Video Quality Analysis Report"
+subtitle: "Flaco Owl Documentary Footage - Fifth Avenue Studios"
+author: ""
+date: today
+format:
+  pdf:
+    documentclass: article
+    geometry: margin=1in
+    fontsize: 11pt
+    colorlinks: true
+    keep-tex: true
+    toc: false
+    number-sections: true
+---
+
+# Executive Summary
+
+This report provides a comprehensive technical and narrative analysis of video footage documenting Flaco the owl's first-night landing on Fifth Avenue after being freed from the Central Park Zoo. The footage has been evaluated for documentary production suitability, content significance, and licensing valuation.
+
+**Key Findings:**
+
+| Finding | Value |
+|---------|-------|
+| Total Duration | 15.83 seconds |
+| Usable Footage | 15.83 seconds (100%) |
+| High Quality Segments | 6.93 seconds (43.8%) |
+| Narrative Significance | 100/100 (CRITICAL) |
+| Estimated Value Range | \$2,226 - \$2,713 |
+
+# Technical Specifications
+
+| Property | Value |
+|----------|-------|
+| Resolution | 720 × 1280 pixels (Full HD 1080p) |
+| Frame Rate | 30.00 fps |
+| Duration | 15.83 seconds |
+| Total Frames | 475 frames |
+| File Size | 4.76 MB |
+| Codec | Unknown |
+| Color Depth | 8-bit |
+
+# Visual Quality Metrics
+
+```{r}
+#| label: fig-quality-radar
+#| fig-cap: "Video Quality Metrics Radar Chart - Normalized scores showing overall quality across key dimensions"
+#| fig-width: 8
+#| fig-height: 8
+knitr::include_graphics("figures/quality_metrics_radar.pdf")
+```
+
+## Core Quality Metrics
+
+| Metric | Score | Assessment |
+|--------|-------|------------|
+| Sharpness | 33.65 | Very Soft/Blurry |
+| Brightness | 72.8/255 | Underexposed |
+| Contrast | 44.53 | High Contrast |
+| Noise Level | 5.32 | Very Clean |
+| Exposure | 98.0/100 | Excellent Exposure |
+| Stability | 5.43 | Unstable/Shaky |
+| Smoothness | 0.937 | Very Smooth |
+| Color Compression | 0.876 | Minimal Compression |
+
+## Quality Assessment
+
+**Strengths:**
+
+| Strength | Description |
+|----------|-------------|
+| Resolution | High resolution (Full HD 1080p) suitable for broadcast |
+| Exposure | Well-exposed footage with minimal over/under exposure |
+| Noise Level | Clean footage with minimal noise (5.32) |
+| Smoothness | Excellent temporal smoothness (0.937) |
+| Compression | Minimal color compression artifacts (0.876) |
+
+**Issues Requiring Post-Processing:**
+
+| Issue | Description | Required Action |
+|-------|-------------|-----------------|
+| Sharpness | Footage is soft/blurry (sharpness: 33.65) | Requires sharpening |
+| Stability | Camera shake present (stability: 5.43) | Requires stabilization |
+| Brightness | Slightly underexposed (brightness: 72.8/255) | May need color correction |
+
+# Content Significance Analysis
+
+## Subject Detection
+
+```{r}
+#| label: fig-content-timeline
+#| fig-cap: "Content Detection Timeline - When the subject (bird/owl) appears throughout the video duration"
+#| fig-width: 14
+#| fig-height: 4
+knitr::include_graphics("figures/content_timeline.pdf")
+```
+
+| Metric | Value |
+|--------|-------|
+| Frames Analyzed | 32 frames |
+| Frames with Subject (Bird/Owl) | 14 frames (43.8%) |
+| Frames with Dog | 0 frames |
+| Frames with Interaction | 0 frames |
+| Subject Visible Throughout | No |
+| Interaction Moments Detected | No |
+| Rare/Unique Event | Yes |
+
+## Event Significance
+
+This footage documents a **rare and historic event**: Flaco the owl's first landing on Fifth Avenue on the night he was freed from the Central Park Zoo. This represents a critical moment in the narrative arc of the documentary, capturing the first public appearance of Flaco after his escape.
+
+# Narrative Significance (Story Value)
+
+## Narrative Score: 100/100 (CRITICAL)
+
+```{r}
+#| label: fig-narrative
+#| fig-cap: "Narrative Significance Score Components - Breakdown of factors contributing to the critical story importance score"
+#| fig-width: 10
+#| fig-height: 8
+knitr::include_graphics("figures/narrative_significance.pdf")
+```
+
+| Factor | Contribution |
+|--------|--------------|
+| Rare/Unique Event | First-night landing on Fifth Ave |
+| Historic Moment | First appearance after zoo escape |
+| Subject Visibility | Subject visible in 44% of footage |
+| Multiple-Use Potential | Can be used multiple times in doc |
+| Story Importance | CRITICAL |
+
+**Multiple-Use Potential:** This footage can be strategically reused throughout the documentary in:
+
+| Use Case | Description |
+|----------|-------------|
+| Opening Sequence | Can be used in documentary opening |
+| Transitional Moments | Suitable for scene transitions |
+| Key Narrative Scenes | Can feature in critical story moments |
+| Closing Sequences | Appropriate for documentary conclusion |
+
+# Usability Analysis
+
+```{r}
+#| label: fig-usability
+#| fig-cap: "Usability Breakdown - Total duration, usable seconds, and high-quality segments"
+#| fig-width: 10
+#| fig-height: 6
+knitr::include_graphics("figures/usability_breakdown.pdf")
+```
+
+## Per-Second Breakdown
+
+| Category | Seconds | Percentage |
+|----------|---------|------------|
+| Total Duration | 15.83 | 100.0% |
+| Usable Seconds | 15.83 | 100.0% |
+| High Quality Seconds | 6.93 | 43.8% |
+
+**Usable Segments:** 1 continuous segment (0.00s - 15.83s)
+
+## Clear, Focused Segments
+
+No continuous clear/focused segments of 1 second or longer were identified. The footage requires post-processing (sharpening and stabilization) to achieve optimal clarity for broadcast use.
+
+# Valuation Guidance
+
+```{r}
+#| label: fig-valuation-breakdown
+#| fig-cap: "Valuation Rate Calculation - Step-by-step breakdown showing how multipliers affect the final rate per second"
+#| fig-width: 12
+#| fig-height: 8
+knitr::include_graphics("figures/valuation_breakdown.pdf")
+```
+
+```{r}
+#| label: fig-value-range
+#| fig-cap: "License Fee Value Range - Conservative estimate, agreed fee, and optimistic estimate comparison"
+#| fig-width: 10
+#| fig-height: 6
+knitr::include_graphics("figures/value_range.pdf")
+```
+
+## Rate Calculation
+
+| Factor | Multiplier | Value |
+|--------|------------|-------|
+| Base Rate (per usable second) | 1.00× | \$50.00 |
+| Quality Multiplier | 0.50× | |
+| Resolution Multiplier | 1.00× | |
+| Content Significance Multiplier | 1.50× | |
+| Narrative Significance Multiplier | 2.50× | |
+| Multiple-Use Multiplier | 1.50× | |
+| **Final Rate per Second** | | **\$140.62** |
+
+## Estimated Value Range
+
+| Estimate Type | Calculation | Value |
+|---------------|-------------|-------|
+| Conservative | All usable seconds × \$140.62 | \$2,226 |
+| Optimistic | Premium segments at 1.5× rate | \$2,713 |
+| **Recommended Range** | | **\$2,226 - \$2,713** |
+
+## Valuation Notes
+
+| Note | Description |
+|------|-------------|
+| Usability | High usability (100% usable) - most of the clip is production-ready |
+| Archival Value | Rare/unique event adds significant archival and narrative value |
+| Post-Processing | Lower technical quality may require post-processing, factor into negotiations |
+| Story Value | Critical story moment with high reuse potential increases value |
+| Licensing Premium | Multiple-use licensing should command premium rate |
+
+# Recommendations
+
+## For Licensing Negotiations
+
+| Recommendation | Description |
+|----------------|-------------|
+| Base Value | Start with conservative estimate (\$2,226) as floor |
+| Premium Value | Use optimistic estimate (\$2,713) for exclusive/premium use |
+| Multiple Uses | Factor in 1.5× multiplier for multiple-use licensing |
+| Post-Processing | Consider that footage requires stabilization and sharpening |
+| Narrative Value | Emphasize critical story importance and archival significance |
+
+## For Production Use
+
+| Aspect | Recommendation |
+|--------|----------------|
+| Suitability | Footage is suitable for documentary use with post-processing |
+| Stabilization | Recommend stabilization software (e.g., Adobe Warp Stabilizer) |
+| Sharpening | Recommend sharpening filters to improve clarity |
+| Color Correction | Color correction may enhance underexposed areas |
+| Usage Flexibility | Footage can be used multiple times throughout documentary structure |
+
+# Conclusion
+
+This footage represents a critical moment in Flaco the owl's story, documenting his first landing on Fifth Avenue after being freed from the Central Park Zoo. While the technical quality requires post-processing, the narrative significance, rarity, and multiple-use potential make this footage highly valuable for documentary production.
+
+The estimated licensing value range of \$2,226 - \$2,713 reflects both the technical quality considerations and the substantial narrative value of this historic moment.
+
+\newpage
+
+# Appendix: Score Computation Methodology
+
+## Overall Quality Score
+
+```{r}
+#| label: fig-quality-components
+#| fig-cap: "Quality Score Components - Weighted contribution of each metric to the overall quality score"
+#| fig-width: 10
+#| fig-height: 6
+knitr::include_graphics("figures/quality_score_components.pdf")
+```
+
+The overall quality score is calculated using a weighted average of normalized metrics:
+
+$$Q = 0.25 \cdot S_n + 0.20 \cdot E_n + 0.15 \cdot C_n + 0.15 \cdot N_n + 0.25 \cdot St_n$$
+
+Where:
+
+$$S_n = \min\left(100, \frac{\bar{S}}{500} \times 100\right) \quad \text{(Sharpness, normalized)}$$
+
+$$E_n = \bar{E} \quad \text{(Exposure score, 0-100)}$$
+
+$$C_n = \min\left(100, \frac{\bar{C}}{40} \times 100\right) \quad \text{(Contrast, normalized)}$$
+
+$$N_n = \max\left(0, 100 - \frac{\bar{N}}{50} \times 100\right) \quad \text{(Noise, normalized)}$$
+
+$$St_n = \max\left(0, 100 - \frac{\bar{St}}{5} \times 100\right) \quad \text{(Stability, normalized)}$$
+
+## Sharpness Calculation
+
+Sharpness is measured using Laplacian variance:
+
+$$S = \text{Var}(\nabla^2 I)$$
+
+Where $\nabla^2 I$ is the Laplacian of the grayscale image $I$.
+
+## Brightness Assessment
+
+Average brightness is calculated as:
+
+$$B = \frac{1}{N} \sum_{i,j} I_{gray}(i,j)$$
+
+Assessment thresholds:
+
+| Category | Threshold |
+|---------|----------|
+| Well-exposed | $100 \leq B \leq 180$ |
+| Underexposed | $50 \leq B < 100$ |
+| Very dark | $B < 50$ |
+| Overexposed | $B > 200$ |
+
+## Contrast Calculation
+
+RMS contrast is calculated as:
+
+$$C = \sqrt{\frac{1}{N} \sum_{i,j} (I_{gray}(i,j) - \mu)^2}$$
+
+Where $\mu$ is the mean brightness.
+
+## Noise Level Estimation
+
+Noise level is estimated using the standard deviation of the Laplacian:
+
+$$N = \sigma(\nabla^2 I)$$
+
+## Stability Calculation
+
+Stability is measured using optical flow magnitude:
+
+$$St = \frac{1}{M} \sum_{i,j} \sqrt{u(i,j)^2 + v(i,j)^2}$$
+
+Where $(u, v)$ are the optical flow vectors between consecutive frames.
+
+## Smoothness Calculation
+
+Smoothness combines histogram similarity and color consistency:
+
+$$Sm = \frac{H_{corr} + C_{cons}}{2}$$
+
+Where:
+
+$$H_{corr} = \text{Histogram correlation between frames}$$
+
+$$C_{cons} = 1 - \frac{\bar{\Delta H}}{180} \quad \text{(Color consistency)}$$
+
+## Color Compression Score
+
+Compression score is calculated as:
+
+$$CC = 1 - \frac{B_h + B_s + B_v}{3}$$
+
+Where $B_h$, $B_s$, $B_v$ are banding scores for hue, saturation, and value channels respectively.
+
+## Narrative Significance Score
+
+Narrative score is calculated as:
+
+$$NS = \min(100, \sum_{i} w_i \cdot f_i)$$
+
+Where $w_i$ are weights and $f_i$ are factors:
+
+| Factor | Points |
+|--------|--------|
+| Rare/unique event | +40 points |
+| Historic moment | +30 points |
+| Subject visibility (>30%) | +15 points |
+| Clear focused segments (≥3s) | +10 points |
+| Multiple clear segments | +5 points |
+| Interaction moments | +10 points |
+| Multiple-use potential | +20 points |
+
+## Valuation Rate Calculation
+
+The final rate per usable second is calculated as:
+
+$$R = R_{base} \times M_q \times M_r \times M_c \times M_n \times M_m$$
+
+Where:
+
+$$R_{base} = \$50 \quad \text{(Base rate)}$$
+
+$$M_q = \text{Quality multiplier (0.5-2.0)}$$
+
+$$M_r = \text{Resolution multiplier (0.5-1.5)}$$
+
+$$M_c = \text{Content significance multiplier (1.0-1.8)}$$
+
+$$M_n = \text{Narrative significance multiplier (1.0-2.5)}$$
+
+$$M_m = \text{Multiple-use multiplier (1.0-1.5)}$$
+
+## Total Value Calculation
+
+$$V_{conservative} = R \times T_{usable}$$
+
+$$V_{optimistic} = R \times 1.5 \times T_{high} + R \times (T_{usable} - T_{high})$$
+
+Where:
+
+| Variable | Description |
+|----------|------------|
+| $T_{usable}$ | Total usable seconds |
+| $T_{high}$ | High quality seconds |
+
+## Technical Details
+
+### Analysis Parameters
+
+| Parameter | Value |
+|-----------|-------|
+| Frames sampled | 32 frames (2 frames per second) |
+| Analysis method | Frame-by-frame quality assessment |
+| Object detection | YOLOv8n model |
+| Minimum segment duration | 1.0 second |
+| Usability threshold | 35/100 points |
+| High quality threshold | 60/100 points |
+
+### Software and Tools
+
+| Tool | Purpose |
+|------|---------|
+| OpenCV 4.12.0 | Video processing |
+| Ultralytics YOLOv8 | Object detection |
+| NumPy | Numerical computations |
+| Custom algorithms | Quality metrics analysis |
+

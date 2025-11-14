@@ -1,0 +1,363 @@
+---
+title: "Video Quality Analysis Report"
+subtitle: "Flaco Owl Documentary Footage - Fifth Avenue Studios"
+author: ""
+date: today
+abstract: |
+  This report analyzes 14.06 seconds of video footage documenting Flaco the owl's first landing on Fifth Avenue on February 4, 2024, the night he was freed from the Central Park Zoo. This clip distinguishes itself with the highest valuation rate (\$210.94/second) and highest estimated value range (\$2,967 - \$3,223) among the three clips, driven by superior technical quality metrics including the best exposure (98.0/100), highest smoothness (0.955), and minimal color compression (0.938) of the set. Technical analysis reveals Full HD resolution (1080 × 1920 pixels, 30 fps) with overall quality score of 51.8/100, requiring post-processing for sharpness (33.15) and stability (4.55). Unlike the other clips, this footage shows no subject detection in analyzed frames, making it suitable for establishing shots or atmospheric context. The footage achieves 100\% usability (14.06 seconds usable) with 17.2\% meeting high-quality standards (2.43 seconds). Narrative significance scores 90/100 due to the rare/unique event nature, historic moment value and multiple-use potential throughout documentary production. This clip offers the highest per-second value and best technical foundation for post-processing enhancement.
+format:
+  pdf:
+    documentclass: article
+    geometry: margin=1in
+    fontsize: 11pt
+    colorlinks: true
+    keep-tex: true
+    toc: false
+    number-sections: false
+    include-in-header:
+      text: |
+        \usepackage{array}
+        \usepackage{booktabs}
+        \usepackage{graphicx}
+        \usepackage{longtable}
+        \usepackage{needspace}
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{fancyhdr}
+        \pagestyle{fancy}
+        \fancyhf{}
+        \fancyhead[L]{Video Quality Analysis Report}
+        \fancyhead[R]{Fifth Avenue Studios}
+        \fancyfoot[L]{\today}
+        \fancyfoot[C]{\thepage}
+        \fancyfoot[R]{Gil Raitses}
+        \setlength{\extrarowheight}{1pt}
+        \renewcommand{\arraystretch}{1.0}
+---
+
+\needspace{8cm}
+\section{Executive Summary}
+
+This report provides a technical and narrative analysis of video footage documenting Flaco the owl's first-night landing on Fifth Avenue after being freed from the Central Park Zoo. The footage has been evaluated for documentary production suitability and content significance.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Executive Summary Findings}
+\label{tab-exec-summary}
+\begin{tabular}{p{3cm}p{8cm}}
+\toprule
+\textbf{Finding} & \textbf{Value} \\
+\midrule
+Total Duration & 14.06 seconds \\
+Usable Footage & 14.06 seconds (100\%) \\
+High Quality Segments & 2.43 seconds (17.2\%) \\
+Narrative Significance & 90/100 (high importance) \\
+Estimated Value Range & \$2,967 - \$3,223 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures_3787/value_range.pdf}
+\caption{This clip has the highest valuation range (\$2,967 - \$3,223) and highest per-second rate (\$210.94) among the three clips, reflecting superior technical quality multipliers. Bar chart comparing Conservative (\$2,967), Recommended and Optimistic (\$3,223) valuation estimates.}
+\label{fig-value-range}
+\end{figure}
+
+
+\needspace{8cm}
+\section{Technical Specifications}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Technical Specifications}
+\label{tab-tech-specs}
+\begin{tabular}{p{3cm}p{7.5cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Resolution & 1080 × 1920 pixels (Full HD 1080p, Portrait) \\
+Frame Rate & 30.00 fps \\
+Duration & 14.06 seconds \\
+Total Frames & 422 frames \\
+File Size & 23.09 MB \\
+File Format & QuickTime (.MOV) \\
+Video Codec & H.264 (AVC) \\
+Color Depth & 8-bit \\
+Pixel Format & YUV 4:2:0 \\
+Aspect Ratio & 9:16 (Portrait) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{10cm}
+\section{Visual Quality Metrics}
+
+\subsection{Core Quality Metrics}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Core Quality Metrics}
+\label{tab-quality-metrics}
+\begin{tabular}{p{3.5cm}p{2cm}p{5.5cm}}
+\toprule
+\textbf{Metric} & \textbf{Score} & \textbf{Assessment} \\
+\midrule
+Sharpness & 33.15 & Very Soft/Blurry \\
+Brightness & 72.0/255 & Underexposed \\
+Contrast & 43.89 & High Contrast \\
+Noise Level & 5.68 & Very Clean \\
+Exposure & 98.0/100 & Good Exposure \\
+Stability & 4.55 & Unstable/Shaky \\
+Smoothness & 0.955 & Very Smooth \\
+Color Compression & 0.938 & Minimal Compression \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{12cm}
+\subsection{Quality Assessment}
+
+\textbf{Strengths:}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Quality Strengths}
+\label{tab-strengths}
+\begin{tabular}{p{2cm}p{7cm}}
+\toprule
+\textbf{Strength} & \textbf{Description} \\
+\midrule
+Resolution & High resolution (Full HD 1080p) suitable for broadcast \\
+Exposure & Well-exposed footage with minimal over/under exposure \\
+Noise Level & Clean footage with minimal noise (5.68) \\
+Smoothness & High temporal smoothness (0.955) \\
+Compression & Minimal color compression artifacts (0.938) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Post-Processing Considerations:}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Post-Processing Requirements}
+\label{tab-post-processing}
+\begin{tabular}{p{2cm}p{4cm}p{3cm}}
+\toprule
+\textbf{Issue} & \textbf{Description} & \textbf{Required Action} \\
+\midrule
+Sharpness & Footage is soft/blurry (sharpness: 33.15) & Requires sharpening \\
+Stability & Camera shake present (stability: 4.55) & Requires stabilization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3787/quality_metrics_radar.pdf}
+\caption{This clip shows the best exposure and smoothness scores among the three clips, making it ideal for post-processing enhancement. Radar chart showing normalized quality scores across six dimensions with exposure (98.0) and smoothness (95.5) as standout metrics.}
+\label{fig-quality-radar}
+\end{figure}
+
+\needspace{22cm}
+\section{Content Significance Analysis}
+
+\subsection{Subject Detection}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Subject Detection Metrics}
+\label{tab-subject-detection}
+\begin{tabular}{p{4.5cm}p{5.5cm}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Frames Analyzed & 29 frames \\
+Frames with Subject (Bird/Owl) & 0 frames (0.0\%) \\
+Frames with Dog & 0 frames \\
+Frames with Interaction & 0 frames \\
+Subject Visible Throughout & No \\
+Interaction Moments Detected & No \\
+Rare/Unique Event & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Event Significance}
+
+This footage documents a rare and historic event: Flaco the owl's first landing on Fifth Avenue on the night he was freed from the Central Park Zoo. This represents an important moment in the narrative arc of the documentary, capturing the first public appearance of Flaco after his escape.
+
+\needspace{20cm}
+\section{Narrative Significance (Story Value)}
+
+\needspace{12cm}
+\subsection{Narrative Score: 90/100}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Narrative Significance Factors}
+\label{tab-narrative-factors}
+\begin{tabular}{p{3cm}p{6cm}}
+\toprule
+\textbf{Factor} & \textbf{Contribution} \\
+\midrule
+Rare/Unique Event & First-night landing on Fifth Ave \\
+Historic Moment & First appearance after zoo escape \\
+Subject Visibility & Subject not detected in analyzed frames \\
+Multiple-Use Potential & Can be used multiple times throughout documentary \\
+Story Importance & High importance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Multiple-Use Potential:} This footage can be strategically reused throughout the documentary in:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Multiple-Use Applications}
+\label{tab-multiple-use}
+\begin{tabular}{p{3.5cm}p{7.5cm}}
+\toprule
+\textbf{Use Case} & \textbf{Description} \\
+\midrule
+Opening Sequence & Can be used in documentary opening \\
+Transitional Moments & Suitable for scene transitions \\
+Key Narrative Scenes & Can feature in important story moments \\
+Closing Sequences & Appropriate for documentary conclusion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3787/narrative_significance.pdf}
+\caption{Narrative score of 90/100 reflects historic moment value despite no subject detection, making this clip valuable for establishing context and atmosphere. Pie chart showing narrative significance score of 90/100.}
+\label{fig-narrative}
+\end{figure}
+
+\needspace{25cm}
+\section{Usability Analysis}
+
+\subsection{Usability Breakdown}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{figures_3787/usability_breakdown.pdf}
+\caption{Shortest clip (14.06s) with 100\% usability, making it a compact, production-ready segment. Bar chart comparing total duration (14.06s, 100\%), usable seconds (14.06s, 100\%) and high-quality seconds (2.43s, 17.2\%).}
+\label{fig-usability-breakdown}
+\end{figure}
+
+\subsection{Per-Second Breakdown}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Per-Second Breakdown}
+\label{tab-per-second}
+\begin{tabular}{p{2.5cm}cc}
+\toprule
+\textbf{Category} & \textbf{Seconds} & \textbf{Percentage} \\
+\midrule
+Total Duration & 14.06 & 100.0\% \\
+Usable Seconds & 14.06 & 100.0\% \\
+High Quality Seconds & 2.43 & 17.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Usable Segments:} 1 continuous segment (0.00s - 14.06s)
+
+\subsection{Clear, Focused Segments}
+
+No continuous clear/focused segments of 1 second or longer were identified. The footage requires post-processing (sharpening and stabilization) to achieve optimal clarity for broadcast use.
+
+\needspace{25cm}
+\section{Valuation Analysis}
+
+\subsection{Valuation Breakdown}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.75\textwidth]{figures_3787/valuation_breakdown.pdf}
+\caption{Highest per-second rate (\$210.94) among the three clips, driven by the best quality multiplier (0.75×) reflecting superior exposure, smoothness and compression metrics. Waterfall chart showing how base rate (\$50.00) is modified by sequential multipliers: Quality (0.75×), Resolution (1.00×), Content Significance (1.50×), Narrative Significance (2.50×) and Multiple-Use (1.50×).}
+\label{fig-valuation-breakdown}
+\end{figure}
+
+
+\needspace{8cm}
+\subsection{Rate Calculation}
+
+\enlargethispage{2cm}
+\vspace{-0.5cm}
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Rate Calculation}
+\label{tab-rate-calculation}
+\begin{tabular}{p{3.5cm}p{1.8cm}p{4.2cm}}
+\toprule
+\textbf{Factor} & \textbf{Multiplier} & \textbf{Value} \\
+\midrule
+Base Rate (per usable second) & 1.00× & \$50.00 \\
+Quality Multiplier & 0.75× & \\
+Resolution Multiplier & 1.00× & \\
+Content Significance Multiplier & 1.50× & \\
+Narrative Significance Multiplier & 2.50× & \\
+Multiple-Use Multiplier & 1.50× & \\
+\textbf{Final Rate per Second} & & \textbf{\$210.94} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{8cm}
+\subsection{Estimated Value Range}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Estimated Value Range}
+\label{tab-value-range}
+\begin{tabular}{p{3cm}p{5cm}p{3cm}}
+\toprule
+\textbf{Estimate Type} & \textbf{Calculation} & \textbf{Value} \\
+\midrule
+Conservative & All usable seconds × \$210.94 & \$2,967 \\
+Optimistic & Premium segments at 1.5× rate & \$3,223 \\
+\textbf{Recommended Range} & & \textbf{\$2,967 - \$3,223} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\needspace{12cm}
+\subsection{Value Factors}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Value Factors}
+\label{tab-value-factors}
+\begin{tabular}{p{3cm}p{7cm}}
+\toprule
+\textbf{Factor} & \textbf{Description} \\
+\midrule
+Usability & High usability (100\% usable) - most of the clip is production-ready \\
+Archival Value & Rare/unique event adds archival and narrative value \\
+Story Value & Story moment with reuse potential increases value \\
+Multiple-Use & Footage can be used multiple times throughout documentary structure \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+
+This footage represents an important moment in Flaco the owl's story, documenting his first landing on Fifth Avenue after being freed from the Central Park Zoo. This clip stands out among the three with the highest valuation (\$2,967 - \$3,223) and highest per-second rate (\$210.94), driven by superior technical metrics including the best exposure (98.0), highest smoothness (0.955), and minimal color compression (0.938) of the set. While sharpness and stability require post-processing, the strong technical foundation makes this clip ideal for enhancement. Unlike the other clips, no subject was detected in analyzed frames, positioning this footage as valuable for establishing shots, atmospheric context, or background elements. The narrative significance, rarity and multiple-use potential, combined with the highest technical quality scores, make this footage the most valuable of the three clips for documentary production.
+

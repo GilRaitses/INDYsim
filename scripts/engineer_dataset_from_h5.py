@@ -129,6 +129,16 @@ def load_h5_file(h5_path: Path) -> Dict:
                 
                 # Load track attributes
                 track_data['attrs'] = dict(track_group.attrs)
+                
+                # Load track metadata (contains startFrame, endFrame for ETI mapping)
+                if 'metadata' in track_group:
+                    metadata_group = track_group['metadata']
+                    if isinstance(metadata_group, h5py.Group) and metadata_group.attrs:
+                        track_data['metadata_attrs'] = dict(metadata_group.attrs)
+                    elif isinstance(metadata_group, h5py.Dataset):
+                        # Some H5 files might have metadata as dataset
+                        track_data['metadata_attrs'] = {}
+                
                 data['tracks'][track_key] = track_data
         
         # Load LED data - check multiple possible locations
@@ -242,17 +252,36 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
                         "ETI must be loaded from H5 root level and passed to this function. "
                         "See docs/ETI_TIME_CALCULATION_POLICY.md")
     
-    # Use ETI for time - map track frames to ETI if needed
+    # CRITICAL: Map track frames to ETI indices using track metadata
+    # Each track point corresponds to a specific ETI index via startFrame
+    # Track metadata contains startFrame and endFrame that map to ETI indices
     if track_frame_indices is not None and len(track_frame_indices) == n_frames:
-        # Track has frame indices mapping to ETI
+        # Track has explicit frame indices mapping to ETI (provided externally)
         time = eti[track_frame_indices]
+    elif 'metadata_attrs' in track_data and 'startFrame' in track_data['metadata_attrs']:
+        # Use startFrame from metadata to map track frames to ETI indices
+        start_frame = int(track_data['metadata_attrs']['startFrame'])
+        # Track frame i corresponds to ETI index (start_frame + i)
+        # Create array: [start_frame, start_frame+1, ..., start_frame+n_frames-1]
+        track_eti_indices = np.arange(start_frame, start_frame + n_frames, dtype=int)
+        
+        # Validate indices are within ETI bounds
+        if track_eti_indices[-1] >= len(eti):
+            raise ValueError(f"CRITICAL ERROR: Track ETI indices exceed ETI length. "
+                           f"Track startFrame={start_frame}, n_frames={n_frames}, "
+                           f"max ETI index={track_eti_indices[-1]}, ETI length={len(eti)}")
+        
+        # Extract ETI values for this track's frame indices
+        time = eti[track_eti_indices].copy()
     elif len(eti) == n_frames:
-        # ETI length matches track frames - use directly
+        # ETI length exactly matches track frames - use directly (rare case)
         time = eti.copy()
     else:
-        # Mismatch - this should not happen, but provide helpful error
-        raise ValueError(f"CRITICAL ERROR: ETI length ({len(eti)}) doesn't match track frames ({n_frames}). "
-                        f"This indicates a data structure issue. Check H5 file structure.")
+        # Cannot determine ETI mapping - require metadata
+        raise ValueError(f"CRITICAL ERROR: Cannot map track frames to ETI indices. "
+                       f"ETI length={len(eti)}, track frames={n_frames}. "
+                       f"Track metadata must contain 'startFrame' attribute. "
+                       f"See docs/ETI_TIME_CALCULATION_POLICY.md")
     
     # CRITICAL VALIDATION: Check if calculated duration exceeds expected experiment duration (20 minutes = 1200 seconds)
     max_time = time.max() if len(time) > 0 else 0
@@ -728,6 +757,9 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         for i in range(n_spine_pts):
             spine_data[f'spine_x_{i}'] = spine_points_per_frame[:, i, 0]
             spine_data[f'spine_y_{i}'] = spine_points_per_frame[:, i, 1]
+    
+    # Create frame array (0-indexed track frame numbers)
+    frames = np.arange(n_frames)
     
     df = pd.DataFrame({
         'frame': frames,
