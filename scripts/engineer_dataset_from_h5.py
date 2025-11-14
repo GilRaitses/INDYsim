@@ -236,13 +236,14 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         return pd.DataFrame()
     
     mid_pos = track_data['mid']  # N×2 array (x, y)
-    n_frames = len(mid_pos)
+    n_frames_original = len(mid_pos)
     
-    if n_frames == 0:
+    if n_frames_original == 0:
         return pd.DataFrame()
     
     x = mid_pos[:, 0]
     y = mid_pos[:, 1]
+    n_frames = n_frames_original  # Will be updated if truncated due to ETI bounds
     
     # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
     # Using frame_rate-based time calculation is FORBIDDEN (causes 37+ minute tracks)
@@ -265,11 +266,23 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         # Create array: [start_frame, start_frame+1, ..., start_frame+n_frames-1]
         track_eti_indices = np.arange(start_frame, start_frame + n_frames, dtype=int)
         
-        # Validate indices are within ETI bounds
-        if track_eti_indices[-1] >= len(eti):
-            raise ValueError(f"CRITICAL ERROR: Track ETI indices exceed ETI length. "
-                           f"Track startFrame={start_frame}, n_frames={n_frames}, "
-                           f"max ETI index={track_eti_indices[-1]}, ETI length={len(eti)}")
+        # Clamp indices to ETI bounds (some tracks may have frames beyond ETI length)
+        max_eti_idx = len(eti) - 1
+        valid_mask = track_eti_indices <= max_eti_idx
+        n_valid_frames = valid_mask.sum()
+        
+        if n_valid_frames < n_frames:
+            # Track has frames beyond ETI - warn and use only valid frames
+            print(f"      WARNING: Track has {n_frames} frames but only {n_valid_frames} have corresponding ETI values. "
+                  f"startFrame={start_frame}, max ETI index={max_eti_idx}, ETI length={len(eti)}")
+            # Clamp indices to valid range
+            track_eti_indices = track_eti_indices[valid_mask]
+            # Also need to truncate track data to match
+            n_frames = n_valid_frames
+            x = x[:n_frames]
+            y = y[:n_frames]
+            mid_pos = mid_pos[:n_frames]
+            # Note: head_pos, tail_pos will be truncated later when loaded
         
         # Extract ETI values for this track's frame indices
         time = eti[track_eti_indices].copy()
@@ -743,11 +756,13 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         # Note: df doesn't exist yet in fallback, so we'll set is_turn after df is created
         is_turn = np.zeros(n_frames, dtype=bool)
     
-    # Also include head and tail positions
-    head_x = track_data.get('head', mid_pos)[:, 0] if 'head' in track_data else x
-    head_y = track_data.get('head', mid_pos)[:, 1] if 'head' in track_data else y
-    tail_x = track_data.get('tail', mid_pos)[:, 0] if 'tail' in track_data else x
-    tail_y = track_data.get('tail', mid_pos)[:, 1] if 'tail' in track_data else y
+    # Also include head and tail positions (truncate to n_frames if needed)
+    head_pos_full = track_data.get('head', mid_pos) if 'head' in track_data else mid_pos
+    tail_pos_full = track_data.get('tail', mid_pos) if 'tail' in track_data else mid_pos
+    head_x = head_pos_full[:n_frames, 0] if head_pos_full.shape[0] > n_frames else head_pos_full[:, 0]
+    head_y = head_pos_full[:n_frames, 1] if head_pos_full.shape[0] > n_frames else head_pos_full[:, 1]
+    tail_x = tail_pos_full[:n_frames, 0] if tail_pos_full.shape[0] > n_frames else tail_pos_full[:, 0]
+    tail_y = tail_pos_full[:n_frames, 1] if tail_pos_full.shape[0] > n_frames else tail_pos_full[:, 1]
     
     # Store spine points data (if available)
     spine_data = {}
