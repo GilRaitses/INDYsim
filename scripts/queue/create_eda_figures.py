@@ -72,8 +72,20 @@ def extract_cycles_from_h5(h5_file):
             print(f"  LED1 data: {len(led1_data)} frames")
             print(f"  ETI length: {len(eti)} frames")
             
+            # Determine if blue light based on filename or metadata
+            # Blue light files typically have "Bl" or "blue" in the name
+            h5_filename = str(h5_file) if isinstance(h5_file, Path) else h5_file
+            is_blue_light = 'Bl' in h5_filename or 'blue' in h5_filename.lower()
+            
             # Extract cycles - detect pulse duration from LED values using ETI
-            threshold = 20.0  # LED ON/OFF detection threshold
+            # Blue light has lower intensity, so use lower threshold
+            if is_blue_light:
+                threshold = 7.0  # Lower threshold for blue light (typically 7 PWM)
+                print(f"  Detected blue light - using threshold: {threshold}")
+            else:
+                threshold = 20.0  # Higher threshold for red light
+                print(f"  Detected red light - using threshold: {threshold}")
+            
             pulse_durations = []
             
             for i, onset_frame in enumerate(onset_frames):
