@@ -43,7 +43,15 @@ def update_progress(progress_file: Path, status: dict):
         json.dump(status, f, indent=2)
 
 def main():
-    h5_file = Path(r"D:\INDYsim\data\h5_files\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5")
+    # Allow H5 file to be specified via command line argument or environment variable
+    import os
+    if len(sys.argv) > 1:
+        h5_file = Path(sys.argv[1])
+    elif 'H5_FILE_PATH' in os.environ:
+        h5_file = Path(os.environ['H5_FILE_PATH'])
+    else:
+        # Default to first file for backwards compatibility
+        h5_file = Path(r"D:\INDYsim\data\h5_files\GMR61@GMR61_T_Re_Sq_0to250PWM_30#C_Bl_7PWM_202510291652.h5")
     
     if not h5_file.exists():
         print(f"ERROR: H5 file not found: {h5_file}")
@@ -437,6 +445,49 @@ def main():
                         'text': f'Saved Klein run table: {len(combined_klein_runs):,} records'
                     })
                     update_progress(progress_file, progress)
+                    
+                    # Save results back to H5 file
+                    try:
+                        import sys
+                        sys.path.insert(0, str(script_dir))
+                        from save_results_to_h5 import save_results_to_h5
+                        save_results_to_h5(
+                            h5_file=h5_file,
+                            events_df=combined_events,
+                            trajectories_df=combined_trajectories,
+                            klein_runs_df=combined_klein_runs
+                        )
+                        progress['messages'].append({
+                            'time': datetime.now().isoformat(),
+                            'text': 'Saved results back to H5 file'
+                        })
+                        update_progress(progress_file, progress)
+                    except Exception as e:
+                        print(f"  WARNING: Failed to save results to H5: {e}")
+                        progress['messages'].append({
+                            'time': datetime.now().isoformat(),
+                            'text': f'WARNING: Failed to save to H5: {e}'
+                        })
+                        update_progress(progress_file, progress)
+                else:
+                    # Save without Klein runs
+                    try:
+                        import sys
+                        sys.path.insert(0, str(script_dir))
+                        from save_results_to_h5 import save_results_to_h5
+                        save_results_to_h5(
+                            h5_file=h5_file,
+                            events_df=combined_events,
+                            trajectories_df=combined_trajectories,
+                            klein_runs_df=None
+                        )
+                        progress['messages'].append({
+                            'time': datetime.now().isoformat(),
+                            'text': 'Saved results back to H5 file (no Klein runs)'
+                        })
+                        update_progress(progress_file, progress)
+                    except Exception as e:
+                        print(f"  WARNING: Failed to save results to H5: {e}")
             else:
                 raise ValueError("No event records generated from tracks")
         
