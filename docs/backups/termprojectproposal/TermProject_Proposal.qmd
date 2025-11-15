@@ -53,6 +53,7 @@ header-includes: |
   \usepackage{changepage}
   \usepackage{amsmath}
   \usepackage{bm}
+  \usepackage{multicol}
   \tikzstyle{process} = [regular polygon, regular polygon sides=6, minimum width=3.5cm, minimum height=2cm, text centered, text width=2.5cm, draw=black!80, fill=gray!20, line width=1.2pt, drop shadow]
   \tikzstyle{arrow} = [ultra thick,->,>=stealth, draw=black!70]
 execute:
@@ -415,27 +416,302 @@ Deliverable quality targets include three criteria. Report completeness requires
 
 This project applies \tech{simulation modeling methods} from \tech{ECS630} to \tech{biological behavioral data}, developing a \tech{stimulus-response model} that simulates larval trajectories under different experimental conditions. The \tech{event-hazard framework} models stochastic behavioral events, while the \tech{DOE methodology} explores stimulus parameter space systematically. Results use \tech{Arena-style statistics} including \tech{confidence intervals} and \tech{across-replications summaries}, which show how simulation principles extend from manufacturing systems to biological processes.
 
-# Appendix
+```{=latex}
+\setcounter{secnumdepth}{0}
+\section*{Appendix}
+\begin{multicols}{2}
 
-## Data Sources
+\subsection*{Equations}
 
-- **Primary H5 Files**: `/Users/gilraitses/mechanosensation/h5tests/`
-  - `GMR61_202509051201_tier1.h5` (16 MB): Complete experiment with tracks and LED data
-  - `GMR61_tier2_complete.h5` (83 MB): Full tier2 export with contours
-  - `GMR61_202509051201_tier3.h5` (701 KB): Tier3 export with FID data
-- **Backup CSV Data**: `/Users/gilraitses/mechanosensation/output/spatial_analysis/`
-- **Stimulus Data**: `/Users/gilraitses/mechanosensation/led_stimulus_data_*.csv` when needed
-- **Experimental Metadata**: Experiment IDs embedded in H5 metadata or trajectory CSVs
+\subsubsection*{Core Model Equations}
 
-## Model Implementation References
+\textbf{Equation \ref{eq:hazard}: Hazard Rate Model}
 
-- **Survival Analysis**: Collett (2015) *Modelling Survival Data in Medical Research*
-- **Point Process GLMs**: Berman & Turner (1992) "Approximating point process likelihoods with GLIM"
-- **Temporal Kernels**: Pillow et al. (2008) "Spatio-temporal correlations and visual signalling"
+The time-varying hazard rate for behavioral event type $E$ combines baseline log-hazard, stimulus history through temporal kernel convolution, and contextual features. This exponential link function ensures positive hazard rates while allowing linear combination of features in log-space.
 
-## Software Tools
+\end{multicols}
 
-- **Python**: `scikit-learn`, `statsmodels`, `numpy`, `pandas` for modeling
-- **R**: `ggplot2`, `knitr`, `kableExtra` for report generation
-- **MATLAB**: MAGAT API for data loading when needed
+\begin{equation}
+\label{eq:hazard}
+\lambda_E(t) = \exp\left\{ \beta_{0,E} + \phi_E^\top [s \star \kappa](t) + \mathbf{x}(t)^\top \mathbf{\beta}_E \right\}
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:kernel}: Temporal Kernel Basis Expansion}
+
+The temporal kernel uses raised cosine basis functions centered at knots $\tau_j$ spanning the analysis window. Each basis function has local support $[\tau_j-\Delta\tau, \tau_j+\Delta\tau]$ and captures stimulus-response dynamics at different time delays relative to stimulus onset.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:kernel}
+\kappa(\tau) = \sum_{j=1}^{J} w_j \cos^2\left(\frac{\pi(\tau - \tau_j)}{2\Delta\tau}\right) \mathbf{1}_{[\tau_j-\Delta\tau, \tau_j+\Delta\tau]}(\tau)
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:likelihood}: Event Likelihood}
+
+The log-likelihood sums log-hazard contributions from observed events across all larvae and subtracts the integrated hazard over each larva's observation period. This formulation follows standard point process likelihood theory for inhomogeneous Poisson processes.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:likelihood}
+\ell(\mathbf{\beta}) = \sum_i \sum_k \log \lambda_E(t_{i,k}) - \int_0^{T_i} \lambda_E(t) dt
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:estimation}: Penalized Maximum Likelihood Estimation}
+
+Parameter estimation maximizes the log-likelihood subject to $L_2$ regularization penalty. The regularization parameter $\lambda_{\text{reg}}$ controls the trade-off between model fit and complexity, preventing overfitting to training data.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:estimation}
+\hat{\mathbf{\beta}} = \arg\max \left\{ \ell(\mathbf{\beta}) - \lambda_{\text{reg}} \|\mathbf{\beta}\|_2^2 \right\}
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:speed_dynamics}: Position Integration}
+
+During run phases, position updates using forward Euler integration with current speed $v(t)$ and heading angle $\theta(t)$. The integration step size $\Delta t$ balances numerical accuracy with computational efficiency.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:speed_dynamics}
+\mathbf{x}(t+\Delta t) = \mathbf{x}(t) + v(t) \Delta t \cdot [\cos(\theta(t)), \sin(\theta(t))]^\top
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:run_length}: Replication Count Determination}
+
+The required number of replications $n$ depends on the desired confidence interval half-width $E$, estimated variance $\hat{\sigma}^2$, and significance level $\alpha$. This formula ensures statistical precision targets are met while minimizing computational cost.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:run_length}
+n \geq \left(\frac{z_{\alpha/2} \hat{\sigma}}{E}\right)^2
+\end{equation}
+
+\begin{multicols}{2}
+
+\subsubsection*{Statistical Metrics}
+
+\textbf{Equation \ref{eq:mean}: Sample Mean}
+
+The sample mean provides an unbiased estimate of the population mean for each KPI across replications within a condition. This statistic serves as the primary point estimate for comparison across experimental conditions.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:mean}
+\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:std}: Sample Standard Deviation}
+
+The sample standard deviation quantifies variability across replications using Bessel's correction ($n-1$ in the denominator) to provide an unbiased estimate of population variance. This measure informs confidence interval width and statistical power.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:std}
+s = \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2}
+\end{equation}
+
+\begin{multicols}{2}
+
+\textbf{Equation \ref{eq:ci}: 95\% Confidence Interval}
+
+The confidence interval uses the $t$-distribution with $n-1$ degrees of freedom to account for uncertainty in variance estimation with finite samples. The interval provides a range of plausible values for the population mean at 95\% confidence level.
+
+\end{multicols}
+
+\begin{equation}
+\label{eq:ci}
+\bar{X} \pm t_{0.025,n-1} \frac{s}{\sqrt{n}}
+\end{equation}
+
+\subsection*{Code Blocks}
+
+\subsubsection*{Feature Extraction}
+
+\textbf{Code \ref{code-h5-extract}: H5 Data Extraction Command}
+
+\end{multicols}
+
+The extraction script processes raw H5 files from MAGAT experiments, extracting trajectory positions, LED stimulus data, and metadata. The script outputs event records, full trajectory data aligned with stimulus timing, and summary statistics in CSV and JSON formats for downstream analysis.
+
+```{bash}
+#| label: code-h5-extract
+python3 scripts/engineer_dataset_from_h5.py \
+    --h5-dir /Users/gilraitses/mechanosensation/h5tests \
+    --output-dir data/engineered \
+    --experiment-id GMR61_202509051201
+```
+
+```{=latex}
+\begin{multicols}{2}
+```
+
+\textbf{Code \ref{code-feature-engineering}: Feature Engineering Pipeline}
+
+\end{multicols}
+
+The feature engineering pipeline processes each larval trajectory by extracting position coordinates, computing derived features including speed and heading, detecting behavioral events such as turns, and aligning trajectory data with stimulus timing. The pipeline creates time bins and generates stimulus kernel features for model fitting.
+
+```{python}
+#| label: code-feature-engineering
+# For each larva trajectory from H5:
+for each track in h5_file['tracks']:
+    # Extract positions (x, y) and compute derived features
+    positions = track['positions']  # N×2 array
+    speed = compute_speed(positions, frame_rate=20)
+    heading = compute_heading(positions)
+    heading_change = detect_turns(heading, threshold=30°)
+    
+    # Time-align with stimulus data
+    stimulus_df = extract_stimulus_timing(h5_file['led_data'])
+    aligned_df = align_trajectory_with_stimulus(trajectory_df, stimulus_df)
+    
+    # Create time bins (50ms)
+    bin_width = 0.05
+    binned = aggregate_to_bins(aligned_df, bin_width)
+    
+    # Create stimulus kernel features (in fit_hazard_model.py)
+    for each bin:
+        stimulus_history = extract_stimulus_window(time_window=[-2, 20])
+        kernel_features = apply_temporal_kernel(stimulus_history, basis_functions)
+        feature_vector = [kernel_features, speed, heading]
+        event_occurred = (binned['is_turn'] == True)
+```
+
+```{=latex}
+\begin{multicols}{2}
+```
+
+\subsubsection*{Simulation Engine}
+
+\textbf{Code \ref{code-simulator}: Trajectory Simulator Class}
+
+\end{multicols}
+
+The simulator class implements discrete-event simulation of larval trajectories using fitted hazard models. The simulation initializes state variables, samples event times from hazard rates using a thinning algorithm, executes behavioral events, and integrates position using forward Euler method until reaching maximum simulation time.
+
+```{python}
+#| label: code-simulator
+class LarvalTrajectorySimulator:
+    def __init__(self, hazard_model, speed_distribution, arena_bounds):
+        self.hazard_model = hazard_model
+        self.speed_dist = speed_distribution
+        self.arena = arena_bounds
+    
+    def simulate(self, stimulus_schedule, max_time, random_seed):
+        # Initialize state
+        position = sample_starting_position()
+        orientation = sample_starting_orientation()
+        speed = self.speed_dist.sample()
+        
+        events = []
+        t = 0
+        
+        while t < max_time:
+            # Compute current hazard
+            lambda_t = self.hazard_model.predict(
+                stimulus=stimulus_schedule(t),
+                speed=speed,
+                orientation=orientation
+            )
+            
+            # Sample next event time (thinning algorithm)
+            next_event_time = sample_from_hazard(lambda_t, current_time=t)
+            
+            # Execute event
+            if next_event_time < max_time:
+                event_type = sample_event_type(lambda_t)  # turn, stop, reverse
+                events.append((next_event_time, event_type))
+                
+                # Update state based on event
+                if event_type == 'turn':
+                    orientation = sample_new_orientation(orientation)
+                elif event_type == 'stop':
+                    speed = 0
+                elif event_type == 'reverse':
+                    orientation = flip_orientation(orientation)
+            
+            # Update position
+            dt = min(next_event_time - t, 0.1)  # 100ms integration step
+            position += speed * dt * [cos(orientation), sin(orientation)]
+            t = next_event_time
+        
+        return Trajectory(position_history, events)
+```
+
+```{=latex}
+\begin{multicols}{2}
+```
+
+\subsubsection*{DOE Execution}
+
+\textbf{Code \ref{code-doe-execution}: Design of Experiments Execution Loop}
+
+\end{multicols}
+
+The DOE execution script iterates through all 45 factorial conditions, running 30 replications per condition. For each replication, the script creates a stimulus schedule from condition parameters, simulates a trajectory, computes KPIs, and aggregates results into Arena-style CSV format with confidence intervals.
+
+```{python}
+#| label: code-doe-execution
+results = []
+for condition in doe_table:
+    for replication in range(30):
+        # Set stimulus schedule from condition
+        stimulus = create_stimulus_schedule(
+            intensity=condition.intensity,
+            pulse_duration=condition.pulse_duration,
+            inter_pulse_interval=condition.inter_pulse_interval
+        )
+        
+        # Simulate trajectory
+        traj = simulator.simulate(stimulus, max_time=300, random_seed=replication)
+        
+        # Compute KPIs
+        kpis = compute_kpis(traj)
+        results.append({
+            'condition': condition.id,
+            'replication': replication,
+            **kpis
+        })
+
+# Export to Arena-style CSV
+export_to_arena_format(results, 'AcrossReplicationsSummary.csv')
+```
+
+```{=latex}
+\begin{multicols}{2}
+```
+
+\subsection*{Data Sources}
+
+The data used in this project comes from mechanosensation group experiments conducted as part of ongoing work in Mirna's lab. Primary H5 files contain complete experiments with tracks and LED data (tier1, 16 MB), full tier2 exports with contours (83 MB), and tier3 exports with FID data (701 KB). Backup CSV data provides trajectory and spatial analysis outputs. Stimulus data contains frame-level LED values. Experimental metadata consists of experiment IDs embedded in H5 metadata or trajectory CSVs.
+
+\subsection*{Model Implementation References}
+
+Model implementation draws on survival analysis methods from Collett (2015) \textit{Modelling Survival Data in Medical Research}, point process GLM approaches from Berman \& Turner (1992) "Approximating point process likelihoods with GLIM", and temporal kernel methods from Pillow et al. (2008) "Spatio-temporal correlations and visual signalling".
+
+\subsection*{Software Tools}
+
+Software tools include Python with \texttt{scikit-learn}, \texttt{statsmodels}, \texttt{numpy}, and \texttt{pandas} for modeling, R for statistical analysis, and MATLAB using the MAGAT API for data loading when needed.
+
+\end{multicols}
+```
 
