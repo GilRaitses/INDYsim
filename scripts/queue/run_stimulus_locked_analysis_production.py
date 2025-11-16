@@ -325,10 +325,35 @@ def main():
                 # Note: The monitor will parse head swings from the MAGAT segmentation line
                 # in the console log, so we set this to 0 here and let the monitor extract it
                 
-                # Calculate track timing information
-                track_start_time = aligned_df['time'].min() if len(aligned_df) > 0 else 0.0
-                track_end_time = aligned_df['time'].max() if len(aligned_df) > 0 else 0.0
-                track_duration_sec = track_end_time - track_start_time if len(aligned_df) > 0 else 0.0
+                # Calculate track timing information using ETI at start/end frame indices
+                # Track metadata contains startFrame and endFrame that map to ETI indices
+                track_start_eti_index = None
+                track_end_eti_index = None
+                
+                if 'metadata_attrs' in track_data and 'startFrame' in track_data['metadata_attrs']:
+                    track_start_eti_index = int(track_data['metadata_attrs']['startFrame'])
+                    # endFrame might be in metadata, or calculate from startFrame + n_frames
+                    if 'endFrame' in track_data['metadata_attrs']:
+                        track_end_eti_index = int(track_data['metadata_attrs']['endFrame'])
+                    else:
+                        # Calculate end frame: startFrame + n_frames - 1
+                        track_end_eti_index = track_start_eti_index + len(traj_df) - 1
+                
+                # Get ETI values at start and end frame indices
+                if track_start_eti_index is not None and track_end_eti_index is not None:
+                    # Ensure indices are within ETI bounds
+                    eti_length = len(h5_data['eti'])
+                    track_start_eti_index = max(0, min(track_start_eti_index, eti_length - 1))
+                    track_end_eti_index = max(0, min(track_end_eti_index, eti_length - 1))
+                    
+                    track_start_eti_time = h5_data['eti'][track_start_eti_index]
+                    track_end_eti_time = h5_data['eti'][track_end_eti_index]
+                else:
+                    # Fallback: use time column min/max (less accurate but better than nothing)
+                    track_start_eti_time = aligned_df['time'].min() if len(aligned_df) > 0 else 0.0
+                    track_end_eti_time = aligned_df['time'].max() if len(aligned_df) > 0 else 0.0
+                
+                track_duration_sec = track_end_eti_time - track_start_eti_time if len(aligned_df) > 0 else 0.0
                 
                 # Format times as mm:ss
                 def format_mmss(seconds):
@@ -340,8 +365,8 @@ def main():
                     return f"{mins:02d}:{secs:02d}"
                 
                 duration_mmss = format_mmss(track_duration_sec)
-                start_mmss = format_mmss(track_start_time)
-                end_mmss = format_mmss(track_end_time)
+                start_mmss = format_mmss(track_start_eti_time)  # ETI value at start frame
+                end_mmss = format_mmss(track_end_eti_time)  # ETI value at end frame
                 
                 # Extract cycles and calculate per-cycle statistics
                 n_cycles = 0
