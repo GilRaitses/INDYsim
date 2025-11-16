@@ -15,26 +15,80 @@ import numpy as np
 import pandas as pd
 
 def launch_progress_monitor(progress_file: Path, h5_file: Path):
-    """Launch a new PowerShell window with progress monitoring."""
+    """Launch a new terminal window with Cinnamoroll progress monitoring (Mac/Linux compatible)."""
     script_dir = Path(__file__).parent
-    # monitor_analysis_progress.py is in scripts/archive/
-    monitor_script = script_dir.parent / "archive" / "monitor_analysis_progress.py"
-    
-    # Create PowerShell command to launch new window
-    # Change to project root (scripts/queue/ -> scripts/ -> project root)
     project_root = script_dir.parent.parent
-    ps_command = f'''
+    
+    # Find the most recent cinnamoroll monitor script
+    # Check scripts/2025-11-15/ first, then fall back to scripts/archive/
+    monitor_script = None
+    monitor_launcher = None
+    
+    # Try to find today's monitor script
+    today_dir = project_root / "scripts" / datetime.now().strftime("%Y-%m-%d")
+    if (today_dir / "queue_monitor.py").exists():
+        monitor_script = today_dir / "queue_monitor.py"
+        monitor_launcher = today_dir / "open_queue_monitor.sh"
+    elif (today_dir / "cinnamoroll_monitor.py").exists():
+        # Fallback to old monitor (deprecated - use queue_monitor instead)
+        monitor_script = today_dir / "cinnamoroll_monitor.py"
+        monitor_launcher = None  # Old launcher removed
+    else:
+        # Fall back to archive
+        archive_script = script_dir.parent / "archive" / "monitor_analysis_progress.py"
+        if archive_script.exists():
+            monitor_script = archive_script
+    
+    if monitor_launcher and monitor_launcher.exists():
+        # Use the launcher script (Mac/Linux)
+        import os
+        if os.name == 'posix':  # Unix-like (Mac/Linux)
+            subprocess.Popen(
+                ['bash', str(monitor_launcher), str(progress_file)],
+                cwd=str(project_root)
+            )
+            time.sleep(1)
+            return
+    
+    # Fallback: Launch Python script directly
+    if monitor_script and monitor_script.exists():
+        import os
+        import platform
+        
+        if platform.system() == 'Darwin':  # macOS
+            # Use osascript to open Terminal
+            osascript_cmd = f'''
+tell application "Terminal"
+    activate
+    do script "cd '{project_root}' && python3 '{monitor_script}' --progress-file '{progress_file}'"
+end tell
+'''
+            subprocess.Popen(['osascript', '-e', osascript_cmd])
+        elif platform.system() == 'Linux':
+            # Try gnome-terminal or xterm
+            if subprocess.run(['which', 'gnome-terminal'], capture_output=True).returncode == 0:
+                subprocess.Popen([
+                    'gnome-terminal', '--', 'bash', '-c',
+                    f"cd '{project_root}' && python3 '{monitor_script}' --progress-file '{progress_file}'; exec bash"
+                ])
+            elif subprocess.run(['which', 'xterm'], capture_output=True).returncode == 0:
+                subprocess.Popen([
+                    'xterm', '-e',
+                    f"cd '{project_root}' && python3 '{monitor_script}' --progress-file '{progress_file}'"
+                ])
+        elif platform.system() == 'Windows':
+            # Windows fallback - PowerShell
+            ps_command = f'''
 $host.ui.RawUI.WindowTitle = "Stimulus-Locked Analysis Progress"
 cd "{project_root}"
-python "{monitor_script}" --progress-file "{progress_file}" --h5-file "{h5_file.name}"
+python "{monitor_script}" --progress-file "{progress_file}"
 '''
-    
-    # Launch PowerShell in new window
-    subprocess.Popen(
-        ['powershell', '-NoExit', '-Command', ps_command],
-        creationflags=subprocess.CREATE_NEW_CONSOLE
-    )
-    time.sleep(1)  # Give window time to open
+            subprocess.Popen(
+                ['powershell', '-NoExit', '-Command', ps_command],
+                creationflags=subprocess.CREATE_NEW_CONSOLE if hasattr(subprocess, 'CREATE_NEW_CONSOLE') else 0
+            )
+        
+        time.sleep(1)  # Give window time to open
 
 def update_progress(progress_file: Path, status: dict):
     """Update progress file with current status."""
@@ -83,10 +137,12 @@ def main():
     }
     update_progress(progress_file, progress)
     
-    # Launch progress monitor window
-    print("Launching progress monitor window...")
-    launch_progress_monitor(progress_file, h5_file)
-    time.sleep(2)  # Give monitor time to initialize
+    # Launch progress monitor window (unless disabled for queue mode)
+    import os
+    if not os.environ.get('DISABLE_AUTO_MONITOR'):
+        print("Launching progress monitor window...")
+        launch_progress_monitor(progress_file, h5_file)
+        time.sleep(2)  # Give monitor time to initialize
     
     try:
         # Step 1: Generate events CSV from H5 file
@@ -175,6 +231,11 @@ def main():
                     raise ValueError(f"CRITICAL ERROR: ETI not available in h5_data for track {track_key}. "
                                     "ETI must be loaded from H5 root level. "
                                     "See docs/ETI_TIME_CALCULATION_POLICY.md")
+                
+                # Print track number BEFORE feature extraction so MAGAT segmentation can find it
+                print(f"Processing Track {idx}/{total}: {track_key}")
+                sys.stdout.flush()
+                
                 traj_df = eng_module.extract_trajectory_features(track_data, frame_rate=frame_rate, eti=h5_data['eti'])
                 if len(traj_df) == 0:
                     progress['messages'].append({
@@ -185,6 +246,8 @@ def main():
                     continue
                 
                 # Update after feature extraction
+                print(f"Track {idx}/{total}: Extracted {len(traj_df)} frames from {track_key}")
+                sys.stdout.flush()
                 progress['messages'].append({
                     'time': datetime.now().isoformat(),
                     'text': f'Track {idx}/{total}: Extracted {len(traj_df)} frames'
@@ -206,6 +269,8 @@ def main():
                     aligned_df['time_since_stimulus'] = float('nan')
                 
                 # Update before event creation
+                print(f"Track {idx}/{total}: Aligned {len(aligned_df)} frames with stimulus")
+                sys.stdout.flush()
                 progress['messages'].append({
                     'time': datetime.now().isoformat(),
                     'text': f'Track {idx}/{total}: Creating event records'
@@ -213,6 +278,8 @@ def main():
                 update_progress(progress_file, progress)
                 
                 event_records = eng_module.create_event_records(aligned_df, track_id, exp_id)
+                print(f"Track {idx}/{total}: Created {len(event_records)} event records")
+                sys.stdout.flush()
                 all_event_records.append(event_records)
                 all_trajectories.append(aligned_df)
                 
@@ -224,6 +291,33 @@ def main():
                 # Fix: Use start events for counting
                 n_turns = event_records['is_turn_start'].sum() if 'is_turn_start' in event_records.columns else (event_records['is_turn'].sum() if 'is_turn' in event_records.columns else 0)
                 n_reorientations = event_records['is_reorientation_start'].sum() if 'is_reorientation_start' in event_records.columns else (event_records['is_reorientation'].sum() if 'is_reorientation' in event_records.columns else 0)
+                
+                # Calculate pause statistics
+                n_pauses = event_records['is_pause_start'].sum() if 'is_pause_start' in event_records.columns else (event_records['is_pause'].sum() if 'is_pause' in event_records.columns else 0)
+                pause_durations = event_records[event_records['pause_duration'] > 0]['pause_duration'].values
+                mean_pause_duration = float(np.mean(pause_durations)) if len(pause_durations) > 0 else 0.0
+                
+                # Calculate turn rate (reorientations per minute)
+                track_duration_min = (aligned_df['time'].max() - aligned_df['time'].min()) / 60.0 if len(aligned_df) > 0 else 0.0
+                mean_turn_rate = (n_reorientations / track_duration_min) if track_duration_min > 0 else 0.0
+                
+                # Count head swings from MAGAT segmentation
+                # The MAGAT segmentation happens in extract_trajectory_features and prints:
+                # "MAGAT segmentation: X runs, Y head swings, Z reorientations"
+                # We need to parse this from the console output or access it directly
+                # For now, we'll parse from the console log in the monitor
+                # But we can also try to get it from the print that happened earlier
+                n_headswings = 0
+                # Note: The monitor will parse head swings from the MAGAT segmentation line
+                # in the console log, so we set this to 0 here and let the monitor extract it
+                
+                # Print detailed track processing info with all stats
+                print(f"  Step 1: Feature extraction - {len(traj_df)} frames extracted")
+                print(f"  Step 2: Stimulus alignment - {len(aligned_df)} aligned frames")
+                print(f"  Step 3: Event detection - {len(event_records)} event records created")
+                print(f"  Step 4: Statistics - {n_turns} turns, {n_reorientations} reorientations")
+                print(f"TRACK_STATS: Track {idx} | Frames: {len(traj_df)} | Reorientations: {n_reorientations} | Turns: {n_turns} | TurnRate: {mean_turn_rate:.2f} | Pauses: {n_pauses} | MeanPauseDur: {mean_pause_duration:.3f} | HeadSwings: {n_headswings}")
+                sys.stdout.flush()
                 
                 # Extract cycles and calculate per-cycle statistics
                 try:
@@ -252,6 +346,12 @@ def main():
                         # Calculate per-cycle statistics
                         BIN_SIZE = 0.5  # 0.5 second bins
                         baseline_period = 10.0
+                        
+                        # For biologically meaningful per-minute rate calculation:
+                        # Use a fixed time window around stimulus onset (e.g., 30s before and 30s after)
+                        RATE_WINDOW_BEFORE = 30.0  # seconds before stimulus
+                        RATE_WINDOW_AFTER = 30.0   # seconds after stimulus
+                        RATE_WINDOW_TOTAL = RATE_WINDOW_BEFORE + RATE_WINDOW_AFTER  # 60 seconds total
                         
                         # Get reorientation start times from aligned trajectory
                         # Check if create_event_records already added is_reorientation_start
@@ -293,6 +393,7 @@ def main():
                         
                         total_reos = 0
                         total_turns = 0
+                        rate_window_reos = []  # Store reorientation counts for rate window
                         
                         for cycle in cycles:
                             cycle_start = cycle['cycle_start_time']
@@ -300,7 +401,25 @@ def main():
                             onset_time = cycle['onset_time']
                             pulse_dur = cycle['pulse_duration']
                             
-                            # Count reorientations in this cycle
+                            # Define rate calculation window: 30s before to 30s after stimulus onset
+                            rate_window_start = onset_time - RATE_WINDOW_BEFORE
+                            rate_window_end = onset_time + RATE_WINDOW_AFTER
+                            
+                            # Count reorientations in rate window (if window overlaps with track data)
+                            window_reos = reo_starts[
+                                (reo_starts['time'] >= rate_window_start) & 
+                                (reo_starts['time'] < rate_window_end)
+                            ] if len(reo_starts) > 0 else pd.DataFrame()
+                            n_window_reos = len(window_reos)
+                            
+                            # Calculate per-minute rate using fixed window (biologically meaningful)
+                            # Rate = (total reorientations in window) / (window duration in minutes)
+                            per_minute_rate = (n_window_reos / (RATE_WINDOW_TOTAL / 60.0)) if RATE_WINDOW_TOTAL > 0 else 0.0
+                            
+                            # Store counts for this cycle's rate window
+                            rate_window_reos.append(n_window_reos)
+                            
+                            # Count reorientations in this cycle (for cycle-level stats)
                             cycle_reos = reo_starts[
                                 (reo_starts['time'] >= cycle_start) & 
                                 (reo_starts['time'] <= cycle_end)
@@ -315,11 +434,17 @@ def main():
                             n_cycle_turns = len(cycle_turns)
                             
                             # Calculate turn rate (reorientations per minute) for entire cycle
+                            # This is biologically meaningful because it's over the full cycle duration
                             cycle_duration_min = (cycle_end - cycle_start) / 60.0
                             if cycle_duration_min > 0:
                                 turn_rate = (n_cycle_reos / cycle_duration_min) if n_cycle_reos > 0 else 0.0
                             else:
                                 turn_rate = 0.0
+                            
+                            # NOTE: Per-bin rates are NOT calculated here because:
+                            # - Single-cycle bin rates (e.g., 1 reo in 0.5s = 120 min⁻¹) are biologically meaningless
+                            # - Biologically meaningful rates require aggregation across cycles
+                            # - See create_eda_figures.py for proper per-bin rate calculation with cycle aggregation
                             
                             total_reos += n_cycle_reos
                             total_turns += n_cycle_turns
@@ -328,52 +453,119 @@ def main():
                             print(f"\nCycle {cycle['cycle_num']} (Pulse: {pulse_dur:.1f}s)")
                             print(f"{'='*80}")
                             print(f"Total Reorientations: {n_cycle_reos} | Total Turns: {n_cycle_turns} | Turn Rate: {turn_rate:.2f} min⁻¹")
+                            print(f"Rate Window ({-RATE_WINDOW_BEFORE:.0f}s to +{RATE_WINDOW_AFTER:.0f}s): {n_window_reos} reos | Rate: {per_minute_rate:.2f} min⁻¹")
                             print(f"{'-'*80}")
                             
-                            # Calculate per-bin statistics
+                            # Calculate per-bin statistics with 60s sliding window around each bin
+                            # For each 0.5s bin, calculate rate from a 60s window centered around that bin
+                            # This gives biologically meaningful rates at each time point
+                            # Handle edge cases where full 60s window isn't available
                             n_bins = int(np.ceil((cycle_end - cycle_start) / BIN_SIZE))
-                            bin_rates = []
+                            bin_rates = []  # Store rates calculated from 60s windows
+                            
+                            # Get track boundaries for edge case handling
+                            track_start_time = aligned_df['time'].min() if len(aligned_df) > 0 else cycle_start
+                            track_end_time = aligned_df['time'].max() if len(aligned_df) > 0 else cycle_end
                             
                             for bin_idx in range(n_bins):
                                 bin_start = cycle_start + (bin_idx * BIN_SIZE)
                                 bin_end = min(cycle_start + ((bin_idx + 1) * BIN_SIZE), cycle_end)
+                                bin_center = (bin_start + bin_end) / 2.0
                                 
-                                # Count reorientations in this bin
-                                bin_reos = reo_starts[
-                                    (reo_starts['time'] >= bin_start) & 
-                                    (reo_starts['time'] < bin_end)
-                                ] if len(reo_starts) > 0 else pd.DataFrame()
-                                n_bin_reos = len(bin_reos)
+                                # Define ideal 60s window centered around this bin (30s before and 30s after bin center)
+                                ideal_window_start = bin_center - RATE_WINDOW_BEFORE
+                                ideal_window_end = bin_center + RATE_WINDOW_AFTER
                                 
-                                # Count turns in this bin
-                                bin_turns = turn_starts[
-                                    (turn_starts['time'] >= bin_start) & 
-                                    (turn_starts['time'] < bin_end)
-                                ] if len(turn_starts) > 0 else pd.DataFrame()
-                                n_bin_turns = len(bin_turns)
+                                # Adjust window to available data (handle edge cases)
+                                actual_window_start = max(ideal_window_start, track_start_time)
+                                actual_window_end = min(ideal_window_end, track_end_time)
+                                actual_window_duration = actual_window_end - actual_window_start
                                 
-                                # Calculate turn rate for this bin (reorientations per minute)
-                                bin_duration_min = (bin_end - bin_start) / 60.0
-                                if bin_duration_min > 0:
-                                    bin_rate = (n_bin_reos / bin_duration_min) if n_bin_reos > 0 else 0.0
+                                # Only calculate rate if we have at least 10 seconds of data (minimum meaningful window)
+                                MIN_WINDOW_DURATION = 10.0  # seconds
+                                if actual_window_duration >= MIN_WINDOW_DURATION:
+                                    # Count reorientations in the available window around this bin
+                                    window_reos = reo_starts[
+                                        (reo_starts['time'] >= actual_window_start) & 
+                                        (reo_starts['time'] < actual_window_end)
+                                    ] if len(reo_starts) > 0 else pd.DataFrame()
+                                    n_window_reos = len(window_reos)
+                                    
+                                    # Count turns in the available window
+                                    window_turns = turn_starts[
+                                        (turn_starts['time'] >= actual_window_start) & 
+                                        (turn_starts['time'] < actual_window_end)
+                                    ] if len(turn_starts) > 0 else pd.DataFrame()
+                                    n_window_turns = len(window_turns)
+                                    
+                                    # Calculate rate from actual window duration (normalize to per-minute)
+                                    # Rate = (reorientations / window_duration_minutes)
+                                    window_duration_min = actual_window_duration / 60.0
+                                    bin_rate = (n_window_reos / window_duration_min) if window_duration_min > 0 else 0.0
+                                    
+                                    # Flag if window was truncated (for potential filtering)
+                                    window_truncated = (actual_window_start > ideal_window_start) or (actual_window_end < ideal_window_end)
+                                    
+                                    bin_rates.append({
+                                        'bin_center': bin_center,
+                                        'time_rel_onset': bin_center - onset_time,
+                                        'reos': n_window_reos,
+                                        'turns': n_window_turns,
+                                        'rate': bin_rate,
+                                        'window_duration': actual_window_duration,
+                                        'window_truncated': window_truncated
+                                    })
                                 else:
-                                    bin_rate = 0.0
+                                    # Not enough data for meaningful rate calculation
+                                    bin_rates.append({
+                                        'bin_center': bin_center,
+                                        'time_rel_onset': bin_center - onset_time,
+                                        'reos': 0,
+                                        'turns': 0,
+                                        'rate': np.nan,  # Mark as invalid
+                                        'window_duration': actual_window_duration,
+                                        'window_truncated': True
+                                    })
                                 
-                                bin_rates.append(bin_rate)
+                                # Don't print individual bins - too verbose
+                                # Only print cycle summary at the end
+                            
+                            # Print cumulative cycle summary after processing all bins
+                            print(f"Cumulative: Reorientations: {total_reos} | Turns: {total_turns}")
+                            
+                            # Show bin rate statistics (if bins were calculated)
+                            if len(bin_rates) > 0:
+                                # Only include valid rates (not NaN, from sufficient window)
+                                valid_bin_rates = [b['rate'] for b in bin_rates if not np.isnan(b['rate']) and b['rate'] >= 0]
+                                truncated_bins = sum(1 for b in bin_rates if b.get('window_truncated', False))
                                 
-                                # Time relative to onset (t=0 is onset)
-                                time_rel_onset = (bin_start + bin_end) / 2.0 - onset_time
-                                
-                                print(f"  Bin {bin_idx+1:2d} | t={time_rel_onset:6.1f}s | Reos: {n_bin_reos:2d} | Turns: {n_bin_turns:2d} | Rate: {bin_rate:6.2f} min⁻¹")
+                                if len(valid_bin_rates) > 0:
+                                    mean_bin_rate = np.mean(valid_bin_rates)
+                                    max_bin_rate = np.max(valid_bin_rates)
+                                    n_valid_bins = len(valid_bin_rates)
+                                    n_total_bins = len(bin_rates)
+                                    
+                                    print(f"Bin rates (sliding window): mean={mean_bin_rate:.2f} min⁻¹, max={max_bin_rate:.2f} min⁻¹")
+                                    if truncated_bins > 0:
+                                        print(f"  Note: {truncated_bins}/{n_total_bins} bins had truncated windows (edge cases)")
+                                    print(f"  Valid bins: {n_valid_bins}/{n_total_bins}")
                         
                         print(f"\n{'='*80}")
                         print(f"TRACK TOTALS: Reorientations: {total_reos} | Turns: {total_turns}")
                         
-                        # Overall turn rate
+                        # Overall turn rate (entire track)
                         track_duration_min = (aligned_df['time'].max() - aligned_df['time'].min()) / 60.0
                         overall_rate = (total_reos / track_duration_min) if track_duration_min > 0 else 0.0
-                        print(f"\nOverall turn rate: {overall_rate:.2f} reorientations/min")
+                        print(f"\nOverall turn rate (entire track): {overall_rate:.2f} reorientations/min")
                         print(f"Track duration: {track_duration_min:.1f} minutes")
+                        
+                        # Mean per-minute rate using fixed window (biologically meaningful)
+                        if len(rate_window_reos) > 0:
+                            total_window_reos = sum(rate_window_reos)
+                            # Average rate across all cycles using fixed window
+                            mean_per_minute_rate = np.mean([r / (RATE_WINDOW_TOTAL / 60.0) for r in rate_window_reos])
+                            print(f"\nMean per-minute rate ({-RATE_WINDOW_BEFORE:.0f}s to +{RATE_WINDOW_AFTER:.0f}s window): {mean_per_minute_rate:.2f} reorientations/min")
+                            print(f"  (Based on {len(rate_window_reos)} cycles, {total_window_reos} total reorientations in {RATE_WINDOW_TOTAL:.0f}s windows)")
                         
                     else:
                         print("  No cycles found in H5 file")
@@ -448,7 +640,6 @@ def main():
                     
                     # Save results back to H5 file
                     try:
-                        import sys
                         sys.path.insert(0, str(script_dir))
                         from save_results_to_h5 import save_results_to_h5
                         save_results_to_h5(
@@ -472,7 +663,6 @@ def main():
                 else:
                     # Save without Klein runs
                     try:
-                        import sys
                         sys.path.insert(0, str(script_dir))
                         from save_results_to_h5 import save_results_to_h5
                         save_results_to_h5(
