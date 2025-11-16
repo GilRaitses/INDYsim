@@ -188,7 +188,21 @@ def main():
             all_trajectories = []
             all_klein_run_tables = []
             
+            # Get track keys and sort by numeric value (track_1, track_2, ..., track_9, ..., track_64)
+            # This ensures consistent ordering regardless of how they were stored in H5
             track_keys = list(h5_data.get('tracks', {}).keys())
+            
+            def extract_track_number(track_key):
+                """Extract numeric part from track key (e.g., 'track_9' -> 9)."""
+                try:
+                    # Extract number after 'track_' prefix
+                    return int(track_key.split('_')[-1])
+                except (ValueError, IndexError):
+                    # Fallback: use a large number to put non-standard keys at the end
+                    return 999999
+            
+            # Sort track keys by their numeric value
+            track_keys = sorted(track_keys, key=extract_track_number)
             total = len(track_keys)
             
             for idx, track_key in enumerate(track_keys, 1):
@@ -201,10 +215,10 @@ def main():
                 if idx > 0:
                     eta = (elapsed / idx) * (total - idx)
                     progress['eta_seconds'] = eta
-                progress['stage'] = f'Processing track {idx}/{total}: {track_key}'
+                progress['stage'] = f'Processing {track_key} ({idx}/{total})'
                 progress['messages'].append({
                     'time': datetime.now().isoformat(),
-                    'text': f'Processing track {idx}/{total}: {track_key}'
+                    'text': f'Processing {track_key} ({idx}/{total})'
                 })
                 # Keep only last 20 messages
                 if len(progress['messages']) > 20:
@@ -233,7 +247,7 @@ def main():
                                     "See docs/ETI_TIME_CALCULATION_POLICY.md")
                 
                 # Print track number BEFORE feature extraction so MAGAT segmentation can find it
-                print(f"Processing Track {idx}/{total}: {track_key}")
+                print(f"Processing {track_key} ({idx}/{total})")
                 sys.stdout.flush()
                 
                 traj_df = eng_module.extract_trajectory_features(track_data, frame_rate=frame_rate, eti=h5_data['eti'])
@@ -311,15 +325,26 @@ def main():
                 # Note: The monitor will parse head swings from the MAGAT segmentation line
                 # in the console log, so we set this to 0 here and let the monitor extract it
                 
-                # Print detailed track processing info with all stats
-                print(f"  Step 1: Feature extraction - {len(traj_df)} frames extracted")
-                print(f"  Step 2: Stimulus alignment - {len(aligned_df)} aligned frames")
-                print(f"  Step 3: Event detection - {len(event_records)} event records created")
-                print(f"  Step 4: Statistics - {n_turns} turns, {n_reorientations} reorientations")
-                print(f"TRACK_STATS: Track {idx} | Frames: {len(traj_df)} | Reorientations: {n_reorientations} | Turns: {n_turns} | TurnRate: {mean_turn_rate:.2f} | Pauses: {n_pauses} | MeanPauseDur: {mean_pause_duration:.3f} | HeadSwings: {n_headswings}")
-                sys.stdout.flush()
+                # Calculate track timing information
+                track_start_time = aligned_df['time'].min() if len(aligned_df) > 0 else 0.0
+                track_end_time = aligned_df['time'].max() if len(aligned_df) > 0 else 0.0
+                track_duration_sec = track_end_time - track_start_time if len(aligned_df) > 0 else 0.0
+                
+                # Format times as mm:ss
+                def format_mmss(seconds):
+                    """Format seconds as mm:ss"""
+                    if seconds < 0 or not np.isfinite(seconds):
+                        return "00:00"
+                    mins = int(seconds // 60)
+                    secs = int(seconds % 60)
+                    return f"{mins:02d}:{secs:02d}"
+                
+                duration_mmss = format_mmss(track_duration_sec)
+                start_mmss = format_mmss(track_start_time)
+                end_mmss = format_mmss(track_end_time)
                 
                 # Extract cycles and calculate per-cycle statistics
+                n_cycles = 0
                 try:
                     # Import extract_cycles_from_h5 - handle both relative and absolute imports
                     script_dir = Path(__file__).parent
@@ -339,9 +364,24 @@ def main():
                             raise ImportError(f"Could not find create_eda_figures.py at {eda_figures_path}")
                     
                     cycles, _ = extract_cycles_from_h5(h5_file)
-                    
-                    if len(cycles) > 0:
-                        print(f"\nCycles found: {len(cycles)}")
+                    n_cycles = len(cycles)
+                except Exception as e:
+                    # If cycle extraction fails, continue with n_cycles = 0
+                    n_cycles = 0
+                    print(f"  Warning: Could not extract cycles: {e}")
+                
+                # Print detailed track processing info with all stats
+                print(f"  Step 1: Feature extraction - {len(traj_df)} frames extracted")
+                print(f"  Step 2: Stimulus alignment - {len(aligned_df)} aligned frames")
+                print(f"  Step 3: Event detection - {len(event_records)} event records created")
+                print(f"  Step 4: Statistics - {n_turns} turns, {n_reorientations} reorientations")
+                print(f"TRACK_STATS: Track {idx} | Duration: {duration_mmss} | Start: {start_mmss} | End: {end_mmss} | Cycles: {n_cycles} | Frames: {len(traj_df)} | Reorientations: {n_reorientations} | Turns: {n_turns} | TurnRate: {mean_turn_rate:.2f} | Pauses: {n_pauses} | MeanPauseDur: {mean_pause_duration:.3f} | HeadSwings: {n_headswings}")
+                sys.stdout.flush()
+                
+                # Calculate per-cycle statistics (if cycles were found)
+                if n_cycles > 0:
+                    try:
+                        print(f"\nCycles found: {n_cycles}")
                         
                         # Calculate per-cycle statistics
                         BIN_SIZE = 0.5  # 0.5 second bins
@@ -566,19 +606,18 @@ def main():
                             mean_per_minute_rate = np.mean([r / (RATE_WINDOW_TOTAL / 60.0) for r in rate_window_reos])
                             print(f"\nMean per-minute rate ({-RATE_WINDOW_BEFORE:.0f}s to +{RATE_WINDOW_AFTER:.0f}s window): {mean_per_minute_rate:.2f} reorientations/min")
                             print(f"  (Based on {len(rate_window_reos)} cycles, {total_window_reos} total reorientations in {RATE_WINDOW_TOTAL:.0f}s windows)")
-                        
-                    else:
-                        print("  No cycles found in H5 file")
+                    except Exception as e:
+                        print(f"\n  ERROR calculating per-cycle stats: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        print(f"  Falling back to simple summary:")
                         print(f"  Total reorientations: {n_reorientations}")
                         print(f"  Total turns: {n_turns}")
-                        
-                except Exception as e:
-                    print(f"\n  ERROR calculating per-cycle stats: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    print(f"  Falling back to simple summary:")
+                else:
+                    print("  No cycles found in H5 file")
                     print(f"  Total reorientations: {n_reorientations}")
                     print(f"  Total turns: {n_turns}")
+                        
                     print(f"  Note: Turns > Reorientations is normal - turns use simple detection (>30°),")
                     print(f"        reorientations use MAGAT behavioral segmentation (more strict)")
                 

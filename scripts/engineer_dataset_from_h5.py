@@ -1278,7 +1278,19 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
     all_klein_run_tables = []  # Collect Klein run tables for all tracks
     
     if 'tracks' in h5_data:
-        for track_key, track_data in h5_data['tracks'].items():
+        # Sort track keys by numeric value (track_1, track_2, ..., track_9, ..., track_64)
+        # This ensures consistent ordering regardless of how they were stored in H5
+        def extract_track_number(track_key):
+            """Extract numeric part from track key (e.g., 'track_9' -> 9)."""
+            try:
+                return int(track_key.split('_')[-1])
+            except (ValueError, IndexError):
+                return 999999  # Put non-standard keys at the end
+        
+        track_keys = sorted(h5_data['tracks'].keys(), key=extract_track_number)
+        
+        for track_key in track_keys:
+            track_data = h5_data['tracks'][track_key]
             # Extract track ID from track_key (e.g., "track_1" -> 1)
             try:
                 track_id = int(track_key.split('_')[-1])

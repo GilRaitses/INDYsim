@@ -234,8 +234,9 @@ def create_h5_from_eset(eset_dir: Path, output_dir: Path, eset_name: str) -> Opt
             
             # Process tracks from .mat files
             tracks_group = h5f.create_group('tracks')
-            track_count = 0
             
+            # First pass: collect all track data with their original indices
+            track_data_list = []
             for mat_file in mat_files:
                 print(f"    Processing {mat_file.name}...")
                 mat_data = read_mat_file(mat_file)
@@ -243,33 +244,37 @@ def create_h5_from_eset(eset_dir: Path, output_dir: Path, eset_name: str) -> Opt
                 if not mat_data:
                     continue
                 
-                # Extract track data
+                # Extract track data - preserve original track count for key
+                track_count = len(track_data_list)
                 track_data = extract_track_data_from_mat(mat_data, track_count)
                 
                 if track_data:
-                    track_key = f'track_{track_count}'
-                    track_group = tracks_group.create_group(track_key)
-                    
-                    # Create points group
-                    points_group = track_group.create_group('points')
-                    
-                    # Add position data
-                    for pos_name in ['head', 'mid', 'tail']:
-                        if pos_name in track_data:
-                            pos_data = np.array(track_data[pos_name])
-                            if pos_data.ndim == 2 and pos_data.shape[1] == 2:
-                                points_group.create_dataset(pos_name, data=pos_data.astype(np.float32))
-                    
-                    # Create derived_quantities group
-                    if any(k in track_data for k in ['speed', 'theta', 'curv']):
-                        deriv_group = track_group.create_group('derived_quantities')
-                        for deriv_name in ['speed', 'theta', 'curv']:
-                            if deriv_name in track_data:
-                                deriv_data = np.array(track_data[deriv_name])
-                                if deriv_data.ndim == 1:
-                                    deriv_group.create_dataset(deriv_name, data=deriv_data.astype(np.float32))
-                    
-                    track_count += 1
+                    track_data_list.append((track_count, track_data))
+            
+            # Second pass: create tracks in sorted order by track number
+            # This ensures tracks are stored in H5 file in numeric order (track_0, track_1, ..., track_N)
+            for track_count, track_data in sorted(track_data_list, key=lambda x: x[0]):
+                track_key = f'track_{track_count}'
+                track_group = tracks_group.create_group(track_key)
+                
+                # Create points group
+                points_group = track_group.create_group('points')
+                
+                # Add position data
+                for pos_name in ['head', 'mid', 'tail']:
+                    if pos_name in track_data:
+                        pos_data = np.array(track_data[pos_name])
+                        if pos_data.ndim == 2 and pos_data.shape[1] == 2:
+                            points_group.create_dataset(pos_name, data=pos_data.astype(np.float32))
+                
+                # Create derived_quantities group
+                if any(k in track_data for k in ['speed', 'theta', 'curv']):
+                    deriv_group = track_group.create_group('derived_quantities')
+                    for deriv_name in ['speed', 'theta', 'curv']:
+                        if deriv_name in track_data:
+                            deriv_data = np.array(track_data[deriv_name])
+                            if deriv_data.ndim == 1:
+                                deriv_group.create_dataset(deriv_name, data=deriv_data.astype(np.float32))
             
             # Add metadata
             metadata_group = h5f.create_group('metadata')

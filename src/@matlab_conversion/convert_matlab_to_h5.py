@@ -140,7 +140,10 @@ def export_tier2_magat(bridge, output_file):
         print(f"Exporting {num_tracks} tracks with complete data...")
         tracks_grp = f.create_group('tracks')
         
-        for track_id in range(1, num_tracks + 1):
+        # Process tracks in sorted order (1, 2, 3, ..., num_tracks)
+        # This ensures tracks are stored in H5 file in numeric order
+        # H5 files preserve insertion order, so this guarantees track_1, track_2, ..., track_N
+        for track_id in sorted(range(1, num_tracks + 1)):
             print(f"  Track {track_id}/{num_tracks}...", end=' ', flush=True)
             
             bridge.eng.workspace['track_id'] = float(track_id)
