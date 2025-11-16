@@ -80,7 +80,7 @@ def get_current_progress():
 def monitor_queue(refresh_interval: float = 0.1):
     """Monitor the analysis queue."""
     terminal_width = 120  # Wider for console output
-    terminal_height = 40  # Taller to fit console feed
+    terminal_height = 35  # Reduced height for more compact display
     
     # Load clouds
     assets_dir = PROJECT_ROOT / "src" / "indysim" / "monitors" / "assets"
@@ -123,32 +123,38 @@ def monitor_queue(refresh_interval: float = 0.1):
             # Clear screen
             print(Colors.CLEAR, end='')
             
-            # Header
+            # Header with preamble
             print(Colors.BOLD + Colors.BLUE + "=" * terminal_width + Colors.RESET)
             print(Colors.BOLD + Colors.CREAM + "  ANALYSIS QUEUE MONITOR" + Colors.RESET)
             print(Colors.BOLD + Colors.BLUE + "=" * terminal_width + Colors.RESET)
-            print()
+            print(Colors.CREAM + "Press Ctrl+C to stop" + Colors.RESET)
+            print(Colors.BOLD + Colors.BLUE + "=" * terminal_width + Colors.RESET)
             
-            # Time
+            # Time and Queue status (compact)
             time_str = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M:%S %Z")
-            print(Colors.CREAM + f"Time: {time_str}" + Colors.RESET)
-            print()
-            
-            # Queue status
-            print(Colors.MINT + f"Overall Progress: {overall_progress:.1f}%" + Colors.RESET)
-            print(Colors.PINK + f"Processed: {processed}/{total} files" + Colors.RESET)
-            print()
+            print(Colors.CREAM + f"Time: {time_str}" + Colors.RESET + " | " + 
+                  Colors.MINT + f"Overall Progress: {overall_progress:.1f}%" + Colors.RESET + " | " +
+                  Colors.PINK + f"Processed: {processed}/{total} files" + Colors.RESET)
             
             # Current analysis with track matrix
             current = status.get("current")
             if current:
-                print(Colors.BOLD + Colors.BLUE + "Current Experiment:" + Colors.RESET)
-                print(Colors.CREAM + f"  {Path(current['h5_file']).name}" + Colors.RESET)
-                print(Colors.CREAM + f"  Progress: {current_progress:.1f}%" + Colors.RESET)
-                
-                # Get detailed track info
                 filename = current["filename"]
                 progress_file = PROJECT_ROOT / "data" / "engineered" / f"{filename}_progress.json"
+                stage = "Unknown"
+                if progress_file.exists():
+                    try:
+                        with open(progress_file) as f:
+                            prog_data = json.load(f)
+                        stage = prog_data.get('stage', 'Processing...')
+                    except:
+                        pass
+                
+                print(Colors.BOLD + Colors.BLUE + "Current Experiment:" + Colors.RESET + " " +
+                      Colors.CREAM + f"{Path(current['h5_file']).name}" + Colors.RESET)
+                print(Colors.CREAM + f"  Progress: {current_progress:.1f}% | Stage: {stage}" + Colors.RESET)
+                
+                # Get detailed track info
                 if progress_file.exists():
                     try:
                         with open(progress_file) as f:
@@ -156,10 +162,6 @@ def monitor_queue(refresh_interval: float = 0.1):
                         
                         current_track = prog_data.get('current_track', 0)
                         total_tracks = prog_data.get('total_tracks', 0)
-                        stage = prog_data.get('stage', 'Processing...')
-                        
-                        print(Colors.CREAM + f"  Stage: {stage}" + Colors.RESET)
-                        print()
                         
                         # Track statistics matrix - sliding window of 12 tracks
                         if total_tracks > 0:
@@ -196,6 +198,10 @@ def monitor_queue(refresh_interval: float = 0.1):
                                                 if track_num not in track_stats:
                                                     track_stats[track_num] = {
                                                         'status': '[PENDING]',
+                                                        'duration_mmss': '00:00',
+                                                        'start_mmss': '00:00',
+                                                        'end_mmss': '00:00',
+                                                        'cycles': 0,
                                                         'frames': 0,
                                                         'reorientations': 0,
                                                         'turns': 0,
@@ -206,6 +212,23 @@ def monitor_queue(refresh_interval: float = 0.1):
                                                     }
                                                 
                                                 # Extract all stats from TRACK_STATS line
+                                                # Parse duration, start, end, cycles first (new fields)
+                                                duration_match = re.search(r'Duration:\s+([\d:]+)', line)
+                                                if duration_match:
+                                                    track_stats[track_num]['duration_mmss'] = duration_match.group(1)
+                                                
+                                                start_match = re.search(r'Start:\s+([\d:]+)', line)
+                                                if start_match:
+                                                    track_stats[track_num]['start_mmss'] = start_match.group(1)
+                                                
+                                                end_match = re.search(r'End:\s+([\d:]+)', line)
+                                                if end_match:
+                                                    track_stats[track_num]['end_mmss'] = end_match.group(1)
+                                                
+                                                cycles_match = re.search(r'Cycles:\s+(\d+)', line)
+                                                if cycles_match:
+                                                    track_stats[track_num]['cycles'] = int(cycles_match.group(1))
+                                                
                                                 frames_match = re.search(r'Frames:\s+(\d+)', line)
                                                 if frames_match:
                                                     track_stats[track_num]['frames'] = int(frames_match.group(1))
@@ -298,6 +321,10 @@ def monitor_queue(refresh_interval: float = 0.1):
                                                 track_stats[track_num] = {
                                                     'status': '[PENDING]',
                                                     'frames': 0,
+                                                    'duration_mmss': '00:00',
+                                                    'start_mmss': '00:00',
+                                                    'end_mmss': '00:00',
+                                                    'cycles': 0,
                                                     'reorientations': 0,
                                                     'turns': 0,
                                                     'turn_rate': 0.0,
@@ -342,10 +369,48 @@ def monitor_queue(refresh_interval: float = 0.1):
                             if len(tracks_to_show) > 0:
                                 # Fixed column width for alignment (7 chars per column)
                                 COL_WIDTH = 7
+                                # Header width for consistent vertical alignment (match longest header)
+                                HEADER_WIDTH = 14
                                 
                                 # Track numbers header
                                 track_nums = [f"{i:>{COL_WIDTH}d}" for i in tracks_to_show]
-                                print(Colors.MINT + "  Track:    " + " ".join(track_nums) + Colors.RESET)
+                                print(Colors.MINT + f"  {'Track:':<{HEADER_WIDTH}s}" + " ".join(track_nums) + Colors.RESET)
+                                
+                                # Duration (mm:ss) - replaces frames at top
+                                duration_row = []
+                                for i in tracks_to_show:
+                                    if i in track_stats and track_stats[i].get('duration_mmss'):
+                                        duration_row.append(f"{track_stats[i]['duration_mmss']:>{COL_WIDTH}s}")
+                                    else:
+                                        duration_row.append(f"{'-':>{COL_WIDTH}s}")
+                                print(Colors.CREAM + f"  {'Duration:':<{HEADER_WIDTH}s}" + " ".join(duration_row) + Colors.RESET)
+                                
+                                # Start time (mm:ss)
+                                start_row = []
+                                for i in tracks_to_show:
+                                    if i in track_stats and track_stats[i].get('start_mmss'):
+                                        start_row.append(f"{track_stats[i]['start_mmss']:>{COL_WIDTH}s}")
+                                    else:
+                                        start_row.append(f"{'-':>{COL_WIDTH}s}")
+                                print(Colors.MINT + f"  {'Start:':<{HEADER_WIDTH}s}" + " ".join(start_row) + Colors.RESET)
+                                
+                                # End time (mm:ss)
+                                end_row = []
+                                for i in tracks_to_show:
+                                    if i in track_stats and track_stats[i].get('end_mmss'):
+                                        end_row.append(f"{track_stats[i]['end_mmss']:>{COL_WIDTH}s}")
+                                    else:
+                                        end_row.append(f"{'-':>{COL_WIDTH}s}")
+                                print(Colors.MINT + f"  {'End:':<{HEADER_WIDTH}s}" + " ".join(end_row) + Colors.RESET)
+                                
+                                # Cycles count
+                                cycles_row = []
+                                for i in tracks_to_show:
+                                    if i in track_stats and track_stats[i].get('cycles', 0) >= 0:
+                                        cycles_row.append(f"{track_stats[i]['cycles']:>{COL_WIDTH}d}")
+                                    else:
+                                        cycles_row.append(f"{'-':>{COL_WIDTH}s}")
+                                print(Colors.BLUE + f"  {'Cycles:':<{HEADER_WIDTH}s}" + " ".join(cycles_row) + Colors.RESET)
                                 
                                 # Status indicators
                                 status_row = []
@@ -358,7 +423,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         status_row.append("[PENDING]")
                                     if i in track_stats:
                                         status_row[-1] = track_stats[i]['status']
-                                print(Colors.CREAM + "  Status:   " + " ".join(f"{s:>{COL_WIDTH}s}" for s in status_row) + Colors.RESET)
+                                print(Colors.CREAM + f"  {'Status:':<{HEADER_WIDTH}s}" + " ".join(f"{s:>{COL_WIDTH}s}" for s in status_row) + Colors.RESET)
                                 
                                 # Frames
                                 frames_row = []
@@ -367,7 +432,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         frames_row.append(f"{track_stats[i]['frames']:>{COL_WIDTH}d}")
                                     else:
                                         frames_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.MINT + "  Frames:   " + " ".join(frames_row) + Colors.RESET)
+                                print(Colors.MINT + f"  {'Frames:':<{HEADER_WIDTH}s}" + " ".join(frames_row) + Colors.RESET)
                                 
                                 # Reorientations
                                 reo_row = []
@@ -376,7 +441,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         reo_row.append(f"{track_stats[i]['reorientations']:>{COL_WIDTH}d}")
                                     else:
                                         reo_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.BLUE + "  Reorientations: " + " ".join(reo_row) + Colors.RESET)
+                                print(Colors.BLUE + f"  {'Reos:':<{HEADER_WIDTH}s}" + " ".join(reo_row) + Colors.RESET)
                                 
                                 # Num Turns
                                 turns_row = []
@@ -385,7 +450,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         turns_row.append(f"{track_stats[i]['turns']:>{COL_WIDTH}d}")
                                     else:
                                         turns_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.PINK + "  Turns:    " + " ".join(turns_row) + Colors.RESET)
+                                print(Colors.PINK + f"  {'Turns:':<{HEADER_WIDTH}s}" + " ".join(turns_row) + Colors.RESET)
                                 
                                 # Mean Turn Rate
                                 turnrate_row = []
@@ -394,7 +459,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         turnrate_row.append(f"{track_stats[i]['turn_rate']:>{COL_WIDTH}.2f}")
                                     else:
                                         turnrate_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.CREAM + "  TurnRate: " + " ".join(turnrate_row) + Colors.RESET)
+                                print(Colors.CREAM + f"  {'TurnRate:':<{HEADER_WIDTH}s}" + " ".join(turnrate_row) + Colors.RESET)
                                 
                                 # Mean Pause Duration
                                 pausedur_row = []
@@ -403,7 +468,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         pausedur_row.append(f"{track_stats[i]['mean_pause_dur']:>{COL_WIDTH}.3f}")
                                     else:
                                         pausedur_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.MINT + "  MeanPauseDur: " + " ".join(pausedur_row) + Colors.RESET)
+                                print(Colors.MINT + f"  {'MeanPauseDur:':<{HEADER_WIDTH}s}" + " ".join(pausedur_row) + Colors.RESET)
                                 
                                 # Num Pauses
                                 pauses_row = []
@@ -412,7 +477,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         pauses_row.append(f"{track_stats[i]['pauses']:>{COL_WIDTH}d}")
                                     else:
                                         pauses_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.BLUE + "  Pauses:   " + " ".join(pauses_row) + Colors.RESET)
+                                print(Colors.BLUE + f"  {'Pauses:':<{HEADER_WIDTH}s}" + " ".join(pauses_row) + Colors.RESET)
                                 
                                 # Num HeadSwings
                                 hs_row = []
@@ -421,14 +486,11 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         hs_row.append(f"{track_stats[i]['headswings']:>{COL_WIDTH}d}")
                                     else:
                                         hs_row.append(f"{'-':>{COL_WIDTH}s}")
-                                print(Colors.PINK + "  HeadSwings: " + " ".join(hs_row) + Colors.RESET)
-                                
-                                print()
+                                print(Colors.PINK + f"  {'HeadSwings:':<{HEADER_WIDTH}s}" + " ".join(hs_row) + Colors.RESET)
                                 
                                 # Show window info if not showing all tracks
                                 if total_tracks > MAX_TRACKS_DISPLAY:
                                     print(Colors.CREAM + f"  Showing tracks {window_start}-{window_end-1} of {total_tracks} (sliding window)" + Colors.RESET)
-                                    print()
                     except Exception as e:
                         print(Colors.CREAM + f"  Error loading progress: {e}" + Colors.RESET)
             else:
@@ -437,9 +499,7 @@ def monitor_queue(refresh_interval: float = 0.1):
                 else:
                     print(Colors.CREAM + "Waiting for next analysis..." + Colors.RESET)
             
-            print()
-            
-            # Console output feed
+            # Console output feed (9 lines)
             console_lines = []
             if current:
                 filename = current["filename"]
@@ -448,8 +508,8 @@ def monitor_queue(refresh_interval: float = 0.1):
                     try:
                         with open(log_file) as f:
                             all_lines = f.readlines()
-                        # Get last 10-15 lines for display
-                        console_lines = [line.rstrip('\n') for line in all_lines[-15:]]
+                        # Get last 9 lines for display
+                        console_lines = [line.rstrip('\n') for line in all_lines[-9:]]
                     except:
                         pass
             
@@ -557,21 +617,19 @@ def monitor_queue(refresh_interval: float = 0.1):
                         combined_canvas[y][x_pos] = color + char + Colors.RESET
             
             # Calculate how much space we have for animation vs console
-            # Reserve bottom 15 lines for console output
-            animation_height = terminal_height - 15
+            # Reserve bottom 13 lines for console output (9 lines + 4 for separators)
+            animation_height = terminal_height - 13
             
             # Print animation canvas (top portion)
             for y in range(min(animation_height, len(combined_canvas))):
                 line = ''.join(combined_canvas[y])
                 print(line)
             
-            # Console output feed below animation
+            # Console output feed below animation (9 lines)
             if console_lines:
-                print()
-                print(Colors.BOLD + Colors.BLUE + "=" * terminal_width + Colors.RESET)
+                print(Colors.BOLD + Colors.BLUE + "-" * terminal_width + Colors.RESET)
                 print(Colors.BOLD + Colors.CREAM + "Console Output:" + Colors.RESET)
-                print(Colors.BLUE + "-" * terminal_width + Colors.RESET)
-                for line in console_lines[-12:]:  # Show last 12 lines
+                for line in console_lines[-9:]:  # Show last 9 lines
                     # Truncate long lines to fit terminal width
                     if len(line) > terminal_width - 2:
                         line = line[:terminal_width - 5] + "..."
