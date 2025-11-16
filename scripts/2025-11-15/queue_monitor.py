@@ -412,19 +412,6 @@ def monitor_queue(refresh_interval: float = 0.1):
                                         cycles_row.append(f"{'-':>{COL_WIDTH}s}")
                                 print(Colors.BLUE + f"  {'Cycles:':<{HEADER_WIDTH}s}" + " ".join(cycles_row) + Colors.RESET)
                                 
-                                # Status indicators
-                                status_row = []
-                                for i in tracks_to_show:
-                                    if i < current_track:
-                                        status_row.append("[OK]")
-                                    elif i == current_track:
-                                        status_row.append("[RUNNING]")
-                                    else:
-                                        status_row.append("[PENDING]")
-                                    if i in track_stats:
-                                        status_row[-1] = track_stats[i]['status']
-                                print(Colors.CREAM + f"  {'Status:':<{HEADER_WIDTH}s}" + " ".join(f"{s:>{COL_WIDTH}s}" for s in status_row) + Colors.RESET)
-                                
                                 # Frames
                                 frames_row = []
                                 for i in tracks_to_show:
