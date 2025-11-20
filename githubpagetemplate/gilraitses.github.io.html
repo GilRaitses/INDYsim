@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gil Raitses | Scientific ML + Simulation</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Gil Raitses: Researcher in scientific machine learning, signal structuring, and environmental simulation. Expertise in physics-informed models and computational frameworks." />
+  <meta name="keywords" content="Gil Raitses, scientific machine learning, neural circuit analysis, signal structuring, marine telemetry, environmental simulation, research" />
+  <meta name="author" content="Gil Raitses" />
+  
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Gil Raitses | Scientific ML + Simulation" />
+  <meta property="og:description" content="Researcher in scientific machine learning, signal processing, and environmental simulation." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gilraitses.github.io/" />
+  
+  <!-- Accessibility & Device Compatibility -->
+  <meta name="theme-color" content="#2b2d42" />
+  <meta name="color-scheme" content="light dark" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --primary-color: #2b2d42;
+      --secondary-color: #3c3f60;
+      --content-bg: rgba(255, 255, 255, 0.85);
+      --header-footer-bg: rgba(43, 45, 66, 0.85);
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition-speed: 0.3s;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0.001s !important;
+        animation-duration: 0.001s !important;
+      }
+      
+      .content:hover {
+        transform: none !important;
+      }
+      
+      .project-card:hover {
+        transform: none !important;
+      }
+      
+      .links a:hover {
+        transform: none !important;
+      }
+      
+      section:hover h2 {
+        transform: none !important;
+      }
+      
+      .projects li:hover, .current li:hover, .research-themes li:hover {
+        transform: none !important;
+      }
+    }
+
+    /* Mobile-specific styles */
+    @media (max-width: 768px) {
+      body {
+        font-size: 14px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .content {
+        margin: 0.8rem auto;
+        padding: 1rem;
+        width: 95%;
+        max-width: none;
+      }
+      
+      .theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 35px;
+        height: 35px;
+      }
+      
+      .scroll-indicator {
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      .project-cards {
+        gap: 10px;
+      }
+      
+      .project-card {
+        flex: 1 1 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      
+      header {
+        padding: 1.2rem 1rem;
+      }
+      
+      header p {
+        font-size: 0.9rem;
+        margin: 0.5rem 0 0;
+      }
+      
+      section h2 {
+        font-size: 1.5rem;
+      }
+      
+      /* Better touch targets */
+      .links a {
+        padding: 8px 12px;
+        margin: 5px;
+        display: inline-block;
+      }
+      
+      /* Adjust gallery for mobile */
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .gallery-item {
+        margin-bottom: 15px;
+      }
+      
+      .filter-controls {
+        gap: 5px;
+      }
+      
+      .filter-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+      }
+      
+      /* Keyboard shortcuts on mobile */
+      .keyboard-shortcuts {
+        max-width: 100%;
+        padding: 5px 10px;
+        bottom: 10px;
+      }
+      
+      .shortcut-group {
+        margin: 3px 0;
+      }
+      
+      .key {
+        padding: 1px 3px;
+        margin: 0 1px;
+        font-size: 0.7rem;
+      }
+      
+      /* More compact sections on mobile */
+      section {
+        margin-bottom: 1.5rem;
+      }
+      
+      section p {
+        margin: 0.7rem 0;
+      }
+      
+      /* Better mobile readability */
+      ul, ol {
+        padding-left: 1rem;
+      }
+      
+      /* Adjust footer for mobile */
+      footer {
+        padding: 1.5rem 0;
+        font-size: 0.8rem;
+      }
+    }
+    
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      header p {
+        font-size: 0.8rem;
+      }
+      
+      .content {
+        padding: 0.8rem;
+        margin: 0.5rem auto;
+      }
+      
+      section h2 {
+        font-size: 1.3rem;
+      }
+      
+      /* Simplify gallery for very small screens */
+      .gallery-item-image {
+        height: 150px;
+      }
+      
+      /* More compact keyboard shortcuts */
+      .keyboard-shortcuts {
+        flex-direction: column;
+        align-items: center;
+        padding: 5px;
+      }
+      
+      .shortcut-group {
+        margin: 2px 0;
+      }
+    }
+
+    .dark-mode {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --primary-color: #6d72a8;
+      --secondary-color: #8186bd;
+      --content-bg: rgba(30, 30, 30, 0.85);
+      --header-footer-bg: rgba(20, 20, 20, 0.9);
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color var(--transition-speed), color var(--transition-speed);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      overflow-x: hidden;
+      background-color: var(--bg-color);
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    header {
+      background: var(--header-footer-bg);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      backdrop-filter: blur(5px);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 3px;
+      bottom: -5px;
+      left: 50%;
+      background-color: white;
+      transition: all 0.5s ease;
+    }
+
+    h1:hover::after {
+      width: 100%;
+      left: 0;
+    }
+
+    .content {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: var(--content-bg);
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(5px);
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .content:hover {
+      transform: translateY(-5px);
+    }
+
+    .content section {
+      margin-bottom: 2rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    
+    .content section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .project-card {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity 0.5s ease, transform 0.5s ease, background 0.3s ease;
+    }
+    
+    .project-card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .project-card:nth-child(even) {
+      transform: translateX(20px);
+    }
+
+    .content li {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    .content li.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    section {
+      margin-bottom: 2rem;
+      opacity: 0.9;
+      transition: opacity 0.3s ease;
+    }
+
+    section:hover {
+      opacity: 1;
+    }
+
+    h2 {
+      color: var(--primary-color);
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    section:hover h2 {
+      transform: translateX(10px);
+    }
+
+    .projects ul, .current ul, .research-themes ul {
+      list-style-type: none;
+      padding-left: 0.5rem;
+    }
+
+    .projects li, .current li, .research-themes li {
+      margin-bottom: 0.8rem;
+      position: relative;
+      padding-left: 1.5rem;
+      transition: transform 0.2s ease;
+    }
+
+    .projects li:hover, .current li:hover, .research-themes li:hover {
+      transform: translateX(5px);
+    }
+
+    .projects li:before, .current li:before, .research-themes li:before {
+      content: "▹";
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+      transition: transform 0.2s ease;
+    }
+
+    .projects li:hover:before, .current li:hover:before, .research-themes li:hover:before {
+      transform: scale(1.2);
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: white;
+      padding: 2rem 0;
+      background: var(--header-footer-bg);
+      backdrop-filter: blur(5px);
+      position: relative;
+    }
+
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    a:hover {
+      color: var(--secondary-color);
+      text-decoration: none;
+    }
+
+    .links a {
+      margin: 0 10px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: rgba(43, 45, 66, 0.1);
+      transition: all 0.3s;
+    }
+
+    .links a:hover {
+      background: rgba(43, 45, 66, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--header-footer-bg);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: rotate(30deg);
+    }
+
+    .project-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .project-card {
+      flex: 1 1 250px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+      transition: all 0.3s;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(3px);
+    }
+
+    /* Style for touch focus on mobile */
+    .project-card.touch-focus {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      background: rgba(var(--primary-color-rgb), 0.1);
+      border-color: var(--primary-color);
+    }
+
+    .project-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      background: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    .project-card h3 {
+      margin-top: 0;
+      color: var(--primary-color);
+    }
+
+    .project-card p {
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+
+    .scroll-indicator {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background: var(--header-footer-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .scroll-indicator.visible {
+      opacity: 0.8;
+    }
+
+    .scroll-indicator:hover {
+      opacity: 1;
+      transform: translateY(-5px);
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .brain-container {
+      position: relative;
+      width: 280px;
+      height: 200px;
+      margin-bottom: 20px;
+    }
+
+    .brain-outline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .neural-circuit {
+      position: absolute;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      filter: blur(5px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-text {
+      font-size: 1.2rem;
+      color: var(--text-color);
+      margin-top: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* Brain model section */
+    .brain-model {
+      margin-top: 2rem;
+    }
+
+    #fly-brain-container {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #model-controls {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    #model-controls button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.8rem;
+    }
+
+    #model-controls button:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+
+    .model-info {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      #fly-brain-container {
+        height: 250px;
+      }
+      
+      #model-controls {
+        bottom: 10px;
+        left: 10px;
+      }
+      
+      #model-controls button {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+      }
+    }
+
+    /* FlyWire API Integration Styles */
+    .flywire-controls {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+    }
+    
+    .flywire-controls h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+    }
+    
+    .neuron-selection {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .auth-status, .selection-row, .action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .status-indicator {
+      font-size: 0.9rem;
+    }
+    
+    .api-button, #fetch-neuron {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    
+    .api-button:hover, #fetch-neuron:hover {
+      background: var(--secondary-color);
+      transform: translateY(-2px);
+    }
+    
+    .api-button:disabled, #fetch-neuron:disabled, select:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    select {
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background: white;
+      flex: 1;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    /* Neuron info panel styles */
+    #neuron-info-panel {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 6px;
+      border-left: 3px solid var(--primary-color);
+    }
+    
+    #neuron-info-panel h4 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+      font-size: 1rem;
+    }
+    
+    .info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .info-row {
+      display: flex;
+      font-size: 0.9rem;
+    }
+    
+    .info-label {
+      font-weight: bold;
+      min-width: 80px;
+    }
+    
+    .info-details {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 4px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .flywire-controls {
+        padding: 10px;
+      }
+      
+      .neuron-selection, .auth-status, .selection-row, .action-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .api-button, #fetch-neuron {
+        width: 100%;
+      }
+    }
+
+    /* Background canvas */
+    #bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    
+    /* Network controls */
+    .network-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+    
+    .network-controls button, .arrangement-controls button {
+      background: var(--header-footer-bg);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .arrangement-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+    
+    .arrangement-controls button {
+      width: auto;
+      padding: 0 10px;
+    }
+    
+    .network-controls button:hover, .arrangement-controls button:hover {
+      background: var(--primary-color);
+      transform: translateY(-2px);
+    }
+    
+    /* Larvae background */
+    #larvae-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      pointer-events: none;
+    }
+    
+    /* Keyboard controls hint */
+    .keyboard-controls-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+    
+    .keyboard-controls-hint:hover {
+      opacity: 1;
+    }
+    
+    .key {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 3px;
+      padding: 2px 6px;
+      margin: 0 2px;
+      font-family: monospace;
+    }
+    
+    @media (max-width: 768px) {
+      .keyboard-controls-hint {
+        display: none; /* Hide on mobile */
+      }
+    }
+
+    /* Project gallery styles */
+    .project-gallery {
+      margin-top: 3rem;
+      padding: 2rem 0;
+    }
+    
+    .filter-controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-color);
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .filter-btn.active {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+    }
+    
+    .gallery-grid.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .gallery-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      transform-origin: center;
+      opacity: 1;
+      transform: scale(1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .gallery-item.hidden {
+      opacity: 0;
+      transform: scale(0.8);
+      height: 0;
+      margin: 0;
+      padding: 0;
+      pointer-events: none;
+    }
+    
+    .gallery-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .gallery-item-image {
+      height: 180px;
+      background-color: rgba(0, 0, 0, 0.1);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+    }
+    
+    .gallery-item-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    }
+    
+    .gallery-item-tags {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .gallery-item-tag {
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+    
+    .gallery-item-content {
+      padding: 1.2rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .gallery-item-title {
+      font-size: 1.2rem;
+      margin-bottom: 0.7rem;
+      font-weight: 600;
+    }
+    
+    .gallery-item-desc {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 1.2rem;
+      flex-grow: 1;
+    }
+    
+    .gallery-item-link {
+      align-self: flex-start;
+      background: var(--primary-color);
+      color: white;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      transition: all 0.3s ease;
+    }
+    
+    .gallery-item-link:hover {
+      background: #4b50b3;
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+    }
+
+    /* Keyboard shortcuts styles */
+    .keyboard-shortcuts {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      opacity: 0.7;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      max-width: 90%;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .keyboard-shortcuts.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(100px);
+      pointer-events: none;
+    }
+    
+    /* Hide toggle and controls that we don't want */
+    .theme-toggle, 
+    .arrangement-controls,
+    .network-controls {
+      display: none !important;
+    }
+    
+    /* Enhanced mobile responsiveness - Portrait */
+    @media (max-width: 768px) {
+      /* ... existing mobile styles ... */
+    }
+    
+    /* Mobile Landscape mode */
+    @media (max-width: 915px) and (orientation: landscape) {
+      .content {
+        margin: 0.5rem auto;
+        padding: 0.8rem;
+        width: 85%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      
+      header {
+        padding: 0.8rem;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      header p {
+        font-size: 0.8rem;
+        margin: 0.3rem 0 0;
+      }
+      
+      /* Adjust layout for landscape */
+      .project-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      
+      .project-card {
+        padding: 10px;
+        margin-bottom: 0;
+      }
+      
+      /* Optimize visibility in landscape */
+      section h2 {
+        font-size: 1.3rem;
+        margin: 0.5rem 0;
+      }
+      
+      section {
+        margin-bottom: 1rem;
+      }
+      
+      section p {
+        margin: 0.5rem 0;
+      }
+      
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      /* Adjust keyboard shortcuts for landscape */
+      .keyboard-shortcuts {
+        bottom: 5px;
+        max-width: 80%;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    }
+    
+    /* Ultrawide monitor optimization */
+    @media (min-width: 2000px) {
+      /* Constrain the 3D background elements */
+      #bg, #larvae-background {
+        max-width: 2000px;
+        margin: 0 auto;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      
+      /* Center the content better */
+      .content {
+        max-width: 1000px;
+      }
+      
+      /* Scale up typography slightly */
+      body {
+        font-size: 18px;
+      }
+      
+      h1 {
+        font-size: 3rem;
+      }
+      
+      h2 {
+        font-size: 2.2rem;
+      }
+      
+      /* Adjust gallery for ultrawide */
+      .gallery-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      
+      /* Keep controls visible but properly positioned */
+      .network-controls, .arrangement-controls {
+        right: calc(50% - 980px);
+      }
+      
+      .arrangement-controls {
+        left: calc(50% - 980px);
+      }
+    }
+    
+    /* Extra super-wide monitors */
+    @media (min-width: 3000px) {
+      body {
+        font-size: 20px;
+      }
+      
+      .content {
+        max-width: 1200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Add the background canvas elements -->
+  <canvas id="bg"></canvas>
+  <div id="larvae-background"></div>
+
+  <div class="theme-toggle">🌙</div>
+  <div class="scroll-indicator">↑</div>
+
+  <div class="network-controls">
+    <button id="zoom-in" aria-label="Zoom in">+</button>
+    <button id="zoom-out" aria-label="Zoom out">-</button>
+    <button id="reset-view" aria-label="Reset view">⟲</button>
+  </div>
+  
+  <div class="arrangement-controls">
+    <button id="arrange-neural" aria-label="Neural network arrangement">Neural</button>
+    <button id="arrange-circular" aria-label="Circular arrangement">Circular</button>
+    <button id="arrange-random" aria-label="Random arrangement">Random</button>
+  </div>
+  
+  <div class="keyboard-controls-hint">
+    <span>Rotate:</span>
+    <span><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></span>
+  </div>
+
+  <header>
+    <h1>Gil Raitses</h1>
+    <p>Scientific Machine Learning | Temporal Pattern Analysis | 4D Systems Modeling</p>
+  </header>
+  
+  <div class="content">
+    <section class="about-me">
+      <h2>Background & Approach</h2>
+      <p>
+        In my process as an artist, I've been interested in tools that make forms out of patterns and vis versa. This brought me onto my current path in research with visializing and modeling data. My artistic procession spans media theory, culinary semiotics, cinematic light sculptures, to 3D design for clothing. Having in common, being, in one way or another, interpretative explorations into singular patterns.
+      </p>
+      <p>
+        One specific creative trajectory began with trying to recreate, while sketching out a film idea, an intermodal aesthetic to mimic a dolphin's perceptual field by combining different interpretive properties of physical dynamics as a representation. Though this film project itself is on hold for now, it brought me closer with investigating temporal pattern synthesis and classification. Currently, I'm exploring how adaptive models can reveal hidden structures in biological neural networks, environmental systems and biological activity patterns.
+      </p>
+    </section>
+
+    <section class="current">
+      <h2>Active Research Streams</h2>
+      <ul>
+        <li><strong>Neural Circuit Analysis:</strong> Planning a framework to explore subjective experience through behavioral analysis of Drosophila larvae. This upcoming project will interpret phase transitions as both mechanical movements and events within a narrative context. In combination with an analysis pipeline developed in my current lab's mechanosensation work, I'm developing experimental approaches to behavioral modeling.</li>
+        <li><strong>Marine Behavioral States:</strong> Building a lightweight minGRU based model to identify and classify humpback whale behavioral states from high resolution dive telemetry, enabling automated detection of feeding events from time series acceleration data.</li>
+        <li><strong>Sound Mapping Data:</strong> Using multimodal narrative interpretation of models for immersive analysis of continuous patterns, creating signal processing algorithms that filter environmental noise while preserving biologically relevant signals in complex acoustic environments.</li>
+      </ul>
+    </section>
+
+    <section class="projects">
+      <h2>Framework Implementations</h2>
+      <div class="project-cards">
+        <div class="project-card">
+          <h3>Behavior Subtype Classifier</h3>
+          <p>
+            A classification system that identifies hierarchical diving patterns in marine mammals using adaptive windowing techniques. This toolkit, developed in partnership with the Parks Lab at Syracuse University, achieves 92% accuracy in detecting feeding, social, and resting behaviors from time series acceleration data. Part of the minGRU based MSTAR framework that enhances annotation intelligence for complex behavioral sequences.
+          </p>
+        </div>
+        <div class="project-card">
+          <h3>Drosophila Sensory Circuit Mapping</h3>
+          <p>
+            Planned framework that will model larval behavioral transitions as dynamic narrative events rather than mechanical shifts. This project, scheduled to begin summer 2025, aims to use state sequence modeling to reconstruct fragmented data into coherent behavioral trajectories. This narrative-based approach treats phase transitions as meaningful moments within a multidimensional state space, bridging observable behavior with hidden internal states.
+          </p>
+        </div>
+        <div class="project-card">
+          <h3>Glacial Flow Simulation</h3>
+          <p>
+            A physics informed neural network approach to predict ice movement patterns using multi resolution satellite data. This model integrates conservation laws with observational data to simulate non linear flow behavior across temporal scales. Currently in development as part of my Master's thesis, exploring how embedding physical constraints within deep learning architectures can transfer between geophysical systems and biological time series analysis.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="research-themes">
+      <h2>Methodological Foundations</h2>
+      <ul>
+        <li>Adaptive windowing and feature extraction from complex signal data</li>
+        <li>Memory efficient recurrent architectures for time series classification</li>
+        <li>Physics informed constraints in neural network design</li>
+        <li>Dynamic state space modeling for behavioral transitions</li>
+        <li>Multimodal representation of continuous signal patterns</li>
+      </ul>
+    </section>
+
+    <section class="links">
+      <h2>Connect</h2>
+      <p>
+        <a href="https://github.com/gilraitses">GitHub</a> ·
+        <a href="mailto:gilraitses@gmail.com">Email</a> ·
+        <a href="https://www.linkedin.com/in/gilraitses/">LinkedIn</a>
+      </p>
+    </section>
+  </div>
+  
+  <footer>
+    &copy; 2025 Gil Raitses
+  </footer>
+
+  <section class="project-gallery">
+    <h2>Project Gallery</h2>
+    <div class="filter-controls">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="framework">Frameworks</button>
+      <button class="filter-btn" data-filter="simulation">Simulations</button>
+      <button class="filter-btn" data-filter="analysis">Analysis</button>
+      <button class="filter-btn" data-filter="visualization">Visualizations</button>
+    </div>
+
+    <div class="gallery-grid">
+      <!-- Gallery Item 1 -->
+      <div class="gallery-item" data-category="analysis visualization">
+        <div class="gallery-item-image" style="background-image: url('https://gilraitses.github.io/whale-behavior-analysis/assets/dive_overview.png')">
+          <div class="gallery-item-tags">
+            <span class="gallery-item-tag">Analysis</span>
+            <span class="gallery-item-tag">Visualization</span>
+          </div>
+        </div>
+        <div class="gallery-item-content">
+          <h3 class="gallery-item-title">Cetacean Dive Analysis</h3>
+          <p class="gallery-item-desc">Classification system for diving patterns in marine mammals using adaptive windowing techniques.</p>
+          <a href="https://gilraitses.github.io/whale-behavior-analysis/" class="gallery-item-link">Explore</a>
+        </div>
+      </div>
+      
+      <!-- Gallery Item 2 -->
+      <div class="gallery-item" data-category="visualization simulation">
+        <div class="gallery-item-image" style="background-image: url('https://via.placeholder.com/500/567890')">
+          <div class="gallery-item-tags">
+            <span class="gallery-item-tag">Visualization</span>
+            <span class="gallery-item-tag">Simulation</span>
+          </div>
+        </div>
+        <div class="gallery-item-content">
+          <h3 class="gallery-item-title">Neural Circuit Visualization</h3>
+          <p class="gallery-item-desc">In development interactive circuit models of neural connectivity patterns for signal processing research.</p>
+          <a href="#" class="gallery-item-link">Explore</a>
+        </div>
+      </div>
+      
+      <!-- Gallery Item 3 -->
+      <div class="gallery-item" data-category="simulation">
+        <div class="gallery-item-image" style="background-image: url('https://via.placeholder.com/500/345678')">
+          <div class="gallery-item-tags">
+            <span class="gallery-item-tag">Simulation</span>
+          </div>
+        </div>
+        <div class="gallery-item-content">
+          <h3 class="gallery-item-title">Glacial Flow Simulation</h3>
+          <p class="gallery-item-desc">Planned physics-informed neural network predicting ice movement patterns using multi-resolution satellite data.</p>
+          <a href="#" class="gallery-item-link">Explore</a>
+        </div>
+      </div>
+      
+      <!-- Gallery Item 4 -->
+      <div class="gallery-item" data-category="analysis">
+        <div class="gallery-item-image" style="background-image: url('https://via.placeholder.com/500/789012')">
+          <div class="gallery-item-tags">
+            <span class="gallery-item-tag">Analysis</span>
+          </div>
+        </div>
+        <div class="gallery-item-content">
+          <h3 class="gallery-item-title">Sound Mapping Data</h3>
+          <p class="gallery-item-desc">Planned crossmodal, multi-scale narrative interpretation of models for immersive analysis of continuous patterns.</p>
+          <a href="#" class="gallery-item-link">Explore</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section class="research-themes">
+    <h2>Methodological Foundations</h2>
+    <ul>
+      <li>Adaptive windowing and feature extraction from complex signal data</li>
+      <li>Memory efficient recurrent architectures for time series classification</li>
+      <li>Physics informed constraints in neural network design</li>
+      <li>Dynamic state space modeling for behavioral transitions</li>
+      <li>Intermodal and multi-scale representations of continuous signal patterns</li>
+    </ul>
+  </section>
+
+  <section class="links">
+    <h2>Connect</h2>
+    <p>
+      <a href="https://github.com/gilraitses">GitHub</a> ·
+      <a href="mailto:gilraitses@gmail.com">Email</a> ·
+      <a href="https://www.linkedin.com/in/gilraitses/">LinkedIn</a>
+    </p>
+  </section>
+  </div>
+  
+  <footer>
+    &copy; 2025 Gil Raitses
+  </footer>
+
+  <div class="keyboard-shortcuts">
+    <div class="shortcut-group">
+      <span class="shortcut-label">Camera:</span>
+      <span class="key">W</span>
+      <span class="key">A</span>
+      <span class="key">S</span>
+      <span class="key">D</span>
+    </div>
+    <div class="shortcut-group">
+      <span class="shortcut-label">Rotate:</span>
+      <span class="key">↑</span>
+      <span class="key">←</span>
+      <span class="key">↓</span>
+      <span class="key">→</span>
+    </div>
+    <div class="shortcut-group">
+      <span class="shortcut-label">Zoom:</span>
+      <span class="key">+</span>
+      <span class="key">-</span>
+    </div>
+    <div class="shortcut-group">
+      <span class="shortcut-label">Reset:</span>
+      <span class="key">R</span>
+    </div>
+  </div>
+
+  <script>
+    // Global variable to control animations
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    // Dark/Light Mode toggle functionality
+    let isDarkMode = document.documentElement.classList.contains('dark-mode');
+    const primaryColorDark = 0x6d72a8;
+    const primaryColorLight = 0x2b2d42;
+    
+    // Flag to track Three.js ready state
+    window.threeJsReady = true;
+    
+    // Three.js initialization
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: document.querySelector('#bg'),
+      antialias: true, 
+      alpha: true 
+    });
+    
+    // Initialize renderer
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0); // Transparent background
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+    
+    // Create separate rendering groups for background and foreground
+    const backgroundGroup = new THREE.Group();
+    const foregroundGroup = new THREE.Group();
+    scene.add(backgroundGroup);
+    scene.add(foregroundGroup);
+    
+    // Setup for raycasting and node interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let hoveredNode = null;
+    let selectedNode = null;
+    let isDragging = false;
+    
+    // Set initial camera position
+    camera.position.setZ(30);
+    
+    // Add some fog for depth
+    scene.fog = new THREE.FogExp2(0x000000, 0.01);
+    
+    // Initialize Drosophila larvae simulation as skybox
+    function initDrosophilaBackground() {
+      // Create spherical environment for larvae simulation
+      const radius = 50; // Larger radius for skybox effect
+      
+      // Create persistent trajectories group to track larva paths
+      const trajectoriesGroup = new THREE.Group();
+      backgroundGroup.add(trajectoriesGroup);
+      
+      // Create larvae - fewer on mobile
+      const isMobile = window.innerWidth < 768;
+      const larvaeCount = isMobile ? 70 : 100; // Fewer larvae on mobile for better performance
+      const larvae = [];
+      
+      for (let i = 0; i < larvaeCount; i++) {
+        // Create a more realistic larva shape with segments
+        const larvaLength = 0.8 + Math.random() * 0.4; // Random length
+        
+        // Create segmented larva
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(larvaLength * 0.3, 0, 0),
+          new THREE.Vector3(larvaLength * 0.6, 0, 0),
+          new THREE.Vector3(larvaLength, 0, 0)
+        ]);
+        
+        const points = curve.getPoints(20);
+        const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        // Create glowing effect that mimics infrared footage
+        const larvaMaterial = new THREE.LineBasicMaterial({
+          color: 0xdddddd, // Slightly off-white for IR appearance
+          linewidth: 3,
+          opacity: 0.85,
+          transparent: true
+        });
+        
+        const larva = new THREE.Line(larvaGeometry, larvaMaterial);
+        
+        // Create a glow effect using a point light
+        const glowLight = new THREE.PointLight(0xffffff, 0.5, 1);
+        glowLight.position.set(larvaLength/2, 0, 0);
+        larva.add(glowLight);
+        
+        // Position randomly on a sphere
+        const phi = Math.acos(2 * Math.random() - 1); // Random angle from top to bottom
+        const theta = Math.random() * Math.PI * 2; // Random angle around the sphere
+        
+        larva.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        larva.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        larva.position.z = radius * Math.cos(phi);
+        
+        // Orient larva tangent to the sphere
+        larva.lookAt(0, 0, 0);
+        // Then rotate around its own axis for random direction on the sphere surface
+        const randomRotation = Math.random() * Math.PI * 2;
+        larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
+        
+        // Add motion properties
+        larva.userData = {
+          velocity: 0.02 + Math.random() * 0.03, // Random speed
+          direction: randomRotation,
+          lastTurn: 0,
+          turnInterval: 20 + Math.random() * 40,
+          wigglePhase: Math.random() * Math.PI * 2,
+          wiggleFrequency: 0.2 + Math.random() * 0.3,
+          wiggleAmount: 0.05 + Math.random() * 0.1,
+          size: 0.3 + Math.random() * 0.2,
+          
+          // Make trajectories more visible and persistent
+          trajectoryPoints: [],
+          trajectoryColor: new THREE.Color(
+            0.7 + Math.random() * 0.3, // Brighter colors
+            0.7 + Math.random() * 0.3,
+            0.7 + Math.random() * 0.3
+          ),
+          lastTrajectoryUpdate: 0,
+          trajectoryUpdateInterval: 3, // Update more frequently
+          
+          // Headcasting behavior
+          isHeadcasting: false,
+          headcastTimer: 0,
+          headcastInterval: 100 + Math.random() * 200,
+          headcastDuration: 0,
+          headcastMaxDuration: 0,
+          
+          // Store original position on sphere for containment
+          originalRadius: radius,
+          phi: phi,
+          theta: theta
+        };
+        
+        // Resize larva based on random size
+        larva.scale.set(larva.userData.size, larva.userData.size, larva.userData.size);
+        
+        backgroundGroup.add(larva);
+        larvae.push(larva);
+      }
+      
+      return larvae;
+    }
+    
+    // Update larvae positions and behaviors
+    function updateLarvae(larvae, deltaTime) {
+      // Skip if larvae array is not valid
+      if (!Array.isArray(larvae) || larvae.length === 0) return;
+      
+      // Get reference to trajectories group
+      const trajectoriesGroup = backgroundGroup.children.find(child => child.isGroup);
+      if (!trajectoriesGroup) return;
+      
+      larvae.forEach(larva => {
+        const ud = larva.userData;
+        if (!ud) return;
+        
+        // Handle headcasting behavior
+        if (ud.headcastTimer) ud.headcastTimer++;
+        if (!ud.isHeadcasting && ud.headcastTimer > ud.headcastInterval) {
+          ud.isHeadcasting = true;
+          ud.headcastTimer = 0;
+          ud.headcastDuration = 0;
+          ud.headcastMaxDuration = 20 + Math.floor(Math.random() * 30);
+          ud.originalVelocity = ud.velocity;
+          ud.velocity = 0;
+        }
+        
+        if (ud.isHeadcasting) {
+          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.5;
+          ud.headcastDuration++;
+          
+          if (ud.headcastDuration > ud.headcastMaxDuration) {
+            ud.isHeadcasting = false;
+            ud.headcastTimer = 0;
+            ud.velocity = ud.originalVelocity;
+            if (ud.direction) ud.direction += (Math.random() * 2 - 1) * Math.PI * 0.7;
+          }
+        } else if (ud.wigglePhase !== undefined) {
+          // Update wiggle phase
+          ud.wigglePhase += ud.wiggleFrequency || 0.2;
+          
+          // Decide if it's time to change direction
+          if (ud.lastTurn !== undefined) {
+            ud.lastTurn += 1;
+            if (ud.turnInterval && ud.lastTurn > ud.turnInterval) {
+              ud.direction += (Math.random() - 0.5) * Math.PI;
+              ud.lastTurn = 0;
+              ud.turnInterval = 20 + Math.random() * 40;
+            }
+          }
+          
+          // Apply small random direction changes
+          if (ud.direction) ud.direction += (Math.random() - 0.5) * 0.1;
+          
+          // Add wiggle effect to direction
+          const wiggleDirection = ud.direction + (ud.wiggleAmount ? Math.sin(ud.wigglePhase) * ud.wiggleAmount : 0);
+          
+          // Move along the sphere surface
+          if (ud.velocity && wiggleDirection !== undefined && ud.phi !== undefined && ud.theta !== undefined) {
+            // Update spherical coordinates
+            ud.phi += Math.sin(wiggleDirection) * ud.velocity * 0.01;
+            ud.theta += Math.cos(wiggleDirection) * ud.velocity * 0.01;
+            
+            // Constrain phi to avoid issues at poles
+            ud.phi = Math.max(0.1, Math.min(Math.PI - 0.1, ud.phi));
+            
+            // Convert back to Cartesian coordinates
+            larva.position.x = ud.originalRadius * Math.sin(ud.phi) * Math.cos(ud.theta);
+            larva.position.y = ud.originalRadius * Math.sin(ud.phi) * Math.sin(ud.theta);
+            larva.position.z = ud.originalRadius * Math.cos(ud.phi);
+            
+            // Orient larva tangent to sphere
+            const normal = larva.position.clone().normalize();
+            const tangent = new THREE.Vector3(1, 0, 0).cross(normal).normalize();
+            const rotationAxis = tangent.cross(normal).normalize();
+            const rotationMatrix = new THREE.Matrix4().makeRotationAxis(rotationAxis, wiggleDirection);
+            
+            larva.quaternion.setFromRotationMatrix(rotationMatrix);
+          }
+        }
+        
+        // Update trajectory with brighter trails
+        if (ud.lastTrajectoryUpdate !== undefined && ud.trajectoryUpdateInterval) {
+          ud.lastTrajectoryUpdate++;
+          if (ud.lastTrajectoryUpdate >= ud.trajectoryUpdateInterval) {
+            ud.lastTrajectoryUpdate = 0;
+            
+            if (ud.trajectoryPoints) {
+              // Add current position to trajectory points
+              ud.trajectoryPoints.push(larva.position.clone());
+              
+              // Limit trajectory length to create fading effect
+              if (ud.trajectoryPoints.length > 30) {
+                ud.trajectoryPoints.shift();
+              }
+              
+              // Update the trajectory line if it exists
+              if (ud.trajectoryLine) {
+                ud.trajectoryLine.geometry.dispose();
+                ud.trajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
+              }
+              // Create trajectory line if it doesn't exist yet
+              else if (ud.trajectoryPoints.length > 1 && ud.trajectoryColor) {
+                const material = new THREE.LineBasicMaterial({
+                  color: ud.trajectoryColor,
+                  transparent: true,
+                  opacity: 0.8, // Higher opacity for more visibility
+                  linewidth: 2 // Thicker lines if supported
+                });
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(ud.trajectoryPoints);
+                const line = new THREE.Line(geometry, material);
+                
+                // Add a glow effect to the trajectory
+                const trailGlow = new THREE.PointLight(ud.trajectoryColor, 0.3, 2);
+                trailGlow.position.copy(larva.position);
+                line.add(trailGlow);
+                
+                ud.trajectoryLine = line;
+                ud.trailGlow = trailGlow;
+                if (trajectoriesGroup) trajectoriesGroup.add(line);
+              }
+              
+              // Update trail glow position if it exists
+              if (ud.trailGlow) {
+                ud.trailGlow.position.copy(larva.position);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Create a neural network-like structure with a simplified implementation
+    function createNeuralNetwork() {
+      const group = new THREE.Group();
+      
+      // Create materials for nodes with more glow/flash effect
+      const nodeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6d72a8,
+        emissive: 0x6d72a8,
+        emissiveIntensity: 0.8, // Higher intensity
+        metalness: 0.9,
+        roughness: 0.1
+      });
+      
+      const nodeGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+      const nodes = [];
+      const connectionMaterial = new THREE.LineBasicMaterial({
+        color: 0x6d72a8,
+        transparent: true,
+        opacity: 0.5 // More visible connections
+      });
+      
+      // Create some basic nodes - fewer on mobile
+      const isMobile = window.innerWidth < 768;
+      const nodeCount = isMobile ? 40 : 60; // Fewer nodes on mobile for better performance
+      
+      for (let i = 0; i < nodeCount; i++) {
+        const node = new THREE.Mesh(nodeGeometry, nodeMaterial.clone());
+        
+        // Position each node randomly in a sphere
+        const radius = isMobile ? 12 : 15; // Smaller radius on mobile
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        node.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        node.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        node.position.z = radius * Math.cos(phi);
+        
+        // Add metadata to the node
+        node.userData = {
+          velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03
+          ),
+          isAnchor: false,
+          active: false,
+          flashTimer: Math.random() * 100, // Random start time for flashing
+          flashInterval: 30 + Math.random() * 100, // More frequent flashing
+          flashDuration: 20 + Math.random() * 20, // Random flash duration
+          // Add flash intensity for more dramatic effects
+          flashIntensity: 1.5 + Math.random() * 1.0,
+          pulsePhase: Math.random() * Math.PI * 2
+        };
+        
+        // Add a point light to each node for extra glow
+        const nodeLight = new THREE.PointLight(0x6d72a8, 0.5, 3);
+        nodeLight.position.set(0, 0, 0);
+        node.add(nodeLight);
+        node.userData.light = nodeLight;
+        
+        nodes.push(node);
+        group.add(node);
+      }
+      
+      // Create some connections between nodes
+      const connections = [];
+      
+      for (let i = 0; i < nodes.length; i++) {
+        // Connect to a few nearby nodes
+        for (let j = 0; j < 5; j++) { // More connections
+          const targetIndex = (i + j + 1) % nodes.length;
+          
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            nodes[i].position,
+            nodes[targetIndex].position
+          ]);
+          
+          const line = new THREE.Line(geometry, connectionMaterial.clone());
+          line.userData = {
+            pointA: i,
+            pointB: targetIndex,
+            flashActive: false,
+            flashTimer: Math.random() * 100, // Random start time
+            pulsePhase: Math.random() * Math.PI * 2
+          };
+          
+          connections.push(line);
+          group.add(line);
+        }
+      }
+      
+      // Store references to the nodes and connections
+      group.userData = {
+        nodes: nodes,
+        connections: connections,
+        update: function(time) {
+          // Basic animation update
+          for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            
+            // Apply velocity
+            node.position.add(node.userData.velocity);
+            
+            // Simple containment - if too far, reverse direction
+            const distance = node.position.length();
+            if (distance > 18) {
+              node.userData.velocity.multiplyScalar(-1);
+            }
+            
+            // Update pulse phase
+            node.userData.pulsePhase += 0.05;
+            
+            // Apply subtle pulse effect to all nodes
+            const pulseScale = 1.0 + 0.1 * Math.sin(node.userData.pulsePhase);
+            node.scale.set(pulseScale, pulseScale, pulseScale);
+            
+            // Handle node flashing
+            node.userData.flashTimer++;
+            if (!node.userData.active && node.userData.flashTimer > node.userData.flashInterval) {
+              // Start flashing
+              node.userData.active = true;
+              node.userData.flashTimer = 0;
+              
+              // Dramatic flash effect
+              const intensity = node.userData.flashIntensity || 1.5;
+              node.material.emissiveIntensity = intensity;
+              node.scale.set(1.5, 1.5, 1.5);
+              
+              // Random color for flashing - more vibrant
+              const hue = Math.random();
+              const color = new THREE.Color().setHSL(hue, 0.9, 0.7);
+              node.material.emissive.set(color);
+              node.material.color.set(color);
+              
+              // Update the node's light
+              if (node.userData.light) {
+                node.userData.light.color.set(color);
+                node.userData.light.intensity = 1.5;
+                node.userData.light.distance = 5;
+              }
+              
+              // Trigger connections from this node to flash
+              for (let j = 0; j < connections.length; j++) {
+                const connection = connections[j];
+                if (connection.userData.pointA === i || connection.userData.pointB === i) {
+                  connection.userData.flashActive = true;
+                  connection.userData.flashTimer = 0;
+                  connection.userData.flashDuration = node.userData.flashDuration;
+                  connection.material.color.copy(color);
+                  connection.material.opacity = 0.9;
+                }
+              }
+            } else if (node.userData.active) {
+              // During flash
+              if (node.userData.flashTimer > node.userData.flashDuration) {
+                // End flash
+                node.userData.active = false;
+                node.userData.flashTimer = 0;
+                node.material.emissiveIntensity = 0.8;
+                node.material.emissive.set(0x6d72a8);
+                node.material.color.set(0x6d72a8);
+                
+                // Reset light
+                if (node.userData.light) {
+                  node.userData.light.color.set(0x6d72a8);
+                  node.userData.light.intensity = 0.5;
+                  node.userData.light.distance = 3;
+                }
+              } else {
+                // During flash, pulse more dramatically
+                const flashProgress = node.userData.flashTimer / node.userData.flashDuration;
+                const pulseIntensity = 1.5 * (1 - flashProgress) + 0.8 * flashProgress;
+                node.material.emissiveIntensity = pulseIntensity;
+                
+                if (node.userData.light) {
+                  node.userData.light.intensity = pulseIntensity;
+                }
+              }
+            }
+          }
+          
+          // Update connection lines with animated patterns
+          for (let i = 0; i < connections.length; i++) {
+            const line = connections[i];
+            const nodeA = nodes[line.userData.pointA];
+            const nodeB = nodes[line.userData.pointB];
+            
+            // Update positions
+            const pointA = nodeA.position;
+            const pointB = nodeB.position;
+            
+            line.geometry.dispose();
+            line.geometry = new THREE.BufferGeometry().setFromPoints([pointA, pointB]);
+            
+            // Update pulse phase
+            line.userData.pulsePhase += 0.03;
+            
+            // Handle connection flashing and propagation of signal
+            if (line.userData.flashActive) {
+              line.userData.flashTimer++;
+              
+              if (line.userData.flashTimer > (line.userData.flashDuration || 20)) {
+                // End flash
+                line.userData.flashActive = false;
+                line.material.color.set(0x6d72a8);
+                line.material.opacity = 0.5;
+              } else {
+                // Animate signal propagation along connection
+                const progress = line.userData.flashTimer / (line.userData.flashDuration || 20);
+                const pulse = 0.5 + 0.5 * Math.sin(line.userData.pulsePhase);
+                line.material.opacity = 0.5 + 0.4 * (1 - progress) * pulse;
+              }
+            }
+          }
+        }
+      };
+      
+      // Add ambient light to the scene
+      const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+      group.add(ambientLight);
+      
+      // Add a light to the scene
+      const light = new THREE.PointLight(0xffffff, 1, 100);
+      light.position.set(0, 0, 20);
+      group.add(light);
+      
+      return group;
+    }
+
+    // Animation loop with neural network flashing
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Process keyboard controls if available
+      if (typeof processKeyboardControls === 'function') {
+        processKeyboardControls();
+      }
+      
+      // Check for node interactions
+      if (typeof checkNodeInteractions === 'function') {
+        checkNodeInteractions();
+      }
+      
+      // Update larvae
+      if (typeof updateLarvae === 'function' && larvae) {
+        updateLarvae(larvae);
+      }
+      
+      // Update the neural network with flashing
+      if (neuralNetwork && neuralNetwork.userData && neuralNetwork.userData.update) {
+        neuralNetwork.userData.update(performance.now() * 0.001);
+      }
+      
+      // Rotate the background group for skybox effect
+      if (backgroundGroup) {
+        backgroundGroup.rotation.y += 0.0005;
+        backgroundGroup.rotation.x += 0.0002;
+      }
+      
+      // Rotate the scene slightly for visual interest when not using keyboard
+      if (neuralNetwork) {
+        if (!isDragging && !prefersReducedMotion && 
+            (!keyState || (!keyState.w && !keyState.a && !keyState.s && !keyState.d && 
+            !keyState.arrowup && !keyState.arrowleft && !keyState.arrowdown && !keyState.arrowright))) {
+          neuralNetwork.rotation.y += 0.001; // Slower rotation
+          neuralNetwork.rotation.z += 0.0005;
+        } else if (prefersReducedMotion) {
+          // Set to static rotation for reduced motion preference
+          neuralNetwork.rotation.y = 0.2;
+          neuralNetwork.rotation.z = 0.1;
+        }
+      }
+      
+      // Render the scene
+      renderer.render(scene, camera);
+    }
+    
+    // Initialize and start the application
+    function init() {
+      // Create the neural network
+      neuralNetwork = createNeuralNetwork();
+      scene.add(neuralNetwork);
+      
+      // Initialize the Drosophila larvae simulation
+      larvae = initDrosophilaBackground();
+      
+      // Set initial camera position based on device
+      const isMobile = window.innerWidth < 768;
+      camera.position.z = isMobile ? 25 : 30;
+      cameraDistance = isMobile ? 25 : 30;
+      
+      // Hide keyboard shortcuts after 5 seconds
+      setTimeout(() => {
+        const keyboardShortcuts = document.querySelector('.keyboard-shortcuts');
+        if (keyboardShortcuts) {
+          keyboardShortcuts.classList.add('hidden');
+        }
+      }, 5000);
+      
+      // Add touch controls for mobile
+      setupTouchControls();
+      
+      // Start the animation loop
+      animate();
+    }
+    
+    // Touch controls for mobile devices
+    function setupTouchControls() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartTime = 0;
+      let isTouching = false;
+      
+      // Handle touch start
+      document.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 1) {
+          touchStartX = event.touches[0].clientX;
+          touchStartY = event.touches[0].clientY;
+          touchStartTime = Date.now();
+          isTouching = true;
+        }
+      }, { passive: true });
+      
+      // Handle touch move
+      document.addEventListener('touchmove', (event) => {
+        if (isTouching && event.touches.length === 1) {
+          const touchX = event.touches[0].clientX;
+          const touchY = event.touches[0].clientY;
+          
+          const deltaX = touchX - touchStartX;
+          const deltaY = touchY - touchStartY;
+          
+          // Update rotation based on touch movement
+          targetRotationY -= deltaX * 0.005;
+          targetRotationX -= deltaY * 0.005;
+          
+          touchStartX = touchX;
+          touchStartY = touchY;
+        }
+      }, { passive: true });
+      
+      // Handle touch end
+      document.addEventListener('touchend', (event) => {
+        const touchEndTime = Date.now();
+        const touchDuration = touchEndTime - touchStartTime;
+        
+        // Detect tap (quick touch)
+        if (touchDuration < 300) {
+          // Implement tap behavior if needed
+        }
+        
+        isTouching = false;
+      }, { passive: true });
+      
+      // Handle pinch zoom
+      let initialPinchDistance = 0;
+      
+      document.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 2) {
+          initialPinchDistance = Math.hypot(
+            event.touches[0].clientX - event.touches[1].clientX,
+            event.touches[0].clientY - event.touches[1].clientY
+          );
+        }
+      }, { passive: true });
+      
+      document.addEventListener('touchmove', (event) => {
+        if (event.touches.length === 2) {
+          const currentPinchDistance = Math.hypot(
+            event.touches[0].clientX - event.touches[1].clientX,
+            event.touches[0].clientY - event.touches[1].clientY
+          );
+          
+          const pinchDelta = currentPinchDistance - initialPinchDistance;
+          
+          // Adjust camera distance based on pinch
+          cameraDistance = Math.max(
+            minDistance,
+            Math.min(maxDistance, cameraDistance - pinchDelta * 0.05)
+          );
+          
+          initialPinchDistance = currentPinchDistance;
+          updateCameraPosition();
+        }
+      }, { passive: true });
+    }
+    
+    // Start the application when page is loaded
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize animations
+      checkElementsInView();
+      
+      // Initialize gallery filters if available
+      if (typeof initGalleryFilters === 'function') {
+        initGalleryFilters();
+      }
+      
+      // Initialize the 3D visualization
+      init();
+    });
+
+    // Add animation for elements when they come into view
+    function checkElementsInView() {
+      // Get all sections
+      const sections = document.querySelectorAll('.content section');
+      
+      // Get all project cards
+      const projectCards = document.querySelectorAll('.project-card');
+      
+      // Get all list items
+      const listItems = document.querySelectorAll('.content li');
+      
+      // Options for the Intersection Observer
+      const options = {
+        root: null, // viewport
+        rootMargin: '0px',
+        threshold: 0.1 // 10% visibility
+      };
+      
+      // Callback for the observer
+      const callback = (entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const delay = entry.target.dataset.delay || 0;
+            
+            setTimeout(() => {
+              entry.target.classList.add('visible');
+            }, delay);
+            
+            // Stop observing once visible
+            observer.unobserve(entry.target);
+          }
+        });
+      };
+      
+      // Create the observer
+      const observer = new IntersectionObserver(callback, options);
+      
+      // Observe sections
+      sections.forEach((section, index) => {
+        section.dataset.delay = index * 100; // Stagger the animations
+        observer.observe(section);
+      });
+      
+      // Observe project cards
+      projectCards.forEach((card, index) => {
+        card.dataset.delay = index * 150; // Stagger the animations
+        observer.observe(card);
+      });
+      
+      // Observe list items
+      listItems.forEach((item, index) => {
+        item.dataset.delay = index * 100; // Stagger the animations
+        observer.observe(item);
+      });
+    }
+    
+    // Ensure animations work on page resize
+    window.addEventListener('resize', () => {
+      checkElementsInView();
+    });
+
+    // Gallery filtering functionality
+    function initGalleryFilters() {
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      const galleryItems = document.querySelectorAll('.gallery-item');
+      const galleryGrid = document.querySelector('.gallery-grid');
+      
+      // Add gallery grid to intersection observer
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            galleryGrid.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      if (galleryGrid) {
+        observer.observe(galleryGrid);
+      }
+      
+      // Filter functionality
+      filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Update active button
+          filterButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          
+          const filterValue = button.getAttribute('data-filter');
+          
+          // Filter items
+          galleryItems.forEach(item => {
+            const categories = item.getAttribute('data-category').split(' ');
+            
+            if (filterValue === 'all' || categories.includes(filterValue)) {
+              item.classList.remove('hidden');
+              setTimeout(() => {
+                item.style.display = 'flex';
+              }, 300);
+            } else {
+              item.classList.add('hidden');
+              setTimeout(() => {
+                item.style.display = 'none';
+              }, 300);
+            }
+          });
+        });
+      });
+    }
+    
+    // Initialize gallery on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      checkElementsInView();
+      initGalleryFilters();
+    });
+
+    // Keyboard navigation controls
+    const keyState = {
+      w: false,
+      a: false,
+      s: false,
+      d: false,
+      arrowup: false,
+      arrowleft: false,
+      arrowdown: false,
+      arrowright: false,
+      plus: false,
+      minus: false
+    };
+    
+    // Camera parameters
+    let cameraDistance = 30;
+    const minDistance = 15;
+    const maxDistance = 50;
+    let targetRotationX = 0;
+    let targetRotationY = 0;
+    let currentRotationX = 0;
+    let currentRotationY = 0;
+    
+    // Key down event
+    document.addEventListener('keydown', (event) => {
+      const key = event.key.toLowerCase();
+      if (key in keyState) {
+        keyState[key] = true;
+        event.preventDefault();
+      }
+      
+      // Check for specific key presses
+      if (key === 'r') {
+        // Reset view
+        resetView();
+      } else if (key === '=' || key === '+') {
+        // Zoom in
+        keyState.plus = true;
+      } else if (key === '-' || key === '_') {
+        // Zoom out
+        keyState.minus = true;
+      }
+    });
+    
+    // Key up event
+    document.addEventListener('keyup', (event) => {
+      const key = event.key.toLowerCase();
+      if (key in keyState) {
+        keyState[key] = false;
+        event.preventDefault();
+      }
+      
+      // Check for specific key releases
+      if (key === '=' || key === '+') {
+        keyState.plus = false;
+      } else if (key === '-' || key === '_') {
+        keyState.minus = false;
+      }
+    });
+    
+    // Reset view function
+    function resetView() {
+      cameraDistance = 30;
+      targetRotationX = 0;
+      targetRotationY = 0;
+      currentRotationX = 0;
+      currentRotationY = 0;
+      
+      // Apply changes
+      updateCameraPosition();
+    }
+    
+    // Update camera position based on current settings
+    function updateCameraPosition() {
+      // Calculate camera position using spherical coordinates
+      const phi = currentRotationX + Math.PI/2;  // Elevation angle
+      const theta = currentRotationY;            // Azimuthal angle
+      
+      // Update camera position
+      camera.position.x = cameraDistance * Math.sin(phi) * Math.cos(theta);
+      camera.position.y = cameraDistance * Math.cos(phi);
+      camera.position.z = cameraDistance * Math.sin(phi) * Math.sin(theta);
+      
+      // Look at center of scene
+      camera.lookAt(0, 0, 0);
+    }
+    
+    // Process keyboard controls in animation loop
+    function processKeyboardControls() {
+      // Movement speed values
+      const rotationSpeed = 0.03;
+      const zoomSpeed = 0.5;
+      
+      // Handle WASD for camera position
+      if (keyState.w) {
+        targetRotationX -= rotationSpeed;
+      }
+      if (keyState.s) {
+        targetRotationX += rotationSpeed;
+      }
+      if (keyState.a) {
+        targetRotationY -= rotationSpeed;
+      }
+      if (keyState.d) {
+        targetRotationY += rotationSpeed;
+      }
+      
+      // Handle arrow keys for rotation
+      if (keyState.arrowup) {
+        targetRotationX -= rotationSpeed;
+      }
+      if (keyState.arrowdown) {
+        targetRotationX += rotationSpeed;
+      }
+      if (keyState.arrowleft) {
+        targetRotationY -= rotationSpeed;
+      }
+      if (keyState.arrowright) {
+        targetRotationY += rotationSpeed;
+      }
+      
+      // Handle zoom with +/- keys
+      if (keyState.plus) {
+        cameraDistance = Math.max(minDistance, cameraDistance - zoomSpeed);
+      }
+      if (keyState.minus) {
+        cameraDistance = Math.min(maxDistance, cameraDistance + zoomSpeed);
+      }
+      
+      // Apply smooth easing to rotation
+      currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+      currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+      
+      // Update camera position
+      updateCameraPosition();
+    }
+
+    // Handle window resize events
+    window.addEventListener('resize', () => {
+      // Update renderer and camera
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      
+      // Adjust field of view based on aspect ratio to prevent stretching on ultrawide
+      const aspectRatio = window.innerWidth / window.innerHeight;
+      if (aspectRatio > 2.0) { // Ultrawide
+        camera.fov = Math.min(75, 75 - (aspectRatio - 2.0) * 10); // Reduce FOV as width increases
+      } else {
+        camera.fov = 75; // Default FOV
+      }
+      
+      camera.updateProjectionMatrix();
+      
+      // Check if we're crossing the mobile threshold
+      const wasMobile = window.innerWidth < 768;
+      
+      // Call animation-related functions
+      checkElementsInView();
+      
+      // Update camera distance based on screen size
+      if (window.innerWidth < 768) {
+        // Mobile view - move camera closer
+        if (cameraDistance > 25) {
+          cameraDistance = 25;
+          updateCameraPosition();
+        }
+      } else if (aspectRatio > 2.0) {
+        // Ultrawide - move camera back
+        const desiredDistance = 30 + (aspectRatio - 2.0) * 5;
+        cameraDistance = Math.min(maxDistance, desiredDistance);
+        updateCameraPosition();
+      }
+    });
+
+    // Detect device capabilities
+    function detectDeviceCapabilities() {
+      const capabilities = {
+        isMobile: window.innerWidth < 768,
+        isLowEnd: false,
+        preferReducedMotion: prefersReducedMotion,
+        needsLowerEffects: false
+      };
+      
+      // Check for low-end devices - can expand this with more checks later
+      const lowEndDevicePixelRatio = 1;
+      if (window.devicePixelRatio <= lowEndDevicePixelRatio) {
+        capabilities.isLowEnd = true;
+      }
+      
+      // Combine factors to determine if we need lower effects
+      capabilities.needsLowerEffects = 
+        capabilities.isMobile || 
+        capabilities.isLowEnd || 
+        capabilities.preferReducedMotion;
+      
+      return capabilities;
+    }
+    
+    // Update the Drosophila larvae simulation as skybox
+    function initDrosophilaBackground() {
+      const capabilities = detectDeviceCapabilities();
+      
+      // Create spherical environment for larvae simulation
+      const radius = 50; // Larger radius for skybox effect
+      
+      // Create persistent trajectories group to track larva paths
+      const trajectoriesGroup = new THREE.Group();
+      backgroundGroup.add(trajectoriesGroup);
+      
+      // Create larvae - fewer on mobile/low-end
+      const larvaeCount = capabilities.needsLowerEffects ? 50 : 100;
+      const larvae = [];
+      
+      for (let i = 0; i < larvaeCount; i++) {
+        // Create a more realistic larva shape with segments
+        const larvaLength = 0.8 + Math.random() * 0.4; // Random length
+        
+        // Create segmented larva - simpler on low-end devices
+        const segmentCount = capabilities.needsLowerEffects ? 10 : 20;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(larvaLength * 0.3, 0, 0),
+          new THREE.Vector3(larvaLength * 0.6, 0, 0),
+          new THREE.Vector3(larvaLength, 0, 0)
+        ]);
+        
+        const points = curve.getPoints(segmentCount);
+        const larvaGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        
+        // Create glowing effect that mimics infrared footage
+        const larvaMaterial = new THREE.LineBasicMaterial({
+          color: 0xdddddd, // Slightly off-white for IR appearance
+          linewidth: capabilities.needsLowerEffects ? 2 : 3,
+          opacity: capabilities.needsLowerEffects ? 0.7 : 0.85,
+          transparent: true
+        });
+        
+        const larva = new THREE.Line(larvaGeometry, larvaMaterial);
+        
+        // Create a glow effect using a point light - only on higher-end devices
+        if (!capabilities.needsLowerEffects) {
+          const glowLight = new THREE.PointLight(0xffffff, 0.5, 1);
+          glowLight.position.set(larvaLength/2, 0, 0);
+          larva.add(glowLight);
+        }
+        
+        // Position randomly on a sphere
+        const phi = Math.acos(2 * Math.random() - 1); // Random angle from top to bottom
+        const theta = Math.random() * Math.PI * 2; // Random angle around the sphere
+        
+        larva.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        larva.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        larva.position.z = radius * Math.cos(phi);
+        
+        // Orient larva tangent to the sphere
+        larva.lookAt(0, 0, 0);
+        // Then rotate around its own axis for random direction on the sphere surface
+        const randomRotation = Math.random() * Math.PI * 2;
+        larva.rotateOnAxis(new THREE.Vector3(0, 0, 1), randomRotation);
+        
+        // Add motion properties
+        larva.userData = {
+          velocity: 0.02 + Math.random() * 0.03, // Random speed
+          direction: randomRotation,
+          lastTurn: 0,
+          turnInterval: 20 + Math.random() * 40,
+          wigglePhase: Math.random() * Math.PI * 2,
+          wiggleFrequency: 0.2 + Math.random() * 0.3,
+          wiggleAmount: 0.05 + Math.random() * 0.1,
+          size: 0.3 + Math.random() * 0.2,
+          
+          // Make trajectories more visible and persistent
+          trajectoryPoints: [],
+          trajectoryColor: new THREE.Color(
+            0.7 + Math.random() * 0.3, // Brighter colors
+            0.7 + Math.random() * 0.3,
+            0.7 + Math.random() * 0.3
+          ),
+          lastTrajectoryUpdate: 0,
+          trajectoryUpdateInterval: capabilities.needsLowerEffects ? 5 : 3, // Less frequent updates on mobile
+          
+          // Headcasting behavior
+          isHeadcasting: false,
+          headcastTimer: 0,
+          headcastInterval: 100 + Math.random() * 200,
+          headcastDuration: 0,
+          headcastMaxDuration: 0,
+          
+          // Store original position on sphere for containment
+          originalRadius: radius,
+          phi: phi,
+          theta: theta,
+          
+          // Flag for optimized rendering
+          needsLowerEffects: capabilities.needsLowerEffects
+        };
+        
+        // Resize larva based on random size
+        larva.scale.set(larva.userData.size, larva.userData.size, larva.userData.size);
+        
+        backgroundGroup.add(larva);
+        larvae.push(larva);
+      }
+      
+      return larvae;
+    }
+    
+    // Create a neural network-like structure with a simplified implementation
+    function createNeuralNetwork() {
+      const capabilities = detectDeviceCapabilities();
+      const group = new THREE.Group();
+      
+      // Create materials for nodes with more glow/flash effect
+      const nodeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6d72a8,
+        emissive: 0x6d72a8,
+        emissiveIntensity: capabilities.needsLowerEffects ? 0.6 : 0.8,
+        metalness: capabilities.needsLowerEffects ? 0.7 : 0.9,
+        roughness: 0.1
+      });
+      
+      const nodeGeometry = new THREE.SphereGeometry(0.25, capabilities.needsLowerEffects ? 8 : 16, capabilities.needsLowerEffects ? 8 : 16);
+      const nodes = [];
+      const connectionMaterial = new THREE.LineBasicMaterial({
+        color: 0x6d72a8,
+        transparent: true,
+        opacity: 0.5
+      });
+      
+      // Create some basic nodes - fewer on lower-end devices
+      const nodeCount = capabilities.needsLowerEffects ? 30 : 60;
+      
+      for (let i = 0; i < nodeCount; i++) {
+        const node = new THREE.Mesh(nodeGeometry, nodeMaterial.clone());
+        
+        // Position each node randomly in a sphere
+        const radius = capabilities.needsLowerEffects ? 12 : 15;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        node.position.x = radius * Math.sin(phi) * Math.cos(theta);
+        node.position.y = radius * Math.sin(phi) * Math.sin(theta);
+        node.position.z = radius * Math.cos(phi);
+        
+        // Add metadata to the node
+        node.userData = {
+          velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03,
+            (Math.random() - 0.5) * 0.03
+          ),
+          isAnchor: false,
+          active: false,
+          flashTimer: Math.random() * 100,
+          flashInterval: capabilities.needsLowerEffects ? 50 + Math.random() * 100 : 30 + Math.random() * 100,
+          flashDuration: 20 + Math.random() * 20,
+          flashIntensity: capabilities.needsLowerEffects ? 1.2 : 1.5 + Math.random() * 1.0,
+          pulsePhase: Math.random() * Math.PI * 2,
+          needsLowerEffects: capabilities.needsLowerEffects
+        };
+        
+        // Add a point light to each node for extra glow - only on higher-end devices
+        if (!capabilities.needsLowerEffects) {
+          const nodeLight = new THREE.PointLight(0x6d72a8, 0.5, 3);
+          nodeLight.position.set(0, 0, 0);
+          node.add(nodeLight);
+          node.userData.light = nodeLight;
+        }
+        
+        nodes.push(node);
+        group.add(node);
+      }
+      
+      // Create some connections between nodes - fewer on mobile
+      const connections = [];
+      const connectionsPerNode = capabilities.needsLowerEffects ? 3 : 5;
+      
+      for (let i = 0; i < nodes.length; i++) {
+        // Connect to a few nearby nodes
+        for (let j = 0; j < connectionsPerNode; j++) {
+          const targetIndex = (i + j + 1) % nodes.length;
+          
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            nodes[i].position,
+            nodes[targetIndex].position
+          ]);
+          
+          const line = new THREE.Line(geometry, connectionMaterial.clone());
+          line.userData = {
+            pointA: i,
+            pointB: targetIndex,
+            flashActive: false,
+            flashTimer: Math.random() * 100,
+            pulsePhase: Math.random() * Math.PI * 2,
+            needsLowerEffects: capabilities.needsLowerEffects
+          };
+          
+          connections.push(line);
+          group.add(line);
+        }
+      }
+      
+      // Add fewer lights on mobile
+      if (!capabilities.needsLowerEffects) {
+        // Add ambient light to the scene
+        const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+        group.add(ambientLight);
+        
+        // Add a light to the scene
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(0, 0, 20);
+        group.add(light);
+      } else {
+        // Simplified lighting for mobile
+        const ambientLight = new THREE.AmbientLight(0x606080, 0.7);
+        group.add(ambientLight);
+      }
+      
+      // Store references to the nodes and connections
+      group.userData = {
+        nodes: nodes,
+        connections: connections,
+        needsLowerEffects: capabilities.needsLowerEffects,
+        update: function(time) {
+          // Update this in a lower frequency on mobile devices to save performance
+          const updateFrequency = this.needsLowerEffects ? 2 : 1; // Only update every other frame on mobile
+          if (this.needsLowerEffects && (Math.floor(time * 10) % updateFrequency !== 0)) {
+            return; // Skip this update on lower-end devices
+          }
+          
+          // Rest of the update function...
+        }
+      };
+      
+      return group;
+    }
+  </script>
+</body>
+</html>
