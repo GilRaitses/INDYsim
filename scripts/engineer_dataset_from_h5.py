@@ -433,7 +433,12 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
     # using MAGAT-compatible thresholds. MAGAT's reorientation detection algorithm uses deltatheta
     # along with speed thresholds and head swing detection (numHS >= 1).
     #
+    # CRITICAL: We now also calculate MATLAB-compatible reorientation angles (reo_dtheta) using
+    # the same formula as MATLAB spatial calculations: diff(unwrap([prevDir;nextDir]))
+    # This is calculated in magat_segmentation.py and stored in the DataFrame as 'reo_dtheta'
+    #
     # MAGAT Reference: @MaggotReorientation class in magniphyq repository
+    # MATLAB Reference: spatialMaggotCalculations.m line 175
     deltatheta = None
     if 'derived' in track_data and isinstance(track_data['derived'], dict):
         if 'deltatheta' in track_data['derived']:
@@ -738,7 +743,14 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         is_run = segmentation['is_run']
         n_reorientations = segmentation['n_reorientations']
         
+        # Extract MATLAB-compatible reorientation angle calculations
+        reo_prevdir = segmentation.get('reo_prevdir', np.array([]))
+        reo_nextdir = segmentation.get('reo_nextdir', np.array([]))
+        reo_dtheta = segmentation.get('reo_dtheta', np.array([]))
+        
         print(f"    MAGAT segmentation: {segmentation['n_runs']} runs, {segmentation['n_head_swings']} head swings, {n_reorientations} reorientations")
+        if len(reo_dtheta) > 0:
+            print(f"    MATLAB-compatible reo_dtheta: {len(reo_dtheta)} reorientations, range [{np.rad2deg(np.min(reo_dtheta)):.1f}°, {np.rad2deg(np.max(reo_dtheta)):.1f}°]")
         
         # Store segmentation for Klein run table generation (turns will be added after pause detection)
         magat_segmentation = segmentation
@@ -785,6 +797,28 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
     # Create frame array (0-indexed track frame numbers)
     frames = np.arange(n_frames)
     
+    # Create arrays for reorientation angle data (MATLAB-compatible)
+    # These arrays have one value per reorientation, not per frame
+    # We'll store them as attributes or create per-frame arrays
+    reo_dtheta_per_frame = np.full(n_frames, np.nan)  # NaN for non-reorientation frames
+    reo_prevdir_per_frame = np.full(n_frames, np.nan)
+    reo_nextdir_per_frame = np.full(n_frames, np.nan)
+    
+    # Map reorientation angles to frames (at reorientation start)
+    if 'magat_segmentation' in locals() and magat_segmentation is not None:
+        reorientations = magat_segmentation.get('reorientations', [])
+        reo_dtheta_array = magat_segmentation.get('reo_dtheta', np.array([]))
+        reo_prevdir_array = magat_segmentation.get('reo_prevdir', np.array([]))
+        reo_nextdir_array = magat_segmentation.get('reo_nextdir', np.array([]))
+        
+        for i, (reo_start, reo_end) in enumerate(reorientations):
+            if i < len(reo_dtheta_array):
+                # Store at reorientation start frame (MATLAB convention)
+                if reo_start < n_frames:
+                    reo_dtheta_per_frame[reo_start] = reo_dtheta_array[i]
+                    reo_prevdir_per_frame[reo_start] = reo_prevdir_array[i]
+                    reo_nextdir_per_frame[reo_start] = reo_nextdir_array[i]
+    
     df = pd.DataFrame({
         'frame': frames,
         'time': time,
@@ -804,6 +838,9 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         'is_turn_simple': is_turn_simple,  # Simple heading change detection (backwards compatibility)
         'is_reorientation': is_reorientation,  # MAGAT reorientation detection (start events)
         'is_run': is_run if 'is_run' in locals() else np.zeros(n_frames, dtype=bool),  # MAGAT run detection
+        'reo_dtheta': reo_dtheta_per_frame,  # MATLAB-compatible: diff(unwrap([prevDir;nextDir]))
+        'reo_prevdir': reo_prevdir_per_frame,  # Direction before reorientation
+        'reo_nextdir': reo_nextdir_per_frame,  # Direction after reorientation
         **spine_data  # Add spine point columns
     })
     

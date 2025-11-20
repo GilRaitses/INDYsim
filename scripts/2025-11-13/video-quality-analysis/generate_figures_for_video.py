@@ -206,3 +206,4 @@ if __name__ == '__main__':
     output_dir = sys.argv[2]
     generate_figures(json_path, output_dir)
 
+

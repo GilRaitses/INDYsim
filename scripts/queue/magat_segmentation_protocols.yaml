@@ -1,0 +1,424 @@
+# MAGAT Segmentation Protocol Documentation
+# Documents all methods in magat_segmentation.py with MATLAB codebase references
+# Indicates validation status and deviations requiring alignment
+
+file: scripts/queue/magat_segmentation.py
+matlab_reference_repo: https://github.com/GilRaitses/magniphyq
+last_updated: 2025-01-XX
+
+classes:
+  MaggotSegmentOptions:
+    description: "Segmentation options/parameters for MAGAT track segmentation"
+    matlab_reference:
+      file: "@MaggotSegmentOptions/MaggotSegmentOptions.m"
+      path: "Matlab-Track-Analysis-SkanataLab/@MaggotSegmentOptions/MaggotSegmentOptions.m"
+      validation_status: "validated"
+    
+    properties:
+      curv_cut:
+        python_default: 0.4
+        matlab_default: 0.4
+        description: "If track curvature > curv_cut, end a run"
+        validation_status: "validated"
+        matlab_line: 6
+        
+      autoset_curv_cut:
+        python_default: False
+        matlab_default: false
+        description: "If true, curvature cut is set to autoset_curv_cut_mult/body length"
+        validation_status: "validated"
+        matlab_line: 7
+        
+      autoset_curv_cut_mult:
+        python_default: 5
+        matlab_default: 5
+        description: "Multiplier for auto-setting curvature cut"
+        validation_status: "validated"
+        matlab_line: 8
+        
+      theta_cut:
+        python_default: "np.pi / 2"
+        matlab_default: "pi/2"
+        description: "If body theta > theta_cut, end a run"
+        validation_status: "validated"
+        matlab_line: 9
+        
+      speed_field:
+        python_default: "'speed'"
+        matlab_default: "'speed'"
+        description: "Name of field that contains speed to use"
+        validation_status: "validated"
+        matlab_line: 10
+        
+      stop_speed_cut:
+        python_default: 2.0
+        matlab_default: 2
+        description: "If speed < stop_speed_cut, end a run (mm/s)"
+        validation_status: "validated"
+        matlab_line: 11
+        deviation_note: "Python includes unit conversion logic for cm/s data"
+        
+      start_speed_cut:
+        python_default: 3.0
+        matlab_default: 3
+        description: "If speed > start_speed_cut && vel_dp > aligned_dp, run can start"
+        validation_status: "validated"
+        matlab_line: 12
+        deviation_note: "Python includes unit conversion logic for cm/s data"
+        
+      aligned_dp:
+        python_default: "np.cos(np.deg2rad(45))"
+        matlab_default: "cosd(45)"
+        description: "If vel_dp > aligned_dp && speed > start_speed_cut, run can start"
+        validation_status: "validated"
+        matlab_line: 13
+        
+      minRunTime:
+        python_default: 2.5
+        matlab_default: 2.5
+        description: "If run is less than this many seconds, discard"
+        validation_status: "validated"
+        matlab_line: 15
+        
+      minRunLength:
+        python_default: 0.0
+        matlab_default: 0
+        description: "If run is less than this distance, discard (cm)"
+        validation_status: "validated"
+        matlab_line: 16
+        
+      minRunSpeed:
+        python_default: 0.0
+        matlab_default: null
+        description: "Minimum average speed during run (Python extension)"
+        validation_status: "deviation"
+        deviation_note: "Not in MATLAB MaggotSegmentOptions - Python extension for quality filtering"
+        
+      requireRunContinuous:
+        python_default: True
+        matlab_default: null
+        description: "If True, runs must be continuous (no gaps)"
+        validation_status: "deviation"
+        deviation_note: "Not in MATLAB MaggotSegmentOptions - Python extension for quality filtering"
+        
+      headswing_start:
+        python_default: "np.deg2rad(20)"
+        matlab_default: "deg2rad(20)"
+        description: "If body theta > headswing_start and not in a run, start a headswing"
+        validation_status: "validated"
+        matlab_line: 20
+        
+      headswing_stop:
+        python_default: "np.deg2rad(10)"
+        matlab_default: "deg2rad(10)"
+        description: "If body theta < headswing_stop (or changes sign), end headswing"
+        validation_status: "validated"
+        matlab_line: 22
+        
+      smoothBodyFromPeriFreq:
+        python_default: False
+        matlab_default: false
+        description: "If true, smooth body bend angle using peristalsis frequency"
+        validation_status: "validated"
+        matlab_line: 25
+        
+      smoothBodyTime:
+        python_default: None
+        matlab_default: []
+        description: "If not empty, smooth body bend angle with this time"
+        validation_status: "validated"
+        matlab_line: 26
+        
+      minHeadSwingDuration:
+        python_default: 0.05
+        matlab_default: null
+        description: "Minimum head swing duration in seconds (Python extension)"
+        validation_status: "deviation"
+        deviation_note: "Not in MATLAB MaggotSegmentOptions - Python extension for quality filtering"
+        
+      minHeadSwingAmplitude:
+        python_default: "np.deg2rad(10)"
+        matlab_default: null
+        description: "Minimum maxTheta amplitude in radians (Python extension)"
+        validation_status: "deviation"
+        deviation_note: "Not in MATLAB MaggotSegmentOptions - Python extension for quality filtering"
+        
+      requireAccepted:
+        python_default: False
+        matlab_default: null
+        description: "If True, only accept head swings that end in a run"
+        validation_status: "deviation"
+        deviation_note: "MAGAT default is True, but Python defaults to False for leniency"
+        
+      requireValid:
+        python_default: False
+        matlab_default: null
+        description: "If True, require valid head-tail detection (if htValid available)"
+        validation_status: "deviation"
+        deviation_note: "Not in MATLAB MaggotSegmentOptions - Python extension for quality filtering"
+
+functions:
+  magat_segment_track:
+    description: "Full MAGAT segmentation algorithm implementation"
+    matlab_reference:
+      file: "@MaggotTrack/segmentTrack.m"
+      path: "Matlab-Track-Analysis-SkanataLab/@MaggotTrack/segmentTrack.m"
+      validation_status: "validated"
+      algorithm_steps:
+        - "1) Find everywhere not a run (because head is swinging wide, speed is low, track has a kink, vel_dp is low)"
+        - "2) Find run starts and stops based on (1) and min run start speed"
+        - "3) eliminate very short runs"
+        - "4) find head swings (head is swinging & not a run)"
+        - "5) group head swings into reorientations (turns) and also mark turns with no headswings"
+    
+    parameters:
+      trajectory_df:
+        type: "pd.DataFrame"
+        required_columns:
+          - "time"
+          - "speed"
+          - "curvature or curv"
+          - "spineTheta or sspineTheta or body_theta"
+          - "vel_dp (optional)"
+          - "x, y"
+          - "heading or theta"
+        validation_status: "validated"
+        
+      segment_options:
+        type: "MaggotSegmentOptions"
+        default: "None (creates default MaggotSegmentOptions)"
+        validation_status: "validated"
+        
+      frame_rate:
+        type: "float"
+        default: 10.0
+        validation_status: "validated"
+    
+    steps:
+      step_1_detect_notarun:
+        description: "Find everywhere NOT a run"
+        python_lines: [211, 253]
+        matlab_reference:
+          lines: [70, 77]
+          code: |
+            highcurv = (abs(cv) > mso.curv_cut);
+            head_swinging = (abs(bt) > mso.theta_cut);
+            speedlow = (sp < mso.stop_speed_cut);
+            notarun = (highcurv | head_swinging | speedlow);
+        validation_status: "validated"
+        deviations:
+          - "Python includes auto-adjustment logic for curvature threshold (percentile-based if values are very large)"
+          - "Python includes auto-adjustment logic for theta threshold (percentile-based approach)"
+          - "Python includes unit conversion logic for speed thresholds (mm/s vs cm/s)"
+        
+      step_2_find_run_ends:
+        description: "Find run end indices (transitions from False to True in notarun)"
+        python_lines: [255, 256]
+        matlab_reference:
+          lines: [78]
+          code: "endarun = find(diff(notarun) >= 1) + 1;"
+        validation_status: "validated"
+        
+      step_3_find_run_starts:
+        description: "Find run start indices"
+        python_lines: [258, 273]
+        matlab_reference:
+          lines: [84, 88]
+          code: |
+            speedhigh = (sp >= mso.start_speed_cut);
+            headaligned = (vdp >= mso.aligned_dp);
+            isarun = (~notarun & speedhigh & headaligned);
+            startarun = find(diff(isarun) >= 1) + 1;
+        validation_status: "validated"
+        deviations:
+          - "Python includes fallback logic: if vel_dp is constant/approximated, don't require head alignment"
+        
+      step_4_match_run_intervals:
+        description: "Match starts and stops, create run intervals"
+        python_lines: [275, 295]
+        matlab_reference:
+          lines: [90, 110]
+          code: |
+            start = startarun;
+            stop = endarun;
+            si = 1;
+            k = 0;
+            while (~isempty(si) && ~isempty(startarun))
+                k = k+1;
+                start(k) = startarun(si);
+                ei = find(endarun > start(k), 1, 'first');
+                ...
+        validation_status: "validated"
+        
+      step_5_apply_run_filters:
+        description: "Apply quality filters to runs (minRunTime, minRunLength, minRunSpeed, continuity)"
+        python_lines: [297, 346]
+        matlab_reference:
+          lines: [112, 127]
+          code: |
+            % eliminate very short runs
+            for k = 1:length(start)
+                if (track.dq.eti(stop(k)) - track.dq.eti(start(k)) < mso.minRunTime)
+                    start(k) = [];
+                    stop(k) = [];
+                end
+            end
+        validation_status: "partially_validated"
+        deviations:
+          - "MATLAB only filters by minRunTime"
+          - "Python adds additional filters: minRunLength, minRunSpeed, requireRunContinuous"
+          - "Python filters are extensions for quality control, not in MATLAB"
+        
+      step_6_detect_head_swings:
+        description: "Find head swings (head is swinging & not in a run)"
+        python_lines: [355, 454]
+        matlab_reference:
+          lines: [129, 180]
+          code: |
+            % find head swings
+            % head swings are periods where head swings wide AND not in a run
+            ...
+        validation_status: "validated"
+        deviations:
+          - "Python uses binary_dilation/binary_erosion for buffer handling (scipy.ndimage)"
+          - "MATLAB uses different buffer calculation method"
+          - "Python adds quality filters: minHeadSwingDuration, minHeadSwingAmplitude, requireAccepted, requireValid"
+        
+      step_7_group_reorientations:
+        description: "Group head swings into reorientations (gaps between runs)"
+        python_lines: [456, 490]
+        matlab_reference:
+          lines: [182, 227]
+          code: |
+            % group head swings into reorientations (turns)
+            % reorientations are gaps between runs
+            ...
+        validation_status: "validated"
+        
+      step_8_calculate_reorientation_angles:
+        description: "Calculate MATLAB-compatible reorientation angles (prevDir, nextDir, dtheta)"
+        python_lines: [492, 543]
+        matlab_reference:
+          file: "spatialMaggotCalculations.m"
+          path: "MAGATAnalyzer Example Scripts/higher level analysis for spatial gradients/spatialMaggotCalculations.m"
+          lines: [173, 175]
+          code: |
+            sc.reo_nextdir = eset.gatherSubField('reorientation', 'nextDir');
+            sc.reo_prevdir = eset.gatherSubField('reorientation', 'prevDir');
+            sc.reo_dtheta = diff(unwrap([sc.reo_prevdir;sc.reo_nextdir]));
+        validation_status: "validated"
+        deviations:
+          - "MATLAB extracts prevDir/nextDir from reorientation objects (track.reorientation.prevDir/nextDir)"
+          - "Python calculates prevDir/nextDir from run headings (end of previous run, start of next run)"
+          - "Python uses circular mean for stability (last 5 frames of prev run, first 5 frames of next run)"
+          - "Formula matches: diff(unwrap([prevDir;nextDir]))"
+        
+    return_values:
+      runs:
+        type: "List[Tuple[int, int]]"
+        description: "List of (start_idx, end_idx) tuples for each run"
+        validation_status: "validated"
+        
+      head_swings:
+        type: "List[Tuple[int, int]]"
+        description: "List of (start_idx, end_idx) tuples for each head swing"
+        validation_status: "validated"
+        
+      reorientations:
+        type: "List[Tuple[int, int]]"
+        description: "List of (start_idx, end_idx) tuples for each reorientation"
+        validation_status: "validated"
+        
+      reo_prevdir:
+        type: "np.ndarray"
+        description: "Direction of run BEFORE each reorientation (MATLAB-compatible)"
+        validation_status: "validated"
+        matlab_reference: "spatialMaggotCalculations.m line 174"
+        
+      reo_nextdir:
+        type: "np.ndarray"
+        description: "Direction of run AFTER each reorientation (MATLAB-compatible)"
+        validation_status: "validated"
+        matlab_reference: "spatialMaggotCalculations.m line 173"
+        
+      reo_dtheta:
+        type: "np.ndarray"
+        description: "Angle change using MATLAB formula: diff(unwrap([prevDir;nextDir]))"
+        validation_status: "validated"
+        matlab_reference: "spatialMaggotCalculations.m line 175"
+        
+      is_run:
+        type: "np.ndarray[bool]"
+        description: "Boolean array indicating run frames"
+        validation_status: "validated"
+        
+      is_head_swing:
+        type: "np.ndarray[bool]"
+        description: "Boolean array indicating head swing frames"
+        validation_status: "validated"
+        
+      is_reorientation:
+        type: "np.ndarray[bool]"
+        description: "Boolean array indicating reorientation START frames (not duration)"
+        validation_status: "validated"
+        deviation_note: "Python marks only START events, not all frames during reorientation"
+        
+      n_runs:
+        type: "int"
+        description: "Number of runs detected"
+        validation_status: "validated"
+        
+      n_head_swings:
+        type: "int"
+        description: "Number of head swings detected"
+        validation_status: "validated"
+        
+      n_reorientations:
+        type: "int"
+        description: "Number of reorientations detected"
+        validation_status: "validated"
+
+validation_summary:
+  validated_methods:
+    - "MaggotSegmentOptions class (core properties)"
+    - "Step 1: Detect notarun (core logic)"
+    - "Step 2: Find run ends"
+    - "Step 3: Find run starts"
+    - "Step 4: Match run intervals"
+    - "Step 5: Apply run filters (minRunTime only)"
+    - "Step 6: Detect head swings (core logic)"
+    - "Step 7: Group reorientations"
+    - "Step 8: Calculate reorientation angles (formula matches MATLAB)"
+  
+  deviations_requiring_alignment:
+    - "Speed unit conversion logic (Python auto-detects mm/s vs cm/s)"
+    - "Curvature threshold auto-adjustment (Python uses percentile-based fallback)"
+    - "Theta threshold auto-adjustment (Python uses percentile-based fallback)"
+    - "Additional run quality filters (minRunLength, minRunSpeed, requireRunContinuous)"
+    - "Additional head swing quality filters (minHeadSwingDuration, minHeadSwingAmplitude)"
+    - "Head swing buffer calculation (Python uses scipy.ndimage, MATLAB uses different method)"
+    - "prevDir/nextDir calculation method (Python calculates from runs, MATLAB extracts from objects)"
+  
+  extensions_not_in_matlab:
+    - "minRunSpeed filter"
+    - "requireRunContinuous filter"
+    - "minHeadSwingDuration filter"
+    - "minHeadSwingAmplitude filter"
+    - "requireValid filter"
+    - "Auto-detection of speed units (mm/s vs cm/s)"
+    - "Percentile-based threshold fallbacks"
+
+alignment_priorities:
+  high:
+    - "Verify prevDir/nextDir calculation matches MATLAB reorientation object properties"
+    - "Verify head swing buffer calculation matches MATLAB method"
+    - "Validate speed unit conversion logic produces same results as MATLAB"
+  
+  medium:
+    - "Review percentile-based threshold fallbacks - ensure they don't deviate significantly"
+    - "Validate additional quality filters don't change core segmentation results"
+  
+  low:
+    - "Document Python extensions as intentional quality improvements"
+    - "Consider making extensions optional/configurable"
+

@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../magniphyq/codebase"
+		},
+		{
+			"path": "../../../Matlab-Track-Analysis-MirnaLab"
+		},
+		{
+			"path": "../../../mechanosensation"
+		},
+		{
+			"path": "../../../rawdata/GMR61@GMR61"
+		}
+	],
+	"settings": {}
+}
