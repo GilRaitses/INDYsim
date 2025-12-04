@@ -1,0 +1,89 @@
+time_est: "HH:MM"
+subject: "Platform liberation handoff (analysis + master export)"
+
+workspace:
+  code_root: "/Users/gilraitses/INDYsim"
+  data_root: "/Users/gilraitses/INDYsim/data/h5_validated"
+  analysis_out: "/Users/gilraitses/INDYsim/data/h5_validated/analysis"
+  master_h5: "/Users/gilraitses/INDYsim/data/h5_validated/master_sim_input.h5"
+
+inputs:
+  validated_h5:
+    path: "/Users/gilraitses/INDYsim/data/h5_validated"
+    contents:
+      - "10 validated H5 experiment files"
+      - "manifest.json"
+  code:
+    platform_liberation: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation"
+    agent_worktree: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/agent/worktree"
+  originals_preserved:
+    - "/Users/gilraitses/INDYsim/scripts/engineer_dataset_from_h5_OG.py"
+    - "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/engineer_dataset_from_h5_backup.py"
+
+purpose:
+  - Run enhanced analysis on validated H5s (reverse/turn metrics with stimulus windows)
+  - Produce per-file JSON and combined_analysis.json
+  - Optionally export master_sim_input.h5 + manifest for simulator intake
+
+scripts:
+  analysis:
+    path: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/engineer_dataset_from_h5.py"
+    notes:
+      - uses derived_quantities/sloc (smoothed), lengthPerPixel from root
+      - reversal rule: SpeedRunVel < 0 for > 3s
+      - turn threshold: 45 degrees
+      - builds stimulus windows from LED1 ton/toff
+      - outputs: tracks, summary, windows, track_windows, population_windows, concurrency
+  export_master:
+    path: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/agent/worktree/export_master_h5.py"
+    notes:
+      - packs combined_analysis.json into master_sim_input.h5
+      - writes master_manifest.json sidecar
+  docs:
+    handoff: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/agent/handoff/README.md"
+    worktree: "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/agent/worktree/README.md"
+
+runtimes:
+  python: "python3 (or python) on Mac; no MATLAB required for these steps"
+
+commands:
+  analysis:
+    - mkdir -p "/Users/gilraitses/INDYsim/data/h5_validated/analysis"
+    - cd "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation"
+    - python3 engineer_dataset_from_h5.py "/Users/gilraitses/INDYsim/data/h5_validated" -o "/Users/gilraitses/INDYsim/data/h5_validated/analysis"
+  export_master:
+    - cd "/Users/gilraitses/INDYsim/scripts/2025-12-04/platform_liberation/agent/worktree"
+    - python3 export_master_h5.py --combined "/Users/gilraitses/INDYsim/data/h5_validated/analysis/combined_analysis.json" --output "/Users/gilraitses/INDYsim/data/h5_validated/master_sim_input.h5"
+
+outputs:
+  per_file_json: "/Users/gilraitses/INDYsim/data/h5_validated/analysis/*_analysis.json"
+  combined_json: "/Users/gilraitses/INDYsim/data/h5_validated/analysis/combined_analysis.json"
+  master_h5: "/Users/gilraitses/INDYsim/data/h5_validated/master_sim_input.h5"
+  master_manifest: "/Users/gilraitses/INDYsim/data/h5_validated/master_manifest.json"
+
+metrics_included:
+  track_level:
+    - reversals: count, duration, start/end times
+    - turns: count, rate/min, angle, direction
+    - speedrunvel: mean, %negative
+    - totals: track duration, total reversal time
+  window_level:
+    - per-track per-window: reversals, reversal_duration, turns, turn_rate/min, %negative SpeedRunVel, mean SpeedRunVel, window duration
+    - population per-window: stats (mean/median/min/max/std) for reversal counts/durations, turn counts/rates, %negative, mean SpeedRunVel; track count per window
+  concurrency:
+    - active track count per 10s bin across experiment
+
+protocols:
+  logging:
+    - Analysis writes JSON outputs; keep combined_analysis.json as source of truth for export_master_h5.py
+    - Record run command and git commit if available
+  housekeeping:
+    - Do not overwrite validated H5s; all derived files go under data/h5_validated/analysis/ and master_sim_input.h5
+    - Preserve originals: engineer_dataset_from_h5_OG.py and engineer_dataset_from_h5_backup.py
+
+assumptions:
+  - Validated H5s already contain /lengthPerPixel and camcal point arrays
+  - LED1 yData exists for windowing; windows derived from ton/toff
+  - Time base from /eti
+  - No MATLAB engine needed for these steps
+
