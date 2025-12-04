@@ -16,3 +16,9 @@ data/**/*.hdf5
 # MATLAB data and H5 files directories
 data/matlab_data/
 data/h5_files/
+
+# VS Code/Cursor workspace state databases (contain sensitive data)
+*.vscdb
+*.vscdb.backup
+**/workspace_storage/**/*.vscdb
+**/workspace_storage/**/*.vscdb.backup
