@@ -235,6 +235,34 @@ def export_tier2_magat(bridge, output_file):
         meta_grp.attrs['has_eti'] = eti_data is not None
         if eti_data is not None:
             meta_grp.attrs['eti_length'] = len(eti_data)
+        
+        # === EXPORT lengthPerPixel FROM CAMERA CALIBRATION ===
+        # This is CRITICAL for converting pixel positions to real-world cm
+        # MATLAB: cc = eset.expt(1).camcalinfo; lengthPerPixel = computed from c2rX/c2rY
+        print("  Extracting lengthPerPixel from camera calibration...")
+        try:
+            bridge.eng.workspace['app'] = bridge.app
+            # Compute lengthPerPixel using same method as MATLAB validation scripts
+            lpp_code = """
+            cc = app.DataManager.eset.expt(1).camcalinfo;
+            test_pixels_x = [100, 500];
+            test_pixels_y = [100, 500];
+            real_coords_x = cc.c2rX(test_pixels_x, test_pixels_y);
+            real_coords_y = cc.c2rY(test_pixels_x, test_pixels_y);
+            pixel_dist = sqrt((test_pixels_x(2) - test_pixels_x(1))^2 + (test_pixels_y(2) - test_pixels_y(1))^2);
+            real_dist = sqrt((real_coords_x(2) - real_coords_x(1))^2 + (real_coords_y(2) - real_coords_y(1))^2);
+            lengthPerPixel = real_dist / pixel_dist;
+            """
+            bridge.eng.eval(lpp_code, nargout=0)
+            length_per_pixel = float(bridge.eng.workspace['lengthPerPixel'])
+            
+            # Save to root AND metadata for easy access
+            f.create_dataset('lengthPerPixel', data=length_per_pixel)
+            meta_grp.attrs['lengthPerPixel'] = length_per_pixel
+            print(f"    [OK] lengthPerPixel = {length_per_pixel:.8f} cm/pixel")
+        except Exception as e:
+            print(f"    [WARNING] Could not extract lengthPerPixel: {e}")
+            print(f"    Camera calibration may not be available for this experiment.")
     
     export_time = time.time() - start_time
     file_size = Path(output_file).stat().st_size / (1024 * 1024)
