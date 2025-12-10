@@ -1,10 +1,40 @@
 # ETI-Track Frame Mismatch Handling
 
 **Date:** 2025-11-13  
-**Status:** CRITICAL DATA INTEGRITY ISSUE  
-**Policy:** DO NOT TRUNCATE DATA - PRESERVE ALL DATA POINTS
+**Updated:** 2025-12-10 - Now uses track-level ETI (RESOLVED)  
+**Status:** RESOLVED  
+**Policy:** USE TRACK-LEVEL ETI FOR TRACK DATA
 
-## Problem
+## Problem (RESOLVED)
+
+Previously, tracks had more frames than the global ETI array. This was due to:
+- **Global ETI**: Actual camera timestamps (~23997 frames, non-uniform)
+- **Track ETI**: Uniform interpolated time (24001 frames, exactly 0.05s steps)
+
+## Solution Implemented (2025-12-10)
+
+**Use track-level ETI from `/tracks/track_N/derived_quantities/eti`**
+
+The MATLAB pipeline interpolates all track data to a uniform time grid defined by
+`derivation_rules.interpTime` (typically 0.05s = 20 fps). Each track has its own
+ETI in `derived_quantities/eti` that matches the track data exactly.
+
+```python
+# In extract_trajectory_features():
+if 'derived' in track_data and 'eti' in track_data['derived']:
+    track_eti = track_data['derived']['eti'].flatten()
+    if len(track_eti) == n_frames:
+        time = track_eti.copy()  # Perfect match!
+```
+
+## Why This Works
+
+1. **Track data was interpolated to uniform grid** - so track ETI is the correct time base
+2. **No frame overflow** - track ETI length matches track data length exactly
+3. **Stimulus alignment preserved** - `merge_asof` with 50ms tolerance aligns
+   stimulus (global ETI) with trajectory (track ETI) by time values, not frame indices
+
+## Legacy Problem Description
 
 Some tracks have more frames than the ETI array has elements. This creates a mismatch where:
 - Track has `n_frames` data points

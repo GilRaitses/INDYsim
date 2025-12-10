@@ -149,31 +149,33 @@ def load_h5_file(h5_path: Path) -> Dict:
         # Method 1: Check global_quantities (gold standard tier2_complete format)
         if 'global_quantities' in f:
             gq = f['global_quantities']
-            # Check for led1Val and led2Val in global_quantities (exact match, not variations)
-            for key in gq.keys():
-                # Match exactly 'led1Val' (not 'led1ValDeriv', 'led1ValDiff', etc.)
-                if key == 'led1Val' and not led1_found:
-                    gq_item = gq[key]
-                    if isinstance(gq_item, h5py.Group):
-                        # Check for yData within the group
-                        if 'yData' in gq_item:
-                            data['led1Val'] = gq_item['yData'][:]
-                            led1_found = True
-                    elif isinstance(gq_item, h5py.Dataset):
-                        data['led1Val'] = gq_item[:]
-                        led1_found = True
-                
-                # Match exactly 'led2Val' (not 'led2ValDeriv', 'led2ValDiff', etc.)
-                elif key == 'led2Val' and not led2_found:
-                    gq_item = gq[key]
-                    if isinstance(gq_item, h5py.Group):
-                        # Check for yData within the group
-                        if 'yData' in gq_item:
-                            data['led2Val'] = gq_item['yData'][:]
-                            led2_found = True
-                    elif isinstance(gq_item, h5py.Dataset):
-                        data['led2Val'] = gq_item[:]
-                        led2_found = True
+            
+            # Helper to load LED field (handles both Group and Dataset)
+            def load_led_field(gq, field_name):
+                if field_name not in gq:
+                    return None
+                item = gq[field_name]
+                if isinstance(item, h5py.Group) and 'yData' in item:
+                    return item['yData'][:]
+                elif isinstance(item, h5py.Dataset):
+                    return item[:]
+                return None
+            
+            # Load LED1 value, derivative, and diff
+            led1_val = load_led_field(gq, 'led1Val')
+            if led1_val is not None:
+                data['led1Val'] = led1_val
+                led1_found = True
+            data['led1ValDeriv'] = load_led_field(gq, 'led1ValDeriv')
+            data['led1ValDiff'] = load_led_field(gq, 'led1ValDiff')
+            
+            # Load LED2 value, derivative, and diff
+            led2_val = load_led_field(gq, 'led2Val')
+            if led2_val is not None:
+                data['led2Val'] = led2_val
+                led2_found = True
+            data['led2ValDeriv'] = load_led_field(gq, 'led2ValDeriv')
+            data['led2ValDiff'] = load_led_field(gq, 'led2ValDiff')
         
         # Method 2: Check top-level led_data (fallback for led1Val)
         if not led1_found and 'led_data' in f:
@@ -271,64 +273,75 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
     # CRITICAL POLICY: ETI MUST ALWAYS BE USED FOR TIME CALCULATION
     # Using frame_rate-based time calculation is FORBIDDEN (causes 37+ minute tracks)
     # See docs/ETI_TIME_CALCULATION_POLICY.md
-    if eti is None:
-        raise ValueError("CRITICAL ERROR: ETI is REQUIRED for time calculation. "
-                        "ETI must be loaded from H5 root level and passed to this function. "
-                        "See docs/ETI_TIME_CALCULATION_POLICY.md")
     
-    # CRITICAL: Map track frames to ETI indices using track metadata
-    # Each track point corresponds to a specific ETI index via startFrame
-    # Track metadata contains startFrame and endFrame that map to ETI indices
-    if track_frame_indices is not None and len(track_frame_indices) == n_frames:
-        # Track has explicit frame indices mapping to ETI (provided externally)
-        time = eti[track_frame_indices]
-    elif 'metadata_attrs' in track_data and 'startFrame' in track_data['metadata_attrs']:
-        # Use startFrame from metadata to map track frames to ETI indices
-        start_frame = int(track_data['metadata_attrs']['startFrame'])
-        # Track frame i corresponds to ETI index (start_frame + i)
-        # Create array: [start_frame, start_frame+1, ..., start_frame+n_frames-1]
-        track_eti_indices = np.arange(start_frame, start_frame + n_frames, dtype=int)
+    # PREFERRED: Use track-level ETI from derived_quantities (uniform interpolated time)
+    # This matches track data exactly since MATLAB interpolates to interpTime grid
+    # See docs/logs/2025-12-10/ETI-OVERFLOW-RESEARCH-PROMPT.md for analysis
+    track_eti_used = False
+    if 'derived' in track_data and isinstance(track_data['derived'], dict):
+        if 'eti' in track_data['derived']:
+            track_eti = track_data['derived']['eti']
+            # Flatten if 2D (tier2 structure: shape (1, N))
+            if track_eti.ndim > 1:
+                track_eti = track_eti.flatten()
+            
+            if len(track_eti) == n_frames:
+                # Perfect match - use track-level ETI directly
+                time = track_eti.copy()
+                track_eti_used = True
+            elif len(track_eti) >= n_frames:
+                # Track ETI longer than position data - use first n_frames
+                time = track_eti[:n_frames].copy()
+                track_eti_used = True
+    
+    # FALLBACK: Map to global ETI if track-level ETI not available
+    if not track_eti_used:
+        if eti is None:
+            raise ValueError("CRITICAL ERROR: ETI is REQUIRED for time calculation. "
+                            "Neither track-level nor global ETI available. "
+                            "See docs/ETI_TIME_CALCULATION_POLICY.md")
         
-        # CRITICAL: Handle case where track frames exceed ETI length
-        # DO NOT TRUNCATE DATA - preserve all track data points
-        # See docs/ETI_TRACK_MISMATCH_HANDLING.md
-        max_eti_index = track_eti_indices[-1]
-        eti_length = len(eti)
-        
-        if max_eti_index >= eti_length:
-            # Track has more frames than ETI - handle overflow gracefully
-            n_overflow = max_eti_index - eti_length + 1
-            n_valid = n_frames - n_overflow
+        # Map track frames to global ETI indices using track metadata
+        if track_frame_indices is not None and len(track_frame_indices) == n_frames:
+            # Track has explicit frame indices mapping to ETI (provided externally)
+            time = eti[track_frame_indices]
+        elif 'metadata_attrs' in track_data and 'startFrame' in track_data['metadata_attrs']:
+            # Use startFrame from metadata to map track frames to ETI indices
+            start_frame = int(track_data['metadata_attrs']['startFrame'])
+            track_eti_indices = np.arange(start_frame, start_frame + n_frames, dtype=int)
             
-            print(f"    WARNING: Track has {n_frames} frames but ETI has {eti_length} elements. "
-                  f"Track frames exceed ETI by {n_overflow} frames. "
-                  f"Using ETI for {n_valid} frames, last ETI value for overflow frames.")
+            max_eti_index = track_eti_indices[-1]
+            eti_length = len(eti)
             
-            # Use ETI for valid indices (within ETI bounds)
-            time = np.zeros(n_frames)
-            valid_mask = track_eti_indices < eti_length
-            valid_indices = track_eti_indices[valid_mask]
-            
-            if len(valid_indices) > 0:
-                time[:len(valid_indices)] = eti[valid_indices]
-                # Use last ETI value for overflow frames (preserves all data points)
-                if len(valid_indices) < n_frames:
-                    time[len(valid_indices):] = eti[-1]  # Last ETI value
+            if max_eti_index >= eti_length:
+                # Track has more frames than global ETI - handle overflow gracefully
+                n_overflow = max_eti_index - eti_length + 1
+                n_valid = n_frames - n_overflow
+                
+                print(f"    WARNING: Track has {n_frames} frames but global ETI has {eti_length} elements. "
+                      f"Track frames exceed ETI by {n_overflow} frames. "
+                      f"Using global ETI for {n_valid} frames, last ETI value for overflow frames.")
+                
+                time = np.zeros(n_frames)
+                valid_mask = track_eti_indices < eti_length
+                valid_indices = track_eti_indices[valid_mask]
+                
+                if len(valid_indices) > 0:
+                    time[:len(valid_indices)] = eti[valid_indices]
+                    if len(valid_indices) < n_frames:
+                        time[len(valid_indices):] = eti[-1]
+                else:
+                    raise ValueError(f"CRITICAL ERROR: No valid ETI indices for track. "
+                                   f"startFrame={start_frame}, n_frames={n_frames}, ETI length={eti_length}")
             else:
-                raise ValueError(f"CRITICAL ERROR: No valid ETI indices for track. "
-                               f"startFrame={start_frame}, n_frames={n_frames}, ETI length={eti_length}")
+                time = eti[track_eti_indices].copy()
+        elif len(eti) == n_frames:
+            time = eti.copy()
         else:
-            # All frames within ETI bounds - normal case
-            time = eti[track_eti_indices].copy()
-    elif len(eti) == n_frames:
-        # ETI length exactly matches track frames - use directly (rare case)
-        time = eti.copy()
-    else:
-        # Cannot determine ETI mapping - require metadata
-        raise ValueError(f"CRITICAL ERROR: Cannot map track frames to ETI indices. "
-                       f"ETI length={len(eti)}, track frames={n_frames}. "
-                       f"Track metadata must contain 'startFrame' attribute. "
-                       f"See docs/ETI_TIME_CALCULATION_POLICY.md")
+            raise ValueError(f"CRITICAL ERROR: Cannot map track frames to ETI indices. "
+                           f"ETI length={len(eti)}, track frames={n_frames}. "
+                           f"Track metadata must contain 'startFrame' attribute. "
+                           f"See docs/ETI_TIME_CALCULATION_POLICY.md")
     
     # CRITICAL VALIDATION: Check if calculated duration exceeds expected experiment duration (20 minutes = 1200 seconds)
     # Experiments are exactly 20 minutes (1200 seconds), so allow max_time <= 1200
@@ -872,6 +885,112 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         **spine_data  # Add spine point columns
     })
     
+    # ==========================================================================
+    # TRACK-LEVEL LED EXTRACTION (uses track's own LED data - no merge needed)
+    # This is cleaner than merging with global stimulus data because:
+    # 1. Track LED is on same uniform time grid as track data (no alignment issues)
+    # 2. No NaN values from merge_asof tolerance failures
+    # 3. LED values were interpolated to same grid as position data by MATLAB
+    # ==========================================================================
+    derived = track_data.get('derived', {})
+    
+    # Extract LED1 values
+    led1_val = derived.get('led1Val')
+    if led1_val is not None:
+        if led1_val.ndim > 1:
+            led1_val = led1_val.flatten()
+        if len(led1_val) >= n_frames:
+            led1_val = led1_val[:n_frames]
+        else:
+            led1_val = np.pad(led1_val, (0, n_frames - len(led1_val)), mode='edge')
+        
+        # Compute LED1 ON/OFF state
+        led1_max = np.max(led1_val)
+        if led1_max > 0:
+            led1_threshold = led1_max * 0.1
+            led1_ton = led1_val > led1_threshold
+        else:
+            led1_ton = np.zeros(n_frames, dtype=bool)
+        led1_toff = ~led1_ton
+        
+        # Detect LED1 onsets/offsets using diff
+        led1_diff = derived.get('led1ValDiff')
+        if led1_diff is not None:
+            if led1_diff.ndim > 1:
+                led1_diff = led1_diff.flatten()
+            if len(led1_diff) >= n_frames:
+                led1_diff = led1_diff[:n_frames]
+            else:
+                led1_diff = np.pad(led1_diff, (0, n_frames - len(led1_diff)), mode='constant')
+            
+            # Onset: large positive diff, Offset: large negative diff
+            # Use 30% of max diff magnitude as threshold (robust to noise)
+            # LED transitions show large spikes (>1000), noise is small (<100)
+            diff_max = max(np.abs(led1_diff).max(), 1.0)
+            diff_threshold = diff_max * 0.3  # 30% of max diff
+            led1_onset = led1_diff > diff_threshold
+            led1_offset = led1_diff < -diff_threshold
+        else:
+            # Fallback: detect from state transitions
+            led1_padded = np.concatenate([[False], led1_ton])
+            led1_onset = (~led1_padded[:-1]) & led1_padded[1:]
+            led1_offset = led1_padded[:-1] & (~led1_padded[1:])
+        
+        df['led1Val'] = led1_val
+        df['led1Val_ton'] = led1_ton
+        df['led1Val_toff'] = led1_toff
+        df['led1Val_onset'] = led1_onset
+        df['led1Val_offset'] = led1_offset
+        
+        # Compute time_since_stimulus (from LED1 onsets)
+        time_since_stimulus = np.zeros(n_frames)
+        last_onset_time = np.nan
+        for i in range(n_frames):
+            if led1_onset[i]:
+                last_onset_time = time[i]
+            if not np.isnan(last_onset_time):
+                time_since_stimulus[i] = time[i] - last_onset_time
+        
+        df['stimulus_on'] = led1_ton
+        df['stimulus_onset'] = led1_onset
+        df['stimulus_offset'] = led1_offset
+        df['time_since_stimulus'] = time_since_stimulus
+    else:
+        # No LED1 data - create placeholders
+        df['led1Val'] = 0.0
+        df['led1Val_ton'] = False
+        df['led1Val_toff'] = True
+        df['stimulus_on'] = False
+        df['stimulus_onset'] = False
+        df['stimulus_offset'] = False
+        df['time_since_stimulus'] = 0.0
+    
+    # Extract LED2 values (if available)
+    led2_val = derived.get('led2Val')
+    if led2_val is not None:
+        if led2_val.ndim > 1:
+            led2_val = led2_val.flatten()
+        if len(led2_val) >= n_frames:
+            led2_val = led2_val[:n_frames]
+        else:
+            led2_val = np.pad(led2_val, (0, n_frames - len(led2_val)), mode='edge')
+        
+        led2_max = np.max(led2_val)
+        if led2_max > 0:
+            led2_threshold = led2_max * 0.1
+            led2_ton = led2_val > led2_threshold
+        else:
+            led2_ton = np.zeros(n_frames, dtype=bool)
+        led2_toff = ~led2_ton
+        
+        df['led2Val'] = led2_val
+        df['led2Val_ton'] = led2_ton
+        df['led2Val_toff'] = led2_toff
+    else:
+        df['led2Val'] = 0.0
+        df['led2Val_ton'] = False
+        df['led2Val_toff'] = True
+    
     # After df is created, handle fallback turn detection if needed
     # CRITICAL: Use MAGAT definition (turns = reorientations with head swings)
     if 'is_turn' not in df.columns:
@@ -1097,30 +1216,120 @@ def extract_stimulus_timing(h5_data: Dict, frame_rate: float = 10.0) -> pd.DataF
     pulse_duration = 10.0
     pulse_duration_frames = int(pulse_duration * frame_rate)  # 100 frames at 10 fps
     
-    # Create stimulus_on array from onset frames (more accurate than LED detection)
-    stimulus_on = np.zeros(n_frames, dtype=bool)
-    stimulus_onset = np.zeros(n_frames, dtype=bool)
+    # ==========================================================================
+    # DETECT LED TRANSITIONS USING DIFF FIELDS FOR PRECISE ONSET/OFFSET
+    # ==========================================================================
     
-    # Use onset frames if available (most accurate)
-    if 'stimulus' in h5_data and 'onset_frames' in h5_data['stimulus']:
-        onset_frames = h5_data['stimulus']['onset_frames']
+    def detect_led_transitions_from_diff(led_values, led_diff, led_name, frame_rate):
+        """
+        Detect ON/OFF transitions using the Diff field for precise timing.
         
-        # Mark each pulse: from onset to onset + 10 seconds
-        for onset_frame in onset_frames:
-            onset_frame = int(onset_frame)
-            pulse_end_frame = min(onset_frame + pulse_duration_frames, n_frames)
+        The Diff field contains frame-to-frame differences:
+        - Large positive spike = onset (LED turning ON)
+        - Large negative spike = offset (LED turning OFF)
+        
+        Returns:
+            led_on_state: bool array - True when LED is ON
+            onset_indices: array - frame indices where LED turns ON
+            offset_indices: array - frame indices where LED turns OFF
+            is_pulsing: bool - True if LED is pulsing (square wave), False if constant
+            pulse_duration_sec: float - mean pulse duration in seconds (if pulsing)
+        """
+        n = len(led_values)
+        led_max = np.max(led_values)
+        
+        # Check if LED has any signal
+        if led_max <= 0:
+            return np.zeros(n, dtype=bool), np.array([]), np.array([]), False, 0.0
+        
+        # Use Diff field if available for precise transition detection
+        if led_diff is not None and len(led_diff) == n:
+            # Threshold for transition detection (10% of LED range)
+            diff_threshold = led_max * 0.1
             
-            # Mark pulse as ON
-            stimulus_on[onset_frame:pulse_end_frame] = True
-            # Mark onset
-            if onset_frame < n_frames:
-                stimulus_onset[onset_frame] = True
+            # Onset: large positive diff (LED turning ON)
+            onset_indices = np.where(led_diff > diff_threshold)[0]
+            
+            # Offset: large negative diff (LED turning OFF)
+            offset_indices = np.where(led_diff < -diff_threshold)[0]
+        else:
+            # Fallback: detect from value transitions
+            threshold = led_max * 0.1
+            led_on_state_temp = led_values > threshold
+            led_padded = np.concatenate([[False], led_on_state_temp])
+            onset_indices = np.where((~led_padded[:-1]) & led_padded[1:])[0]
+            offset_indices = np.where(led_padded[:-1] & (~led_padded[1:]))[0]
+        
+        # Determine ON state from value threshold
+        threshold = led_max * 0.1
+        led_on_state = led_values > threshold
+        
+        # Determine if pulsing (square wave) or constant
+        n_transitions = len(onset_indices) + len(offset_indices)
+        is_pulsing = n_transitions >= 4  # At least 2 complete cycles
+        
+        # Compute pulse duration if pulsing
+        pulse_duration_sec = 0.0
+        if is_pulsing and len(onset_indices) > 0 and len(offset_indices) > 0:
+            pulse_durations = []
+            for onset_idx in onset_indices:
+                offsets_after = offset_indices[offset_indices > onset_idx]
+                if len(offsets_after) > 0:
+                    offset_idx = offsets_after[0]
+                    pulse_durations.append(offset_idx - onset_idx)
+            if pulse_durations:
+                pulse_duration_sec = np.mean(pulse_durations) / frame_rate
+        
+        return led_on_state, onset_indices, offset_indices, is_pulsing, pulse_duration_sec
+    
+    # Get LED Diff fields from h5_data
+    led1_diff = h5_data.get('led1ValDiff')
+    led2_diff = h5_data.get('led2ValDiff')
+    
+    # Detect LED1 (Red) transitions
+    led1_on_state, led1_onset_indices, led1_offset_indices, led1_is_pulsing, led1_pulse_sec = \
+        detect_led_transitions_from_diff(led1_values, led1_diff, "LED1", frame_rate)
+    
+    # Report LED1 status
+    if led1_is_pulsing:
+        print(f"  LED1 (Red): PULSING - {len(led1_onset_indices)} onsets, {len(led1_offset_indices)} offsets, {led1_pulse_sec:.1f}s pulse")
     else:
-        # Fallback: use led1Val_ton (from addTonToff equivalent)
-        stimulus_on = led1Val_ton
-        # Detect onsets as transitions from OFF to ON
-        led_diff = np.diff(led1_values, prepend=led1_values[0])
-        stimulus_onset = (led_diff > 0) & led1Val_ton
+        led1_duty = np.mean(led1_on_state) * 100
+        print(f"  LED1 (Red): CONSTANT - {led1_duty:.0f}% duty cycle")
+    
+    # Detect LED2 (Blue) transitions if available
+    led2_on_state = np.zeros(n_frames, dtype=bool)
+    led2_onset_indices = np.array([], dtype=int)
+    led2_offset_indices = np.array([], dtype=int)
+    led2_is_pulsing = False
+    led2_pulse_sec = 0.0
+    
+    if led2_values is not None:
+        led2_on_state, led2_onset_indices, led2_offset_indices, led2_is_pulsing, led2_pulse_sec = \
+            detect_led_transitions_from_diff(led2_values, led2_diff, "LED2", frame_rate)
+        
+        if led2_is_pulsing:
+            print(f"  LED2 (Blue): PULSING - {len(led2_onset_indices)} onsets, {len(led2_offset_indices)} offsets, {led2_pulse_sec:.1f}s pulse")
+        else:
+            led2_duty = np.mean(led2_on_state) * 100
+            if led2_duty > 0:
+                print(f"  LED2 (Blue): CONSTANT ON - {led2_duty:.0f}% duty cycle")
+            else:
+                print(f"  LED2 (Blue): OFF")
+    
+    # Create stimulus arrays
+    stimulus_on = led1_on_state.copy()
+    stimulus_onset = np.zeros(n_frames, dtype=bool)
+    stimulus_onset[led1_onset_indices] = True
+    stimulus_offset = np.zeros(n_frames, dtype=bool)
+    stimulus_offset[led1_offset_indices] = True
+    
+    # LED2 onset/offset arrays (for pulsing LED2)
+    led2_stimulus_onset = np.zeros(n_frames, dtype=bool)
+    led2_stimulus_offset = np.zeros(n_frames, dtype=bool)
+    if led2_is_pulsing:
+        led2_stimulus_onset[led2_onset_indices] = True
+        led2_stimulus_offset[led2_offset_indices] = True
     
     # Compute time since last stimulus onset
     time_since_stimulus = np.full(n_frames, np.nan)
@@ -1137,19 +1346,38 @@ def extract_stimulus_timing(h5_data: Dict, frame_rate: float = 10.0) -> pd.DataF
     df_dict = {
         'time': times,
         'frame': np.arange(len(times)),
+        # LED1 value and state
         'led1Val': led1_values,
-        'led1Val_ton': led1Val_ton,
-        'led1Val_toff': led1Val_toff,
+        'led1Val_ton': led1_on_state,
+        'led1Val_toff': ~led1_on_state,
+        'led1Val_onset': stimulus_onset,
+        'led1Val_offset': stimulus_offset,
+        # LED1 derivatives (for fine-grained dynamics)
+        'led1ValDeriv': h5_data.get('led1ValDeriv', np.zeros(n_frames)),
+        'led1ValDiff': h5_data.get('led1ValDiff', np.zeros(n_frames)),
+        # LED1 pulse info
+        'led1_is_pulsing': led1_is_pulsing,
+        # Combined stimulus
         'stimulus_on': stimulus_on,
         'stimulus_onset': stimulus_onset,
+        'stimulus_offset': stimulus_offset,
         'time_since_stimulus': time_since_stimulus
     }
     
     # Add LED2 fields if available
     if led2_values is not None:
         df_dict['led2Val'] = led2_values
-        df_dict['led2Val_ton'] = led2Val_ton
-        df_dict['led2Val_toff'] = led2Val_toff
+        df_dict['led2Val_ton'] = led2_on_state
+        df_dict['led2Val_toff'] = ~led2_on_state
+        df_dict['led2Val_onset'] = led2_stimulus_onset
+        df_dict['led2Val_offset'] = led2_stimulus_offset
+        # LED2 derivatives
+        if h5_data.get('led2ValDeriv') is not None:
+            df_dict['led2ValDeriv'] = h5_data['led2ValDeriv']
+        if h5_data.get('led2ValDiff') is not None:
+            df_dict['led2ValDiff'] = h5_data['led2ValDiff']
+        # LED2 pulse info
+        df_dict['led2_is_pulsing'] = led2_is_pulsing
     
     df = pd.DataFrame(df_dict)
     
@@ -1173,12 +1401,16 @@ def align_trajectory_with_stimulus(trajectory_df: pd.DataFrame,
         Combined DataFrame with aligned data
     """
     # Merge on time (with tolerance for frame alignment)
+    # NOTE: Tolerance increased to 0.3s to handle camera gaps (up to 250ms gaps observed)
+    # Camera sometimes drops frames, creating gaps in global ETI that don't exist in
+    # track ETI (which is uniformly interpolated). See ETI-OVERFLOW-RESEARCH-PROMPT.md
+    # FUTURE: Use track-level LED data directly instead of merge (cleaner architecture)
     merged = pd.merge_asof(
         trajectory_df.sort_values('time'),
         stimulus_df.sort_values('time'),
         on='time',
         direction='nearest',
-        tolerance=0.05  # 50ms tolerance
+        tolerance=0.3  # 300ms tolerance to handle camera gaps
     )
     
     # Compute time since last stimulus onset
@@ -1375,22 +1607,9 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
             if len(traj_df) == 0:
                 continue
             
-            # Align with stimulus (skip if no stimulus data)
-            if len(stimulus_df) > 0:
-                aligned_df = align_trajectory_with_stimulus(traj_df, stimulus_df)
-            else:
-                # No stimulus data - just use trajectory data
-                aligned_df = traj_df.copy()
-                # Add empty stimulus columns
-                aligned_df['led1Val'] = 0.0
-                aligned_df['led1Val_ton'] = False
-                aligned_df['led1Val_toff'] = True
-                aligned_df['led2Val'] = 0.0
-                aligned_df['led2Val_ton'] = False
-                aligned_df['led2Val_toff'] = True
-                aligned_df['stimulus_on'] = False
-                aligned_df['stimulus_onset'] = False
-                aligned_df['time_since_stimulus'] = np.nan
+            # LED data is now extracted directly from track-level derived quantities
+            # in extract_trajectory_features (no merge needed - same time grid)
+            aligned_df = traj_df  # LED columns already included
             
             # Create event records (aggregated for hazard modeling)
             event_records = create_event_records(aligned_df, track_id, experiment_id)
@@ -1418,6 +1637,34 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
     if all_event_records:
         combined_events = pd.concat(all_event_records, ignore_index=True)
         combined_trajectories = pd.concat(all_trajectories, ignore_index=True)
+        
+        # =======================================================================
+        # GLOBAL time_since_stimulus RECALCULATION (vectorized for speed)
+        # Per-track calculation gives wrong values for tracks starting mid-pulse.
+        # Recalculate using global pulse onset times from experiment timeline.
+        # =======================================================================
+        if 'stimulus_onset' in combined_trajectories.columns:
+            onset_times_raw = combined_trajectories[combined_trajectories['stimulus_onset'] == True]['time'].values
+            if len(onset_times_raw) > 0:
+                # Round to nearest 0.1s to cluster near-identical onset times
+                unique_onsets = np.unique(np.round(onset_times_raw, 1))
+                
+                # Vectorized: use searchsorted for O(n log n) instead of O(n²)
+                time_values = combined_trajectories['time'].values
+                onset_indices = np.searchsorted(unique_onsets, time_values, side='right') - 1
+                onset_indices = np.clip(onset_indices, 0, len(unique_onsets) - 1)
+                tss_global = time_values - unique_onsets[onset_indices]
+                tss_global[onset_indices < 0] = time_values[onset_indices < 0]  # Before first onset
+                
+                combined_trajectories['time_since_stimulus'] = tss_global
+                
+                # Same for events
+                event_times = combined_events['time'].values
+                event_onset_idx = np.searchsorted(unique_onsets, event_times, side='right') - 1
+                event_onset_idx = np.clip(event_onset_idx, 0, len(unique_onsets) - 1)
+                combined_events['time_since_stimulus'] = event_times - unique_onsets[event_onset_idx]
+                
+                print(f"  Recalculated time_since_stimulus globally using {len(unique_onsets)} unique onsets")
         
         # Save outputs
         output_dir.mkdir(parents=True, exist_ok=True)
