@@ -1746,7 +1746,7 @@ def main():
         else:
             h5_files = [h5_dir / args.file]
     else:
-        h5_files = sorted(h5_dir.glob("*.h5"))
+        h5_files = sorted(h5_dir.rglob("*.h5"))  # Recursive search for H5 files
     
     if not h5_files:
         print(f"No H5 files found in {h5_dir}")
