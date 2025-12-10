@@ -206,10 +206,31 @@ def load_h5_file(h5_path: Path) -> Dict:
         # Load metadata attributes
         if 'metadata' in f:
             data['metadata'] = {'attrs': dict(f['metadata'].attrs)}
+        
+        # Load derivation_rules from root (added by MagatFairy 2025-12-10)
+        # These are required for MAGAT segmentation head-swing buffer calculation
+        if 'derivation_rules' in f:
+            dr_group = f['derivation_rules']
+            data['derivation_rules'] = {
+                'smoothTime': float(dr_group.attrs.get('smoothTime', 0.2)),
+                'derivTime': float(dr_group.attrs.get('derivTime', 0.1)),
+                'interpTime': float(dr_group.attrs.get('interpTime', 0.05))
+            }
+            print(f"  Loaded derivation_rules: smoothTime={data['derivation_rules']['smoothTime']:.3f}s, "
+                  f"derivTime={data['derivation_rules']['derivTime']:.3f}s, "
+                  f"interpTime={data['derivation_rules']['interpTime']:.4f}s")
+        else:
+            # Use sensible defaults (matches MagatFairy fallback)
+            data['derivation_rules'] = {
+                'smoothTime': 0.2,
+                'derivTime': 0.1,
+                'interpTime': 0.05
+            }
+            print(f"  WARNING: derivation_rules not found in H5, using defaults")
     
     return data
 
-def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti: np.ndarray = None, track_frame_indices: np.ndarray = None) -> pd.DataFrame:
+def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti: np.ndarray = None, track_frame_indices: np.ndarray = None, derivation_rules: Dict = None) -> pd.DataFrame:
     """
     Extract trajectory features from track data.
     
@@ -225,6 +246,9 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
         Experiment Time Index array from H5 root. If provided, use ETI for time calculation.
     track_frame_indices : ndarray, optional
         Frame indices mapping track frames to ETI indices. If None, assumes continuous frames.
+    derivation_rules : dict, optional
+        MAGAT derivation rules with smoothTime, derivTime, interpTime.
+        Required for accurate head-swing buffer calculation in segmentation.
     
     Returns
     -------
@@ -686,6 +710,10 @@ def extract_trajectory_features(track_data: Dict, frame_rate: float = 10.0, eti:
             'x': x,
             'y': y
         })
+        
+        # Attach derivation_rules for MAGAT segmentation head-swing buffer calculation
+        if derivation_rules is not None:
+            magat_df.attrs['derivation_rules'] = derivation_rules
         
         # Add vel_dp if available
         if vel_dp is not None:
@@ -1334,11 +1362,16 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
             except:
                 track_id = len(all_trajectories) + 1
             
-            # Extract trajectory features - CRITICAL: Must pass ETI
+            # Extract trajectory features - CRITICAL: Must pass ETI and derivation_rules
             if 'eti' not in h5_data or h5_data['eti'] is None:
                 raise ValueError(f"CRITICAL ERROR: ETI not available in h5_data. "
                                 "ETI must be loaded from H5 root level.")
-            traj_df = extract_trajectory_features(track_data, frame_rate=frame_rate, eti=h5_data['eti'])
+            traj_df = extract_trajectory_features(
+                track_data, 
+                frame_rate=frame_rate, 
+                eti=h5_data['eti'],
+                derivation_rules=h5_data.get('derivation_rules')
+            )
             if len(traj_df) == 0:
                 continue
             
@@ -1459,7 +1492,12 @@ def main():
     
     # Find H5 files
     if args.file:
-        h5_files = [h5_dir / args.file]
+        # Handle both absolute and relative paths
+        file_path = Path(args.file)
+        if file_path.is_absolute():
+            h5_files = [file_path]
+        else:
+            h5_files = [h5_dir / args.file]
     else:
         h5_files = sorted(h5_dir.glob("*.h5"))
     
