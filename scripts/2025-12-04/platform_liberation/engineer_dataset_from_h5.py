@@ -62,8 +62,13 @@ class TurnEvent:
 class TrackWindowStats:
     track_num: int
     window_id: int
+    cycle_id: int
     window_start: float
     window_end: float
+    participated: bool
+    samples_in_window: int
+    bin_size: float
+    bins: List[dict] = field(default_factory=list)
     reversals: int
     reversal_duration: float
     turns: int
@@ -76,8 +81,13 @@ class TrackWindowStats:
         return {
             "track_num": self.track_num,
             "window_id": self.window_id,
+            "cycle_id": self.cycle_id,
             "window_start": self.window_start,
             "window_end": self.window_end,
+            "participated": self.participated,
+            "samples_in_window": self.samples_in_window,
+            "bin_size": self.bin_size,
+            "bins": self.bins,
             "reversals": self.reversals,
             "reversal_duration": self.reversal_duration,
             "turns": self.turns,
@@ -362,12 +372,13 @@ def analyze_track(track_data: Dict, track_num: int, min_reversal_duration: float
 # Windowed metrics
 # -----------------------
 
-def compute_track_window_stats(track: TrackAnalysis, times_sr: np.ndarray, speedrunvel: np.ndarray, windows):
+def compute_track_window_stats(track: TrackAnalysis, times_sr: np.ndarray, speedrunvel: np.ndarray, windows, bin_size: float = 0.5):
     stats = []
     for (ws, we, wid) in windows:
         # Slice speedrunvel within window
         mask = (times_sr >= ws) & (times_sr <= we)
         sr_slice = speedrunvel[mask]
+        t_slice = times_sr[mask]
         dur = we - ws
         revs = [r for r in track.reversals if r.start_time <= we and r.end_time >= ws]
         rev_count = len(revs)
@@ -377,12 +388,60 @@ def compute_track_window_stats(track: TrackAnalysis, times_sr: np.ndarray, speed
         turn_rate = (turn_count / (dur / 60.0)) if dur > 0 else 0.0
         frac_neg = float(np.sum(sr_slice < 0) / len(sr_slice)) if len(sr_slice) > 0 else 0.0
         mean_sr = float(np.mean(sr_slice)) if len(sr_slice) > 0 else 0.0
+        participated = len(sr_slice) > 0
+
+        # Bin-level stats within this window
+        bins_out = []
+        if participated and dur > 0 and bin_size > 0:
+            n_bins = max(1, int(math.ceil(dur / bin_size)))
+            bin_edges = np.linspace(ws, we, n_bins + 1)
+            for bi in range(n_bins):
+                b0, b1 = bin_edges[bi], bin_edges[bi + 1]
+                bmask = (t_slice >= b0) & (t_slice <= b1)
+                sr_bin = sr_slice[bmask]
+                participated_bin = len(sr_bin) > 0
+                if participated_bin:
+                    frac_neg_bin = float(np.sum(sr_bin < 0) / len(sr_bin))
+                    mean_sr_bin = float(np.mean(sr_bin))
+                    revs_bin = [r for r in revs if r.start_time <= b1 and r.end_time >= b0]
+                    rev_count_bin = len(revs_bin)
+                    rev_dur_bin = sum(r.duration for r in revs_bin)
+                    turns_bin = [t for t in turns if b0 <= t.time <= b1]
+                    turn_count_bin = len(turns_bin)
+                    turn_rate_bin = (turn_count_bin / ((b1 - b0) / 60.0)) if (b1 - b0) > 0 else 0.0
+                else:
+                    frac_neg_bin = 0.0
+                    mean_sr_bin = 0.0
+                    rev_count_bin = 0
+                    rev_dur_bin = 0.0
+                    turn_count_bin = 0
+                    turn_rate_bin = 0.0
+                bins_out.append(
+                    {
+                        "bin_index": bi + 1,
+                        "bin_start": float(b0),
+                        "bin_end": float(b1),
+                        "participated": bool(participated_bin),
+                        "samples_in_bin": int(len(sr_bin)),
+                        "reversals": int(rev_count_bin),
+                        "reversal_duration": float(rev_dur_bin),
+                        "turns": int(turn_count_bin),
+                        "turn_rate_per_min": float(turn_rate_bin),
+                        "frac_negative_speedrunvel": float(frac_neg_bin),
+                        "mean_speedrunvel": float(mean_sr_bin),
+                    }
+                )
         stats.append(
             TrackWindowStats(
                 track_num=track.track_num,
                 window_id=wid,
+                cycle_id=wid,
                 window_start=ws,
                 window_end=we,
+                participated=participated,
+                samples_in_window=len(sr_slice),
+                bin_size=bin_size,
+                bins=bins_out,
                 reversals=rev_count,
                 reversal_duration=rev_dur,
                 turns=turn_count,
@@ -405,14 +464,28 @@ def aggregate_population_windows(track_window_stats: List[TrackWindowStats]) -> 
 
     def stats(arr):
         if not arr:
-            return {"mean": 0.0, "median": 0.0, "min": 0.0, "max": 0.0, "std": 0.0}
+            return {
+                "mean": 0.0,
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0,
+                "std": 0.0,
+                "iqr": 0.0,
+                "p25": 0.0,
+                "p75": 0.0,
+            }
         vals = np.array(arr, dtype=float)
+        p25 = float(np.percentile(vals, 25)) if len(vals) > 0 else 0.0
+        p75 = float(np.percentile(vals, 75)) if len(vals) > 0 else 0.0
         return {
             "mean": float(np.mean(vals)),
             "median": float(np.median(vals)),
             "min": float(np.min(vals)),
             "max": float(np.max(vals)),
             "std": float(np.std(vals)),
+            "iqr": float(p75 - p25),
+            "p25": p25,
+            "p75": p75,
         }
 
     pop = {}
@@ -425,6 +498,11 @@ def aggregate_population_windows(track_window_stats: List[TrackWindowStats]) -> 
         mean_sr = [x.mean_speedrunvel for x in lst]
         pop[wid] = {
             "tracks": len(lst),
+            "totals": {
+                "reversals": int(np.sum(rev_counts)),
+                "reversal_duration": float(np.sum(rev_durs)),
+                "turns": int(np.sum(turn_counts)),
+            },
             "reversals": stats(rev_counts),
             "reversal_durations": stats(rev_durs),
             "turns": stats(turn_counts),
@@ -467,6 +545,7 @@ def analyze_h5_file(h5_path: Path, min_reversal_duration: float, angle_threshold
         "tracks": [],
         "summary": {},
         "windows": [],
+        "stimulus_masks": {},
         "track_windows": [],
         "population_windows": {},
         "concurrency": [],
@@ -484,8 +563,15 @@ def analyze_h5_file(h5_path: Path, min_reversal_duration: float, angle_threshold
         eti_root = f["eti"][:] if "eti" in f else None
         windows = []
         if eti_root is not None and len(led1) == len(eti_root) and len(led1) > 0:
+            ton_mask, toff_mask = compute_ton_toff(led1)
             windows = derive_windows_from_led(eti_root, led1)
-            results["windows"] = [{"id": wid, "start": float(ws), "end": float(we)} for (ws, we, wid) in windows]
+            results["windows"] = [
+                {"id": wid, "cycle": wid, "start": float(ws), "end": float(we)} for (ws, we, wid) in windows
+            ]
+            results["stimulus_masks"] = {
+                "ton": ton_mask.astype(int).tolist(),
+                "toff": toff_mask.astype(int).tolist(),
+            }
 
         track_keys = list(f["tracks"].keys())
         track_analyses = []
