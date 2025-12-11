@@ -1669,19 +1669,19 @@ def process_h5_file(h5_path: Path, output_dir: Path, experiment_id: str):
         # Save outputs
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        events_file = output_dir / f"{experiment_id}_events.csv"
-        combined_events.to_csv(events_file, index=False)
+        events_file = output_dir / f"{experiment_id}_events.parquet"
+        combined_events.to_parquet(events_file, index=False)
         print(f"  Saved {len(combined_events)} event records to {events_file}")
         
-        trajectories_file = output_dir / f"{experiment_id}_trajectories.csv"
-        combined_trajectories.to_csv(trajectories_file, index=False)
+        trajectories_file = output_dir / f"{experiment_id}_trajectories.parquet"
+        combined_trajectories.to_parquet(trajectories_file, index=False)
         print(f"  Saved trajectory data to {trajectories_file}")
         
         # Save Klein run tables if available
         if all_klein_run_tables:
             combined_klein_runs = pd.concat(all_klein_run_tables, ignore_index=True)
-            klein_runs_file = output_dir / f"{experiment_id}_klein_run_table.csv"
-            combined_klein_runs.to_csv(klein_runs_file, index=False)
+            klein_runs_file = output_dir / f"{experiment_id}_klein_run_table.parquet"
+            combined_klein_runs.to_parquet(klein_runs_file, index=False)
             print(f"  Saved {len(combined_klein_runs)} Klein run table rows to {klein_runs_file}")
             
             # Add to summary
@@ -1760,6 +1760,65 @@ def main():
         process_h5_file(h5_file, output_dir, experiment_id)
     
     print(f"\nProcessing complete. Outputs in {output_dir}")
+    
+    # Consolidate all experiments into single HDF5 files
+    if len(h5_files) > 1:
+        print("\n" + "="*60)
+        print("CONSOLIDATING TO HDF5")
+        print("="*60)
+        
+        consolidated_h5 = output_dir / "consolidated_dataset.h5"
+        
+        # Find all parquet files
+        traj_files = sorted(output_dir.glob("*_trajectories.parquet"))
+        event_files = sorted(output_dir.glob("*_events.parquet"))
+        klein_files = sorted(output_dir.glob("*_klein_run_table.parquet"))
+        
+        with h5py.File(consolidated_h5, 'w') as h5f:
+            # Trajectories
+            if traj_files:
+                print(f"  Consolidating {len(traj_files)} trajectory files...")
+                all_traj = pd.concat([pd.read_parquet(f) for f in traj_files], ignore_index=True)
+                traj_grp = h5f.create_group('trajectories')
+                for col in all_traj.columns:
+                    data = all_traj[col].values
+                    if data.dtype == object:
+                        data = data.astype(str)
+                        traj_grp.create_dataset(col, data=data.astype('S'))
+                    else:
+                        traj_grp.create_dataset(col, data=data, compression='gzip')
+                print(f"    {len(all_traj)} total trajectory rows")
+            
+            # Events
+            if event_files:
+                print(f"  Consolidating {len(event_files)} event files...")
+                all_events = pd.concat([pd.read_parquet(f) for f in event_files], ignore_index=True)
+                event_grp = h5f.create_group('events')
+                for col in all_events.columns:
+                    data = all_events[col].values
+                    if data.dtype == object:
+                        data = data.astype(str)
+                        event_grp.create_dataset(col, data=data.astype('S'))
+                    else:
+                        event_grp.create_dataset(col, data=data, compression='gzip')
+                print(f"    {len(all_events)} total event rows")
+            
+            # Klein run tables
+            if klein_files:
+                print(f"  Consolidating {len(klein_files)} klein run table files...")
+                all_klein = pd.concat([pd.read_parquet(f) for f in klein_files], ignore_index=True)
+                klein_grp = h5f.create_group('klein_run_tables')
+                for col in all_klein.columns:
+                    data = all_klein[col].values
+                    if data.dtype == object:
+                        data = data.astype(str)
+                        klein_grp.create_dataset(col, data=data.astype('S'))
+                    else:
+                        klein_grp.create_dataset(col, data=data, compression='gzip')
+                print(f"    {len(all_klein)} total klein run table rows")
+        
+        consolidated_size = consolidated_h5.stat().st_size / (1024*1024)
+        print(f"\n  Consolidated HDF5: {consolidated_h5} ({consolidated_size:.1f} MB)")
 
 if __name__ == '__main__':
     main()
