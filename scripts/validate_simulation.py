@@ -560,8 +560,12 @@ def main():
                 return int(obj)
             elif isinstance(obj, (np.float64, np.float32)):
                 return float(obj)
+            elif isinstance(obj, (np.bool_, bool)):
+                return bool(obj)
             elif isinstance(obj, dict):
                 return {k: convert(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert(v) for v in obj]
             return obj
         
         json.dump(convert(results), f, indent=2)

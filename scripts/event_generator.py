@@ -514,6 +514,244 @@ def simulate_larva_trajectory(
 # EXAMPLE USAGE
 # =============================================================================
 
+# =============================================================================
+# HAZARD FUNCTION FROM FITTED MODEL
+# =============================================================================
+
+def make_hazard_from_model(
+    model_results: Dict,
+    led1_pattern: Callable[[float], float],
+    led2_pattern: Callable[[float], float],
+    speed_z: float = 0.0,
+    curvature_z: float = 0.0,
+    kernel_window: Tuple[float, float] = (0.0, 3.0),
+    n_bases: int = 4
+) -> Callable[[np.ndarray], np.ndarray]:
+    """
+    Create a hazard function from fitted NB-GLM coefficients.
+    
+    Parameters
+    ----------
+    model_results : dict
+        Fitted model results with 'coefficients' dict
+    led1_pattern : callable
+        Function t -> LED1 value (0-250 PWM)
+    led2_pattern : callable
+        Function t -> LED2 value (0-15 PWM)
+    speed_z : float
+        Z-scored speed (0 = mean)
+    curvature_z : float
+        Z-scored curvature (0 = mean)
+    kernel_window : tuple
+        (t_start, t_end) for temporal kernel
+    n_bases : int
+        Number of raised-cosine basis functions
+    
+    Returns
+    -------
+    hazard_func : callable
+        Function t_array -> lambda(t) hazard rates
+    """
+    coefs = model_results['coefficients']
+    
+    # Extract coefficients
+    intercept = coefs.get('intercept', -3.5)
+    beta_led1 = coefs.get('LED1_scaled', 0)
+    beta_led2 = coefs.get('LED2_scaled', 0)
+    beta_led1xled2 = coefs.get('LED1xLED2', 0)
+    beta_speed = coefs.get('speed_z', 0)
+    beta_curv = coefs.get('curvature_z', 0)
+    
+    # Kernel coefficients
+    kernel_coefs = [coefs.get(f'kernel_{i+1}', 0) for i in range(n_bases)]
+    
+    # Raised-cosine basis centers
+    centers = np.linspace(kernel_window[0], kernel_window[1], n_bases)
+    width = (kernel_window[1] - kernel_window[0]) / (n_bases - 1) * 0.8
+    
+    def hazard_func(t: np.ndarray) -> np.ndarray:
+        t = np.atleast_1d(t)
+        n = len(t)
+        
+        # Base linear predictor
+        eta = np.full(n, intercept)
+        
+        # LED covariates (scaled)
+        led1_vals = np.array([led1_pattern(ti) for ti in t])
+        led2_vals = np.array([led2_pattern(ti) for ti in t])
+        
+        led1_scaled = led1_vals / 250.0
+        led2_scaled = led2_vals / 15.0
+        
+        eta += beta_led1 * led1_scaled
+        eta += beta_led2 * led2_scaled
+        eta += beta_led1xled2 * led1_scaled * led2_scaled
+        
+        # Speed/curvature
+        eta += beta_speed * speed_z
+        eta += beta_curv * curvature_z
+        
+        # Temporal kernel: find time since last LED1 onset
+        # For simplicity, assume stimulus starts at t=0 and cycles
+        for j, (center, phi) in enumerate(zip(centers, kernel_coefs)):
+            # Raised cosine basis
+            dist = np.abs(t - center)
+            in_range = dist < width
+            basis_val = np.zeros(n)
+            basis_val[in_range] = 0.5 * (1 + np.cos(np.pi * (t[in_range] - center) / width))
+            eta += phi * basis_val
+        
+        # Hazard rate
+        lam = np.exp(eta)
+        return lam
+    
+    return hazard_func
+
+
+def generate_synthetic_experiment(
+    model_results: Dict,
+    n_tracks: int = 50,
+    duration: float = 1200.0,
+    led1_schedule: Optional[List[Tuple[float, float, float]]] = None,
+    seed: int = None
+) -> pd.DataFrame:
+    """
+    Generate a synthetic experiment using fitted hazard model.
+    
+    Parameters
+    ----------
+    model_results : dict
+        Fitted model results
+    n_tracks : int
+        Number of tracks (larvae) to simulate
+    duration : float
+        Experiment duration in seconds
+    led1_schedule : list of (start, end, value) tuples
+        LED1 stimulus schedule. If None, uses default 30s on/30s off at 250 PWM
+    seed : int
+        Random seed
+    
+    Returns
+    -------
+    events_df : DataFrame
+        Simulated events with columns: track_id, time, led1Val, led2Val
+    """
+    import pandas as pd
+    
+    rng = np.random.default_rng(seed)
+    
+    # Default LED schedule: 30s on / 30s off at 250 PWM
+    if led1_schedule is None:
+        def led1_pattern(t):
+            cycle = t % 60.0
+            return 250.0 if cycle < 30.0 else 0.0
+    else:
+        def led1_pattern(t):
+            for start, end, val in led1_schedule:
+                if start <= t < end:
+                    return val
+            return 0.0
+    
+    def led2_pattern(t):
+        return 7.0  # Constant blue light
+    
+    # Create hazard function
+    hazard_func = make_hazard_from_model(
+        model_results, led1_pattern, led2_pattern
+    )
+    
+    # Generate events for each track
+    all_events = []
+    
+    for track_id in range(n_tracks):
+        generator = InversionEventGenerator(
+            hazard_func, t_start=0, t_end=duration, dt=0.05
+        )
+        event_times = generator.generate_events(rng)
+        
+        for t in event_times:
+            all_events.append({
+                'track_id': track_id,
+                'time': t,
+                'led1Val': led1_pattern(t),
+                'led2Val': led2_pattern(t),
+                'is_reorientation': True
+            })
+    
+    return pd.DataFrame(all_events)
+
+
+def run_batch_simulation(
+    model_path: str,
+    n_experiments: int = 14,
+    tracks_per_experiment: int = 50,
+    duration: float = 1200.0,
+    output_path: str = None,
+    seed: int = 42
+) -> pd.DataFrame:
+    """
+    Run batch simulation of multiple experiments.
+    
+    Parameters
+    ----------
+    model_path : str
+        Path to model_results.json
+    n_experiments : int
+        Number of experiments to simulate
+    tracks_per_experiment : int
+        Tracks per experiment
+    duration : float
+        Duration per experiment
+    output_path : str
+        Optional path to save results
+    seed : int
+        Random seed
+    
+    Returns
+    -------
+    all_events : DataFrame
+        All simulated events
+    """
+    import json
+    import pandas as pd
+    from pathlib import Path
+    
+    # Load model
+    with open(model_path, 'r') as f:
+        model_results = json.load(f)
+    
+    print(f"Generating {n_experiments} synthetic experiments...")
+    print(f"  Tracks per experiment: {tracks_per_experiment}")
+    print(f"  Duration: {duration/60:.1f} minutes")
+    
+    all_events = []
+    rng = np.random.default_rng(seed)
+    
+    for exp_idx in range(n_experiments):
+        exp_id = f"synthetic_exp_{exp_idx:03d}"
+        exp_seed = rng.integers(0, 1000000)
+        
+        events = generate_synthetic_experiment(
+            model_results,
+            n_tracks=tracks_per_experiment,
+            duration=duration,
+            seed=exp_seed
+        )
+        events['experiment_id'] = exp_id
+        all_events.append(events)
+        
+        print(f"  Experiment {exp_idx+1}/{n_experiments}: {len(events)} events")
+    
+    combined = pd.concat(all_events, ignore_index=True)
+    
+    if output_path:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        combined.to_parquet(output_path)
+        print(f"\nSaved {len(combined)} events to {output_path}")
+    
+    return combined
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     

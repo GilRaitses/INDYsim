@@ -45,18 +45,33 @@ def load_binned_data(parquet_path: Path) -> pd.DataFrame:
     return df
 
 
-def prepare_design_matrix(df: pd.DataFrame) -> tuple:
+def prepare_design_matrix(df: pd.DataFrame, add_ar_term: bool = True) -> tuple:
     """
     Prepare design matrix for NB-GLM.
     
     Returns X (design matrix), y (response), feature_names, and cluster_groups.
+    
+    Parameters
+    ----------
+    add_ar_term : bool
+        If True, add AR(1) lag term (Y_lag1) to handle temporal autocorrelation
     """
     # Add intercept
     df['intercept'] = 1.0
     
+    # Add AR(1) term if requested (per research recommendation for ACF=0.999)
+    if add_ar_term:
+        df = df.sort_values(['experiment_id', 'track_id', 'bin_start'])
+        df['Y_lag1'] = df.groupby(['experiment_id', 'track_id'])['Y'].shift(1, fill_value=0)
+        print("  Added AR(1) lag term (Y_lag1)")
+    
     # Feature columns
     base_features = ['intercept', 'LED1_scaled', 'LED2_scaled', 'LED1xLED2',
                      'phase_sin', 'phase_cos', 'speed_z', 'curvature_z']
+    
+    # Add AR term to features
+    if add_ar_term:
+        base_features.append('Y_lag1')
     
     # Kernel columns
     kernel_cols = [c for c in df.columns if c.startswith('kernel_')]
