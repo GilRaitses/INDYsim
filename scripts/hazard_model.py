@@ -320,21 +320,22 @@ def fit_nb_glm(
             family=NegativeBinomial(alpha=alpha),
             offset=offset
         )
-        fit = model.fit()
         
         # Use cluster-robust SEs if groups provided
         if cluster_groups is not None:
-            robust_fit = fit.get_robustcov_results(cov_type='cluster', groups=cluster_groups)
+            # Fit with cluster-robust covariance
+            fit = model.fit(cov_type='cluster', cov_kwds={'groups': cluster_groups})
             results = {
-                'coefficients': robust_fit.params.to_dict(),
-                'std_errors': robust_fit.bse.to_dict(),
-                'pvalues': robust_fit.pvalues.to_dict(),
-                'conf_int_lower': robust_fit.conf_int()[0].to_dict(),
-                'conf_int_upper': robust_fit.conf_int()[1].to_dict(),
+                'coefficients': fit.params.to_dict(),
+                'std_errors': fit.bse.to_dict(),
+                'pvalues': fit.pvalues.to_dict(),
+                'conf_int_lower': fit.conf_int()[0].to_dict(),
+                'conf_int_upper': fit.conf_int()[1].to_dict(),
                 'robust_se': True,
                 'n_clusters': len(np.unique(cluster_groups)),
             }
         else:
+            fit = model.fit()
             results = {
                 'coefficients': fit.params.to_dict(),
                 'std_errors': fit.bse.to_dict(),

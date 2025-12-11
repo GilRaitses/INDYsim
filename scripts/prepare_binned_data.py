@@ -83,11 +83,13 @@ def load_consolidated_h5(h5_path: Path) -> pd.DataFrame:
     print(f"Loading {h5_path}...")
     
     with h5py.File(h5_path, 'r') as f:
-        # Check available groups
-        if 'trajectories' in f:
-            grp = f['trajectories']
-        elif 'events' in f:
+        # Prefer events group as it has experiment_id and track_id columns
+        if 'events' in f:
             grp = f['events']
+            print("  Using 'events' group (has experiment_id and track_id)")
+        elif 'trajectories' in f:
+            grp = f['trajectories']
+            print("  Using 'trajectories' group")
         else:
             raise ValueError(f"No 'trajectories' or 'events' group in {h5_path}")
         
