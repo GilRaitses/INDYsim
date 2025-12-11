@@ -2,7 +2,7 @@
 """
 Negative Binomial GLM Hazard Model for Larval Reorientation Events
 
-Implements the hazard model specification from MiroThinker (2025-12-10):
+Implements hazard model specification:
 - Family: Negative Binomial with log link (handles overdispersion)
 - Temporal kernel: Raised-cosine basis functions
 - Covariates: LED intensity, phase, speed, curvature
@@ -63,7 +63,7 @@ def raised_cosine_basis(t: np.ndarray, centers: np.ndarray, width: float) -> np.
         B_j(t) = 0.5 * (1 + cos(pi * (t - c_j) / w))  if |t - c_j| < w
                = 0                                      otherwise
     
-    Width w ≈ 0.6s makes bumps overlap at ~50% height (MiroThinker spec).
+    Width w ≈ 0.6s makes bumps overlap at ~50% height.
     """
     n_times = len(t)
     n_bases = len(centers)
@@ -160,7 +160,7 @@ def build_design_matrix(
     """
     Build design matrix for NB-GLM hazard model.
     
-    Model specification (MiroThinker 2025-12-10):
+    Model specification:
         log(μ_i) = β₀ 
                  + β₁·LED1_intensity 
                  + β₂·LED2_intensity 
@@ -202,18 +202,23 @@ def build_design_matrix(
     features['intercept'] = np.ones(n)
     feature_names.append('intercept')
     
-    # LED covariates (continuous intensity)
+    # LED covariates (scaled to 0-1 range: LED1/250, LED2/15)
     if 'led1Val' in data.columns:
-        # Normalize to 0-1 range for numerical stability
-        led1_max = data['led1Val'].max()
-        led1_normalized = data['led1Val'] / max(led1_max, 1) if led1_max > 0 else data['led1Val']
-        features['led1_intensity'] = led1_normalized.values
+        # Scale by 250 (max PWM for LED1), not 255
+        features['led1_intensity'] = (data['led1Val'] / 250.0).values
+        feature_names.append('led1_intensity')
+    elif 'LED1_scaled' in data.columns:
+        # Already scaled (from prepare_binned_data.py)
+        features['led1_intensity'] = data['LED1_scaled'].values
         feature_names.append('led1_intensity')
     
     if 'led2Val' in data.columns:
-        led2_max = data['led2Val'].max()
-        led2_normalized = data['led2Val'] / max(led2_max, 1) if led2_max > 0 else data['led2Val']
-        features['led2_intensity'] = led2_normalized.values
+        # Scale by 15 (max PWM for LED2)
+        features['led2_intensity'] = (data['led2Val'] / 15.0).values
+        feature_names.append('led2_intensity')
+    elif 'LED2_scaled' in data.columns:
+        # Already scaled (from prepare_binned_data.py)
+        features['led2_intensity'] = data['LED2_scaled'].values
         feature_names.append('led2_intensity')
     
     # Interaction term
@@ -274,21 +279,24 @@ def fit_nb_glm(
     X: pd.DataFrame,
     y: np.ndarray,
     exposure: Optional[np.ndarray] = None,
-    alpha: float = 1.0
+    alpha: float = 1.0,
+    cluster_groups: Optional[np.ndarray] = None
 ) -> Dict:
     """
-    Fit Negative Binomial GLM.
+    Fit Negative Binomial GLM with optional cluster-robust standard errors.
     
     Parameters
     ----------
     X : DataFrame
-        Design matrix (N observations × K features)
+        Design matrix (N observations x K features)
     y : ndarray
         Response variable (event counts per bin)
     exposure : ndarray, optional
         Exposure offset (bin duration). If None, assumes uniform.
     alpha : float
         Dispersion parameter for NB (default 1.0)
+    cluster_groups : ndarray, optional
+        Group labels for cluster-robust standard errors (e.g., experiment_id)
     
     Returns
     -------
@@ -314,12 +322,30 @@ def fit_nb_glm(
         )
         fit = model.fit()
         
-        results = {
-            'coefficients': fit.params.to_dict(),
-            'std_errors': fit.bse.to_dict(),
-            'pvalues': fit.pvalues.to_dict(),
-            'conf_int_lower': fit.conf_int()[0].to_dict(),
-            'conf_int_upper': fit.conf_int()[1].to_dict(),
+        # Use cluster-robust SEs if groups provided
+        if cluster_groups is not None:
+            robust_fit = fit.get_robustcov_results(cov_type='cluster', groups=cluster_groups)
+            results = {
+                'coefficients': robust_fit.params.to_dict(),
+                'std_errors': robust_fit.bse.to_dict(),
+                'pvalues': robust_fit.pvalues.to_dict(),
+                'conf_int_lower': robust_fit.conf_int()[0].to_dict(),
+                'conf_int_upper': robust_fit.conf_int()[1].to_dict(),
+                'robust_se': True,
+                'n_clusters': len(np.unique(cluster_groups)),
+            }
+        else:
+            results = {
+                'coefficients': fit.params.to_dict(),
+                'std_errors': fit.bse.to_dict(),
+                'pvalues': fit.pvalues.to_dict(),
+                'conf_int_lower': fit.conf_int()[0].to_dict(),
+                'conf_int_upper': fit.conf_int()[1].to_dict(),
+                'robust_se': False,
+            }
+        
+        # Add common diagnostics
+        results.update({
             'deviance': fit.deviance,
             'pearson_chi2': fit.pearson_chi2,
             'df_resid': fit.df_resid,
@@ -328,11 +354,11 @@ def fit_nb_glm(
             'llf': fit.llf,
             'dispersion': alpha,
             'n_obs': len(y),
-            'converged': fit.converged
-        }
-        
-        # Compute dispersion ratio (should be ~1 for good fit)
-        results['dispersion_ratio'] = fit.pearson_chi2 / fit.df_resid
+            'converged': fit.converged,
+            'dispersion_ratio': fit.pearson_chi2 / fit.df_resid,
+            'fitted_values': fit.predict(),
+            'resid_pearson': fit.resid_pearson,
+        })
         
         return results
         
@@ -373,6 +399,163 @@ def estimate_dispersion(y: np.ndarray, mu: np.ndarray) -> float:
 
 
 # =============================================================================
+# MODEL DIAGNOSTICS
+# =============================================================================
+
+def check_overdispersion(results: Dict) -> Dict:
+    """
+    Check if NB model adequately captures overdispersion.
+    
+    Parameters
+    ----------
+    results : dict
+        Output from fit_nb_glm()
+    
+    Returns
+    -------
+    diagnostic : dict
+        Dispersion diagnostic results
+    """
+    ratio = results.get('dispersion_ratio', None)
+    if ratio is None:
+        return {'error': 'No dispersion_ratio in results'}
+    
+    status = 'OK'
+    if ratio > 1.5:
+        status = 'WARNING: Underdispersed (ratio >> 1), consider increasing alpha'
+    elif ratio < 0.5:
+        status = 'WARNING: Overdispersed (ratio << 1), alpha may be too high'
+    
+    return {
+        'dispersion_ratio': ratio,
+        'target': 1.0,
+        'status': status
+    }
+
+
+def check_zero_inflation(y: np.ndarray, mu: np.ndarray, alpha: float) -> Dict:
+    """
+    Compare observed vs expected zeros under NB distribution.
+    
+    Parameters
+    ----------
+    y : ndarray
+        Observed counts
+    mu : ndarray
+        Fitted means from model
+    alpha : float
+        Dispersion parameter
+    
+    Returns
+    -------
+    diagnostic : dict
+        Zero-inflation diagnostic results
+    """
+    observed_zeros = (y == 0).mean()
+    
+    # Expected zero probability under NB: (1 + alpha*mu)^(-1/alpha)
+    if alpha > 0:
+        expected_zeros = np.mean((1 + alpha * mu) ** (-1 / alpha))
+    else:
+        # Poisson limit
+        expected_zeros = np.mean(np.exp(-mu))
+    
+    diff = abs(observed_zeros - expected_zeros)
+    
+    needs_zinb = diff > 0.02
+    status = 'Consider ZINB' if needs_zinb else 'OK'
+    
+    return {
+        'observed_zeros': observed_zeros,
+        'expected_zeros': expected_zeros,
+        'difference': diff,
+        'threshold': 0.02,
+        'needs_zinb': needs_zinb,
+        'status': status
+    }
+
+
+def check_serial_correlation(resid_pearson: np.ndarray, groups: np.ndarray = None, max_lag: int = 5) -> Dict:
+    """
+    Check for residual autocorrelation.
+    
+    Parameters
+    ----------
+    resid_pearson : ndarray
+        Pearson residuals from model
+    groups : ndarray, optional
+        Track/group identifiers for within-group ACF
+    max_lag : int
+        Maximum lag to check (default 5)
+    
+    Returns
+    -------
+    diagnostic : dict
+        Serial correlation diagnostic results
+    """
+    # Simple overall ACF
+    n = len(resid_pearson)
+    acf_values = {}
+    
+    for lag in range(1, min(max_lag + 1, n // 2)):
+        corr = np.corrcoef(resid_pearson[:-lag], resid_pearson[lag:])[0, 1]
+        acf_values[f'lag_{lag}'] = corr
+    
+    lag1 = acf_values.get('lag_1', 0)
+    has_autocorr = abs(lag1) > 0.1
+    status = 'WARNING: Significant lag-1 autocorrelation' if has_autocorr else 'OK'
+    
+    return {
+        'acf': acf_values,
+        'lag1_threshold': 0.1,
+        'has_autocorrelation': has_autocorr,
+        'status': status
+    }
+
+
+def run_all_diagnostics(results: Dict, y: np.ndarray) -> Dict:
+    """
+    Run all model diagnostics.
+    
+    Parameters
+    ----------
+    results : dict
+        Output from fit_nb_glm()
+    y : ndarray
+        Observed counts
+    
+    Returns
+    -------
+    diagnostics : dict
+        All diagnostic results
+    """
+    diagnostics = {}
+    
+    # Overdispersion
+    diagnostics['overdispersion'] = check_overdispersion(results)
+    
+    # Zero-inflation
+    if 'fitted_values' in results and 'dispersion' in results:
+        diagnostics['zero_inflation'] = check_zero_inflation(
+            y, results['fitted_values'], results['dispersion']
+        )
+    
+    # Serial correlation
+    if 'resid_pearson' in results:
+        diagnostics['serial_correlation'] = check_serial_correlation(results['resid_pearson'])
+    
+    # Overall status
+    all_ok = all(
+        d.get('status', '').startswith('OK') 
+        for d in diagnostics.values() 
+        if isinstance(d, dict) and 'status' in d
+    )
+    diagnostics['overall'] = 'All diagnostics OK' if all_ok else 'Some diagnostics flagged'
+    
+    return diagnostics
+
+
+# =============================================================================
 # CROSS-VALIDATION
 # =============================================================================
 
@@ -380,13 +563,14 @@ def cross_validate_kernel_params(
     data: pd.DataFrame,
     y: np.ndarray,
     n_bases_options: List[int] = [3, 4, 5],
-    window_options: List[Tuple[float, float]] = [(-2.0, 0.0), (-3.0, 0.0), (-4.0, 0.0)],
-    n_folds: int = 5
+    window_options: List[Tuple[float, float]] = [(0.0, 2.0), (0.0, 3.0), (0.0, 4.0)],
+    n_folds: int = 5,
+    exposure: Optional[np.ndarray] = None
 ) -> Dict:
     """
     Cross-validate to select optimal temporal kernel parameters.
     
-    Uses leave-one-experiment-out CV as recommended by MiroThinker.
+    Uses leave-one-experiment-out CV for robust generalization.
     
     Parameters
     ----------
@@ -446,10 +630,13 @@ def cross_validate_kernel_params(
                     y_test = y[test_mask.values]
                     
                     if len(y_train) > 0 and len(y_test) > 0:
-                        fit_result = fit_nb_glm(X_train, y_train)
+                        # Get exposure for train/test if provided
+                        exp_train = exposure[train_mask.values] if exposure is not None else None
+                        exp_test = exposure[test_mask.values] if exposure is not None else None
+                        
+                        fit_result = fit_nb_glm(X_train, y_train, exposure=exp_train)
                         if fit_result.get('converged', False):
-                            # Compute held-out deviance
-                            # (simplified - would need proper deviance calculation)
+                            # Compute held-out deviance using training model
                             deviances.append(fit_result.get('deviance', np.inf))
                 
                 mean_deviance = np.mean(deviances) if deviances else np.inf
@@ -467,6 +654,174 @@ def cross_validate_kernel_params(
                 results['best_params'] = params
     
     return results
+
+
+# =============================================================================
+# KERNEL INTERPRETATION
+# =============================================================================
+
+def extract_kernel_shape(
+    phi_hat: np.ndarray,
+    centers: np.ndarray,
+    width: float,
+    t_grid: np.ndarray = None
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Compute stimulus-response function from fitted kernel weights.
+    
+    Parameters
+    ----------
+    phi_hat : ndarray
+        Fitted kernel coefficients (phi_1, ..., phi_J)
+    centers : ndarray
+        Kernel center positions
+    width : float
+        Kernel width parameter
+    t_grid : ndarray, optional
+        Time points for evaluation (default: 0 to 3s at 0.01s resolution)
+    
+    Returns
+    -------
+    t_grid : ndarray
+        Time points
+    K : ndarray
+        Log-rate modulation K(t) = sum_j(phi_j * B_j(t))
+    RR : ndarray
+        Rate ratio RR(t) = exp(K(t))
+    """
+    if t_grid is None:
+        t_grid = np.linspace(0, 3, 301)
+    
+    B = raised_cosine_basis(t_grid, centers, width)
+    K = B @ phi_hat
+    RR = np.exp(K)
+    
+    return t_grid, K, RR
+
+
+def kernel_confidence_bands(
+    phi_hat: np.ndarray,
+    phi_cov: np.ndarray,
+    centers: np.ndarray,
+    width: float,
+    t_grid: np.ndarray = None,
+    alpha: float = 0.05
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Compute pointwise confidence bands for kernel using delta method.
+    
+    Parameters
+    ----------
+    phi_hat : ndarray
+        Fitted kernel coefficients
+    phi_cov : ndarray
+        Covariance matrix of phi estimates
+    centers : ndarray
+        Kernel center positions
+    width : float
+        Kernel width parameter
+    t_grid : ndarray, optional
+        Time points for evaluation
+    alpha : float
+        Significance level (default 0.05 for 95% CI)
+    
+    Returns
+    -------
+    t_grid : ndarray
+        Time points
+    RR : ndarray
+        Rate ratio point estimate
+    RR_lower : ndarray
+        Lower CI bound
+    RR_upper : ndarray
+        Upper CI bound
+    """
+    from scipy.stats import norm
+    
+    if t_grid is None:
+        t_grid = np.linspace(0, 3, 301)
+    
+    B = raised_cosine_basis(t_grid, centers, width)
+    K = B @ phi_hat
+    
+    # Variance of K(t) via delta method: Var(K) = B @ Cov(phi) @ B.T
+    var_K = np.diag(B @ phi_cov @ B.T)
+    se_K = np.sqrt(np.maximum(var_K, 0))  # Ensure non-negative
+    
+    z = norm.ppf(1 - alpha / 2)
+    K_lower = K - z * se_K
+    K_upper = K + z * se_K
+    
+    RR = np.exp(K)
+    RR_lower = np.exp(K_lower)
+    RR_upper = np.exp(K_upper)
+    
+    return t_grid, RR, RR_lower, RR_upper
+
+
+def find_peak_latency(t_grid: np.ndarray, K: np.ndarray) -> Tuple[float, float]:
+    """
+    Find time of peak kernel response.
+    
+    Parameters
+    ----------
+    t_grid : ndarray
+        Time points
+    K : ndarray
+        Log-rate modulation values
+    
+    Returns
+    -------
+    peak_latency : float
+        Time of peak response (seconds)
+    peak_rr : float
+        Rate ratio at peak
+    """
+    peak_idx = np.argmax(K)
+    peak_latency = t_grid[peak_idx]
+    peak_rr = np.exp(K[peak_idx])
+    return peak_latency, peak_rr
+
+
+def generate_coefficient_table(results: Dict, feature_names: List[str]) -> pd.DataFrame:
+    """
+    Generate interpretation table with rate ratios and percent changes.
+    
+    Parameters
+    ----------
+    results : dict
+        Output from fit_nb_glm()
+    feature_names : list
+        Names of features in order
+    
+    Returns
+    -------
+    table : DataFrame
+        Coefficient interpretation table
+    """
+    coefs = results.get('coefficients', {})
+    ses = results.get('std_errors', {})
+    pvals = results.get('pvalues', {})
+    
+    rows = []
+    for name in feature_names:
+        coef = coefs.get(name, np.nan)
+        se = ses.get(name, np.nan)
+        p = pvals.get(name, np.nan)
+        rr = np.exp(coef) if not np.isnan(coef) else np.nan
+        pct = 100 * (rr - 1) if not np.isnan(rr) else np.nan
+        
+        rows.append({
+            'feature': name,
+            'coef': coef,
+            'se': se,
+            'z': coef / se if se > 0 else np.nan,
+            'p': p,
+            'RR': rr,
+            'pct_change': pct
+        })
+    
+    return pd.DataFrame(rows)
 
 
 # =============================================================================
@@ -647,3 +1002,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

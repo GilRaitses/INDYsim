@@ -6,7 +6,7 @@ Implements event generation algorithms for simulating reorientation events:
 1. Inversion-based sampling (recommended for low-rate events)
 2. Thinning algorithm (fallback for highly time-varying rates)
 
-Based on MiroThinker specification (2025-12-10):
+Design considerations:
 - Low event frequency (λ ≈ 0.01-0.1 events/s) makes thinning inefficient
 - Inversion-based sampling via cumulative hazard is more efficient
 - Direct draw from fitted hazard by integrating λ(t)
@@ -39,7 +39,7 @@ class InversionEventGenerator:
     """
     Generate events by inverting the cumulative hazard function.
     
-    More efficient than thinning for low-rate events (MiroThinker recommendation).
+    More efficient than thinning for low-rate events.
     
     Algorithm:
     1. Build dense vector of λ(t) at fine time steps
@@ -319,7 +319,7 @@ def sample_num_head_swings(rng: np.random.Generator, n: int = 1) -> np.ndarray:
     """
     Sample number of head swings per reorientation.
     
-    Based on empirical distribution (MiroThinker spec):
+    Based on empirical distribution:
     - Most reorientations have 0-5 head swings
     - Modal value is 1-2
     
@@ -576,3 +576,4 @@ if __name__ == '__main__':
     plt.tight_layout()
     plt.savefig('simulated_trajectory.png', dpi=150)
     print("\nSaved plot to simulated_trajectory.png")
+

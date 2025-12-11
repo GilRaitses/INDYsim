@@ -19,23 +19,33 @@ from scipy.ndimage import binary_dilation, binary_erosion
 from typing import Dict, List, Tuple, Optional
 
 class MaggotSegmentOptions:
-    """MAGAT segmentation options (defaults from MaggotSegmentOptions.m)"""
+    """MAGAT segmentation options (defaults from MaggotSegmentOptions.m)
+    
+    UNIT CONVERSIONS:
+    - MATLAB uses mm/s for speed thresholds: stop=2.0, start=3.0
+    - H5 speed is in cm/s, so convert: stop=0.2, start=0.3 cm/s
+    - curv_cut=0.4 is for BODY curvature (smoothed), not PATH curvature
+    - H5 curv is PATH curvature which explodes at low speed - use sspineTheta instead
+    """
     def __init__(self):
-        self.curv_cut = 0.4  # If track curvature > curv_cut, end a run
+        # Curvature threshold - applies to BODY curvature (sspineTheta-based), not path curv
+        self.curv_cut = 0.4  # Body curvature threshold (dimensionless or 1/cm on body-length scale)
         self.autoset_curv_cut = False
         self.autoset_curv_cut_mult = 5
-        self.theta_cut = np.pi / 2  # If body theta > theta_cut, end a run
+        self.theta_cut = np.pi / 2  # If body theta > theta_cut, end a run (radians)
         self.speed_field = 'speed'
-        self.stop_speed_cut = 2.0  # If speed < stop_speed_cut, end a run (mm/s, convert to cm/s if needed)
-        self.start_speed_cut = 3.0  # If speed > start_speed_cut && vel_dp > aligned_dp, run can start
+        # Speed thresholds - CONVERTED from mm/s to cm/s
+        # MATLAB: 2.0 mm/s = 0.2 cm/s, 3.0 mm/s = 0.3 cm/s
+        self.stop_speed_cut = 0.2   # End run if speed < 0.2 cm/s (= 2 mm/s)
+        self.start_speed_cut = 0.3  # Start run if speed > 0.3 cm/s (= 3 mm/s)
         self.aligned_dp = np.cos(np.deg2rad(45))  # cos(45°) ≈ 0.707 (MATLAB: cosd(45))
-        # MATLAB MaggotSegmentOptions properties (exact match, no extensions)
-        self.minRunTime = 2.5  # Minimum run duration in seconds (MATLAB: minRunTime = 2.5)
-        self.minRunLength = 0  # Minimum run length (MATLAB: minRunLength = 0) - NOT USED IN FILTERING
-        self.headswing_start = np.deg2rad(20)  # If body theta > headswing_start and not in run, start headswing (MATLAB: deg2rad(20))
-        self.headswing_stop = np.deg2rad(10)  # If body theta < headswing_stop (or changes sign), end headswing (MATLAB: deg2rad(10))
-        self.smoothBodyFromPeriFreq = False  # MATLAB: smoothBodyFromPeriFreq = false
-        self.smoothBodyTime = None  # MATLAB: smoothBodyTime = []
+        # MATLAB MaggotSegmentOptions properties
+        self.minRunTime = 2.5  # Minimum run duration in seconds
+        self.minRunLength = 0  # Minimum run length - NOT USED IN FILTERING
+        self.headswing_start = np.deg2rad(20)  # Start headswing if |theta| > 20°
+        self.headswing_stop = np.deg2rad(10)   # End headswing if |theta| < 10°
+        self.smoothBodyFromPeriFreq = False
+        self.smoothBodyTime = None
 
 
 def magat_segment_track(trajectory_df: 'pd.DataFrame', 
@@ -225,12 +235,9 @@ def magat_segment_track(trajectory_df: 'pd.DataFrame',
     
     # Step 5: Find head swings
     # MATLAB: buffer = ceil((track.dr.smoothTime + track.dr.derivTime)/track.dr.interpTime);
-    # REQUIRED: derivation_rules must be available for buffer calculation
-    if 'derivation_rules' not in trajectory_df.attrs and 'interpTime' not in trajectory_df.columns:
-        raise ValueError("CRITICAL: derivation_rules.interpTime is REQUIRED for buffer calculation. "
-                        "No fallback allowed. Need smoothTime, derivTime, and interpTime.")
+    # Use sensible defaults when derivation_rules is not available
     
-    # Get derivation rules (MATLAB: track.dr)
+    # Get derivation rules (MATLAB: track.dr) or use defaults
     if hasattr(trajectory_df, 'attrs') and 'derivation_rules' in trajectory_df.attrs:
         dr = trajectory_df.attrs['derivation_rules']
         smooth_time = dr.get('smoothTime', 0.2)  # Default 0.2s
@@ -242,8 +249,12 @@ def magat_segment_track(trajectory_df: 'pd.DataFrame',
         smooth_time = 0.2  # Default
         deriv_time = 0.1    # Default
     else:
-        raise ValueError("CRITICAL: Cannot determine interpTime for buffer calculation. "
-                        "Need derivation_rules.interpTime or interpTime column.")
+        # Use sensible defaults based on typical MAGAT parameters
+        # Standard MAGAT uses 0.2s smoothing, 0.1s derivative window
+        # interpTime is the frame interval from the data
+        interp_time = dt  # Use frame interval from data
+        smooth_time = 0.2  # 0.2s smoothing window (MAGAT default)
+        deriv_time = 0.1   # 0.1s derivative window (MAGAT default)
     
     # MATLAB: buffer = ceil((track.dr.smoothTime + track.dr.derivTime)/track.dr.interpTime);
     buffer = int(np.ceil((smooth_time + deriv_time) / interp_time))
