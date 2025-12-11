@@ -169,6 +169,10 @@ def compute_turn_rate(events: pd.DataFrame, time_window: float = 60.0) -> pd.Dat
     """
     Compute turn rate (events per minute) per track.
     
+    Handles both:
+    1. Frame-level data with is_reorientation column (detect onsets)
+    2. Event-only data where each row is an event
+    
     Parameters
     ----------
     events : DataFrame
@@ -181,15 +185,24 @@ def compute_turn_rate(events: pd.DataFrame, time_window: float = 60.0) -> pd.Dat
     rates : DataFrame
         Turn rates per track
     """
-    # Count reorientations per track
-    if 'reo_onset' in events.columns:
+    # Check if this is event-only data (all is_reorientation are True, few rows)
+    is_event_only = (
+        'is_reorientation' in events.columns and 
+        events['is_reorientation'].all() and
+        len(events) < 100000  # Arbitrary threshold
+    )
+    
+    if is_event_only:
+        # Event-only data: each row is an event, just count rows
+        counts = events.groupby(['experiment_id', 'track_id']).size()
+    elif 'reo_onset' in events.columns:
         counts = events.groupby(['experiment_id', 'track_id'])['reo_onset'].sum()
     elif 'is_reorientation' in events.columns:
-        # Detect onsets
+        # Detect onsets from frame-level data
         events = events.sort_values(['experiment_id', 'track_id', 'time'])
         events['reo_onset'] = (
             events.groupby(['experiment_id', 'track_id'])['is_reorientation']
-            .transform(lambda x: x & ~x.shift(1, fill_value=False))
+            .transform(lambda x: x.astype(bool) & ~x.shift(1, fill_value=False).astype(bool))
         )
         counts = events.groupby(['experiment_id', 'track_id'])['reo_onset'].sum()
     else:
@@ -278,11 +291,21 @@ def compute_psth(
         Event rate per bin (events per second per stimulus)
     """
     # Get reorientation onset times
-    if 'reo_onset' in events.columns:
+    # Check if event-only data (all rows are events)
+    is_event_only = (
+        'is_reorientation' in events.columns and 
+        events['is_reorientation'].all() and
+        len(events) < 100000
+    )
+    
+    if is_event_only:
+        # Event-only: each row is an event time
+        event_times = events['time'].values
+    elif 'reo_onset' in events.columns:
         event_times = events[events['reo_onset'] == True]['time'].values
     else:
         events = events.sort_values('time')
-        events['reo_onset'] = events['is_reorientation'] & ~events['is_reorientation'].shift(1, fill_value=False)
+        events['reo_onset'] = events['is_reorientation'].astype(bool) & ~events['is_reorientation'].shift(1, fill_value=False).astype(bool)
         event_times = events[events['reo_onset'] == True]['time'].values
     
     # Compute relative times
@@ -545,8 +568,44 @@ def main():
     print(f"Loading simulated data from {sim_path}...")
     simulated = pd.read_parquet(sim_path)
     
+    # Extract LED onset times for PSTH validation
+    # For 20-min experiments with 30s on/30s off, expect ~20 onsets per experiment
+    stimulus_times = None
+    if 'led1Val' in empirical.columns and 'time' in empirical.columns:
+        print("Extracting LED onset times for PSTH...")
+        
+        # Approach: sample at 1s resolution, detect major transitions
+        all_onsets = []
+        for exp_id in empirical['experiment_id'].unique():
+            exp_df = empirical[empirical['experiment_id'] == exp_id].sort_values('time')
+            
+            # Sample to ~1s resolution to avoid detecting ramp steps
+            t = exp_df['time'].values
+            led = exp_df['led1Val'].values
+            
+            # Bin to 1s resolution
+            t_bins = np.arange(t.min(), t.max() + 1, 1.0)
+            led_binned = np.zeros(len(t_bins) - 1)
+            for i in range(len(t_bins) - 1):
+                mask = (t >= t_bins[i]) & (t < t_bins[i+1])
+                if mask.any():
+                    led_binned[i] = led[mask].max()
+            
+            # Detect transitions from low to high (>200 PWM)
+            led_high = led_binned > 200
+            led_high_prev = np.roll(led_high, 1)
+            led_high_prev[0] = False
+            transitions = led_high & ~led_high_prev
+            
+            onset_times = t_bins[:-1][transitions]
+            all_onsets.extend(onset_times)
+        
+        if len(all_onsets) > 0:
+            stimulus_times = np.array(all_onsets)
+            print(f"  Found {len(stimulus_times)} LED onsets (~{len(stimulus_times)/14:.1f} per experiment)")
+    
     # Run validation
-    results = run_validation(empirical, simulated)
+    results = run_validation(empirical, simulated, stimulus_times=stimulus_times)
     
     # Save results
     output_dir.mkdir(parents=True, exist_ok=True)

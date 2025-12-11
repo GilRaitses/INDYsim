@@ -518,17 +518,45 @@ def simulate_larva_trajectory(
 # HAZARD FUNCTION FROM FITTED MODEL
 # =============================================================================
 
+def find_led_onsets(led1_pattern: Callable, t_grid: np.ndarray) -> np.ndarray:
+    """Find LED1 onset times (transitions from 0 to >0)."""
+    onsets = []
+    prev_val = 0
+    for t in t_grid:
+        val = led1_pattern(t)
+        if val > 0 and prev_val == 0:
+            onsets.append(t)
+        prev_val = val
+    return np.array(onsets) if onsets else np.array([0.0])
+
+
+def compute_time_since_onset(t: np.ndarray, onsets: np.ndarray) -> np.ndarray:
+    """Compute time since most recent LED onset for each time point."""
+    if len(onsets) == 0:
+        return np.full_like(t, np.inf)
+    
+    # For each t, find most recent onset
+    idx = np.searchsorted(onsets, t, side='right') - 1
+    idx = np.maximum(idx, 0)
+    return t - onsets[idx]
+
+
 def make_hazard_from_model(
     model_results: Dict,
     led1_pattern: Callable[[float], float],
     led2_pattern: Callable[[float], float],
     speed_z: float = 0.0,
     curvature_z: float = 0.0,
-    kernel_window: Tuple[float, float] = (0.0, 3.0),
-    n_bases: int = 4
+    kernel_window: Tuple[float, float] = (0.0, 4.0),
+    n_bases: int = 3,
+    ar1_cap: float = -3.0
 ) -> Callable[[np.ndarray], np.ndarray]:
     """
     Create a hazard function from fitted NB-GLM coefficients.
+    
+    FIXES APPLIED (per MiroThinker research):
+    1. Kernel aligned to LED onset times (time_since_onset), not absolute time
+    2. AR(1) coefficient capped at ar1_cap to prevent over-suppression
     
     Parameters
     ----------
@@ -543,9 +571,12 @@ def make_hazard_from_model(
     curvature_z : float
         Z-scored curvature (0 = mean)
     kernel_window : tuple
-        (t_start, t_end) for temporal kernel
+        (t_start, t_end) for temporal kernel (default 0-4s for optimized model)
     n_bases : int
-        Number of raised-cosine basis functions
+        Number of raised-cosine basis functions (default 3 for optimized model)
+    ar1_cap : float
+        Maximum (most negative) AR(1) coefficient to use. Default -3.0 gives RR=0.05
+        The fitted value of -24.7 is too strong and over-suppresses events.
     
     Returns
     -------
@@ -562,12 +593,22 @@ def make_hazard_from_model(
     beta_speed = coefs.get('speed_z', 0)
     beta_curv = coefs.get('curvature_z', 0)
     
+    # AR(1) coefficient - CAP to prevent over-suppression
+    # Fitted value is -24.7 (RR≈0), but this kills all events
+    # Cap at ar1_cap (default -3.0, RR=0.05) for realistic refractory
+    ar1_fitted = coefs.get('Y_lag1', 0)
+    ar1_coef = max(ar1_fitted, ar1_cap)  # Less negative = less suppression
+    
     # Kernel coefficients
     kernel_coefs = [coefs.get(f'kernel_{i+1}', 0) for i in range(n_bases)]
     
     # Raised-cosine basis centers
     centers = np.linspace(kernel_window[0], kernel_window[1], n_bases)
-    width = (kernel_window[1] - kernel_window[0]) / (n_bases - 1) * 0.8
+    width = (kernel_window[1] - kernel_window[0]) / max(n_bases - 1, 1) * 0.8
+    
+    # Pre-compute LED onsets for the simulation period
+    t_scan = np.arange(0, 1500, 0.5)  # Scan first 25 minutes
+    led_onsets = find_led_onsets(led1_pattern, t_scan)
     
     def hazard_func(t: np.ndarray) -> np.ndarray:
         t = np.atleast_1d(t)
@@ -591,14 +632,17 @@ def make_hazard_from_model(
         eta += beta_speed * speed_z
         eta += beta_curv * curvature_z
         
-        # Temporal kernel: find time since last LED1 onset
-        # For simplicity, assume stimulus starts at t=0 and cycles
+        # FIX: Compute time since most recent LED onset
+        time_since_onset = compute_time_since_onset(t, led_onsets)
+        
+        # Apply temporal kernel to time_since_onset (not absolute time)
+        # Only apply kernel when LED is ON (within reasonable window of onset)
         for j, (center, phi) in enumerate(zip(centers, kernel_coefs)):
-            # Raised cosine basis
-            dist = np.abs(t - center)
-            in_range = dist < width
+            # Raised cosine basis applied to time_since_onset
+            dist = np.abs(time_since_onset - center)
+            in_range = (dist < width) & (time_since_onset < kernel_window[1] + width)
             basis_val = np.zeros(n)
-            basis_val[in_range] = 0.5 * (1 + np.cos(np.pi * (t[in_range] - center) / width))
+            basis_val[in_range] = 0.5 * (1 + np.cos(np.pi * (time_since_onset[in_range] - center) / width))
             eta += phi * basis_val
         
         # Hazard rate
