@@ -29,7 +29,7 @@ I am preparing to submit a manuscript titled **"An Analytic Hazard Kernel for Op
 |--------|------|--------------|
 | **Gil Raitses** (me) | Graduate student / Analyst | All computational analysis: hazard model development, gamma-difference kernel fitting, factorial analysis, trajectory simulation, manuscript writing, figure generation, code development |
 | **Devindi Goonawardhana ("Dev")** | Experimentalist | Collected all experimental data (larval tracking, optogenetic stimulation), ran experiments, processed raw video to tracking data |
-| **Mirna [Last name?]** | Lab PI | Provided lab resources, experimental infrastructure, likely supervised experimental design, may have contributed to experimental conception |
+| **Mirna Mihovilovic-Skanata** | Lab PI | Provided lab resources, experimental infrastructure, likely supervised experimental design, may have contributed to experimental conception |
 | **Ki Young Jeong** | Course instructor | Teaching context where this analysis was developed; may have provided guidance on analysis approach |
 
 ### What I Did (My Contributions)
@@ -117,13 +117,15 @@ Please map the contributions to CRediT taxonomy:
 ### Q4: Ethical and Practical Considerations
 
 1. **Permission to use data**:
-   - Was there explicit agreement that this data could be used for publication?
-   - Is there a data use agreement or collaboration understanding?
-   - Should Mirna's lab be contacted before bioRxiv submission?
+   - **I do NOT currently have explicit permission to publish this data**
+   - I need guidance on how to request permission appropriately
+   - What should I include in a permission request email?
+   - Should Mirna's lab be contacted before bioRxiv submission? **Yes, absolutely required**
 
 2. **Prior publication**:
-   - Has this data been published before in any form?
-   - Are there any restrictions on analysis/publication?
+   - **This data has NOT been published before in any form**
+   - This would be the first publication using this dataset
+   - Are there any standard practices for first-use of unpublished data from another lab?
 
 3. **Institutional considerations**:
    - Are there university policies on authorship for course-derived work?
@@ -148,12 +150,12 @@ Please provide guidance on these scenarios:
 - When is this appropriate?
 
 **Scenario C: Three Authors**
-- Gil Raitses, Devindi Goonawardhana, Mirna [Last name]
+- Gil Raitses, Devindi Goonawardhana, Mirna Mihovilovic-Skanata
 - Acknowledgments: Ki Young (course guidance)
 - When is this appropriate?
 
 **Scenario D: Four Authors**
-- Gil Raitses, Devindi Goonawardhana, Ki Young Jeong, Mirna [Last name]
+- Gil Raitses, Devindi Goonawardhana, Ki Young Jeong, Mirna Mihovilovic-Skanata
 - When is this appropriate?
 
 ### Q6: Acknowledgment Language
@@ -189,8 +191,32 @@ Examples needed for:
 1. **Clear guidance** on who should be listed as author vs acknowledged
 2. **Template language** for acknowledgments if individuals are not authors
 3. **Recommended communication approach** for contacting Mirna and Dev
-4. **Risk assessment** of submitting without explicit collaboration agreement
-5. **Citation of relevant guidelines** (ICMJE, CRediT, journal policies)
+4. **Template email** for requesting permission to publish from Mirna Mihovilovic-Skanata
+5. **Risk assessment** of submitting without explicit collaboration agreement (NOT planning to do this)
+6. **Citation of relevant guidelines** (ICMJE, CRediT, journal policies)
+7. **Recommended order of operations**: Should I request permission first, then discuss authorship? Or both together?
+
+## Critical: Permission Request
+
+Since I do NOT currently have explicit permission to publish this data, I need:
+
+1. **Template email to Mirna Mihovilovic-Skanata** requesting:
+   - Permission to publish analysis of the GMR61 larval tracking data
+   - Discussion of authorship/acknowledgment preferences
+   - Any restrictions or requirements she may have
+
+2. **What to include in the request**:
+   - Description of the analysis I performed
+   - Summary of findings (the gamma-difference kernel, factorial effects)
+   - Draft manuscript or abstract for her review
+   - Proposed authorship arrangement (with flexibility)
+   - Timeline for submission
+
+3. **Professional etiquette**:
+   - How much lead time should I give before submission?
+   - Should I offer co-authorship proactively?
+   - What if she wants to make substantial changes?
+   - What if she says no?
 
 ---
 
