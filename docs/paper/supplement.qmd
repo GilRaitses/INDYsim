@@ -67,6 +67,28 @@ NB-GLMM (1|track) & 9 + 623 RE & --- & --- & Random intercepts \\
 \label{tab:model_comparison}
 \end{table}
 
+\section*{Table S2b: GLMM Robustness Check}
+
+A Negative Binomial GLMM with random track intercepts was fit using Bambi/PyMC to verify that the main findings are robust to hierarchical structure.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\hline
+\textbf{Parameter} & \textbf{Fixed-Effects} & \textbf{GLMM} & \textbf{Change} \\
+\hline
+$\alpha$ (kernel amplitude) & 1.005 & 0.971 & $-3.4\%$ \\
+$\alpha_I$ (intensity effect) & $-0.665$ & $-0.655$ & $+1.5\%$ \\
+$\alpha_C$ (cycling effect) & 0.152 & 0.148 & $-2.5\%$ \\
+$\gamma$ (rebound) & 1.669 & 1.408 & $-15.7\%$ \\
+\hline
+Random effect SD ($\sigma_{\text{track}}$) & --- & 0.59 & --- \\
+\hline
+\end{tabular}
+\caption{Comparison of key parameters between fixed-effects NB-GLM and NB-GLMM. The kernel amplitude effects ($\alpha$, $\alpha_I$, $\alpha_C$) differ by less than 3.5\%, confirming that the main findings are robust to inclusion of random intercepts. The random effect SD of 0.59 indicates substantial between-track variation in baseline event rate.}
+\label{tab:glmm_comparison}
+\end{table}
+
 \section*{Table S3: Condition-Specific Suppression Amplitudes}
 
 The kernel amplitude varies across conditions while maintaining invariant shape and timescales:
