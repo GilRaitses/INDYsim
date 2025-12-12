@@ -6,6 +6,24 @@ Before submitting this manuscript to bioRxiv, you **must obtain explicit written
 
 ---
 
+## Gemini Research Agent Summary
+
+The INDYsim framework represents a significant advance in computational ethology. The core intellectual contribution is the resolution of the **"interpretability-plasticity dilemma"** in behavioral modeling:
+
+| Prior Approaches | INDYsim Contribution |
+|------------------|---------------------|
+| 12-parameter raised-cosine GLMs | 6-parameter Gamma-difference kernel |
+| Phenomenological (black box) | Mechanistic (cascaded first-order processes) |
+| Coefficients lack biological meaning | Parameters map to timescales (τ₁=0.29s, τ₂=3.81s) |
+
+**Key scientific claims**:
+1. The hazard kernel decomposes into fast transduction (~2 stages) and slow adaptation (~4 stages)
+2. R² = 0.968 against 12-basis reference validates the analytic approach
+3. Factorial analysis reveals **dissociation**: kernel SHAPE is intrinsic, AMPLITUDE is context-modulated
+4. Tonic excitability and phasic responsivity are orthogonal control axes
+
+---
+
 ## 1. What You Did (Plain Language for Mirna)
 
 ### The Problem with Previous Approaches

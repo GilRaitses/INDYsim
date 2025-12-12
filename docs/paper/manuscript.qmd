@@ -1,9 +1,17 @@
 ---
 title: "An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation"
 author:
-  - name: "[Author Names]"
+  - name: "Gil Raitses"
     affiliations:
-      - "[Institution]"
+      - "Syracuse University"
+    email: "graitses@syr.edu"
+  - name: "Devindi Goonawardhana"
+    affiliations:
+      - "Department of Physics, Syracuse University"
+  - name: "Mirna Mihovilovic-Skanata"
+    affiliations:
+      - "Department of Physics, Syracuse University"
+    corresponding: true
 format:
   pdf:
     documentclass: article
@@ -351,7 +359,9 @@ Embedded in a RUN/TURN trajectory simulator, the model generates realistic larva
 
 \section*{Acknowledgments}
 
-[To be added]
+This work was initiated as part of a computational neuroscience course project. We thank Ki Young Jeong for guidance during the early stages of this analysis. The experimental data were collected using the larval tracking infrastructure in the Mihovilovic-Skanata laboratory at Syracuse University.
+
+\textbf{Author Contributions (CRediT):} G.R.: Conceptualization, Methodology, Software, Formal Analysis, Validation, Visualization, Writing -- Original Draft, Writing -- Review \& Editing. D.G.: Investigation, Data Curation. M.M.-S.: Resources, Supervision, Funding Acquisition.
 
 \section*{Data and Code Availability}
 
