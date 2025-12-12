@@ -1,0 +1,23 @@
+\begin{table}[h]
+\centering
+\caption{Leave-one-experiment-out cross-validation results. Rate ratio within 0.8--1.25 indicates acceptable generalization.}
+\label{tab:cv}
+\begin{tabular}{llrrrr}
+\hline
+\textbf{Experiment} & \textbf{Condition} & \textbf{Empirical} & \textbf{Predicted} & \textbf{Rate Ratio} & \textbf{Status} \\
+\hline
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#C\_Bl\_7PWM & 0$\rightarrow$250 | Control & 737 & 785 & 1.066 & \checkmark \\
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#C\_Bl\_7PWM & 0$\rightarrow$250 | Control & 670 & 629 & 0.938 & \checkmark \\
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 0$\rightarrow$250 | Temp & 555 & 921 & 1.659 & $\times$ \\
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 0$\rightarrow$250 | Temp & 488 & 395 & 0.809 & \checkmark \\
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 0$\rightarrow$250 | Temp & 822 & 603 & 0.733 & $\times$ \\
+GMR61\_T\_Re\_Sq\_0to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 0$\rightarrow$250 | Temp & 545 & 534 & 0.981 & \checkmark \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#C\_Bl\_7PWM & 50$\rightarrow$250 | Control & 766 & 603 & 0.787 & $\times$ \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#C\_Bl\_7PWM & 50$\rightarrow$250 | Control & 571 & 937 & 1.641 & $\times$ \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#C\_Bl\_7PWM & 50$\rightarrow$250 | Control & 657 & 655 & 0.997 & \checkmark \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#C\_Bl\_7PWM & 50$\rightarrow$250 | Control & 446 & 305 & 0.684 & $\times$ \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 50$\rightarrow$250 | Temp & 477 & 553 & 1.160 & \checkmark \\
+GMR61\_T\_Re\_Sq\_50to250PWM\_30#T\_Bl\_Sq\_5to15PWM\_30 & 50$\rightarrow$250 | Temp & 554 & 478 & 0.862 & \checkmark \\
+\hline
+\end{tabular}
+\end{table}

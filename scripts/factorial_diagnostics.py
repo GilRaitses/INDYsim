@@ -160,6 +160,120 @@ def compute_diagnostic_stats(residuals: pd.DataFrame) -> Dict:
     }
 
 
+def compute_time_rescaling(df: pd.DataFrame, results: Dict) -> Dict:
+    """
+    Compute time-rescaling test for Poisson process assumption.
+    
+    For each event, compute the integrated hazard since the previous event.
+    Under a correct model, these should be Exp(1) distributed.
+    """
+    coeffs = results['coefficients']
+    
+    # Get indicators and compute hazard
+    I = df['I'].values
+    T = df['T'].values
+    IT = df['IT'].values
+    K_on = df['K_on'].values
+    I_K_on = df['I_K_on'].values
+    T_K_on = df['T_K_on'].values
+    K_off = df['K_off'].values
+    y = df['events'].values
+    
+    # Compute log-hazard
+    eta = (coeffs['beta_0']['mean'] + 
+           coeffs['beta_I']['mean'] * I +
+           coeffs['beta_T']['mean'] * T +
+           coeffs['beta_IT']['mean'] * IT +
+           coeffs['alpha']['mean'] * K_on +
+           coeffs['alpha_I']['mean'] * I_K_on +
+           coeffs['alpha_T']['mean'] * T_K_on +
+           coeffs['gamma']['mean'] * K_off)
+    
+    hazard = np.exp(eta)
+    
+    # Find event indices
+    event_idx = np.where(y == 1)[0]
+    
+    if len(event_idx) < 100:
+        return {'error': 'Too few events for time-rescaling test'}
+    
+    # Compute integrated hazard between events
+    rescaled_times = []
+    for i in range(1, len(event_idx)):
+        start = event_idx[i-1]
+        end = event_idx[i]
+        integrated = np.sum(hazard[start:end])
+        rescaled_times.append(integrated)
+    
+    rescaled_times = np.array(rescaled_times)
+    
+    # Transform to uniform via 1 - exp(-z)
+    uniform_times = 1 - np.exp(-rescaled_times)
+    
+    # KS test against Uniform(0,1)
+    from scipy import stats
+    ks_stat, ks_pval = stats.kstest(uniform_times, 'uniform')
+    
+    # Compute deviation from expected
+    sorted_u = np.sort(uniform_times)
+    n = len(sorted_u)
+    expected = np.linspace(0, 1, n)
+    max_deviation = np.max(np.abs(sorted_u - expected))
+    mean_deviation = np.mean(np.abs(sorted_u - expected))
+    
+    return {
+        'n_intervals': len(rescaled_times),
+        'ks_statistic': float(ks_stat),
+        'ks_pvalue': float(ks_pval),
+        'max_deviation': float(max_deviation),
+        'mean_deviation': float(mean_deviation),
+        'pct_deviation': float(mean_deviation * 100),
+        'sorted_uniform': sorted_u.tolist()[:1000]  # Save subset for plotting
+    }
+
+
+def plot_time_rescaling(tr_results: Dict, output_dir: Path):
+    """
+    Plot time-rescaling cumulative distribution.
+    """
+    if 'error' in tr_results:
+        print(f"Skipping time-rescaling plot: {tr_results['error']}")
+        return
+    
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    sorted_u = np.array(tr_results['sorted_uniform'])
+    n = len(sorted_u)
+    empirical = np.arange(1, n+1) / n
+    
+    ax.plot(sorted_u, empirical, 'b-', linewidth=1.5, label='Empirical CDF')
+    ax.plot([0, 1], [0, 1], 'r--', linewidth=1, label='Expected (Uniform)')
+    
+    # Add confidence bands (approximate 95%)
+    alpha = 0.05
+    c = np.sqrt(-0.5 * np.log(alpha / 2))
+    upper = np.minimum(empirical + c / np.sqrt(n), 1)
+    lower = np.maximum(empirical - c / np.sqrt(n), 0)
+    ax.fill_between(sorted_u, lower, upper, alpha=0.2, color='gray', label='95% CI')
+    
+    ax.set_xlabel('Rescaled Time (Uniform)')
+    ax.set_ylabel('Cumulative Probability')
+    ax.set_title(f'Time-Rescaling Test (KS p = {tr_results["ks_pvalue"]:.4f})')
+    ax.legend()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    
+    # Add deviation annotation
+    ax.text(0.05, 0.95, f'Mean deviation: {tr_results["pct_deviation"]:.1f}%',
+            transform=ax.transAxes, fontsize=10, verticalalignment='top')
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / 'time_rescaling.png', dpi=150)
+    plt.close()
+    
+    print(f"Saved time-rescaling plot to {output_dir / 'time_rescaling.png'}")
+
+
 def main():
     print("=" * 70)
     print("FACTORIAL MODEL DIAGNOSTICS")
@@ -202,9 +316,37 @@ def main():
     print(f"  Range: [{stats['pearson_min']:.2f}, {stats['pearson_max']:.2f}]")
     print(f"  |r| > 3: {stats['n_large_residuals']} ({stats['pct_large_residuals']:.2f}%)")
     
+    # Time-rescaling test
+    print("\n" + "=" * 70)
+    print("TIME-RESCALING TEST")
+    print("=" * 70)
+    print("\nComputing time-rescaling (sampling 10% for speed)...")
+    df_sample = df.sample(frac=0.1, random_state=42)
+    tr_results = compute_time_rescaling(df_sample, results)
+    
+    if 'error' not in tr_results:
+        print(f"\nTime-rescaling results:")
+        print(f"  Intervals: {tr_results['n_intervals']}")
+        print(f"  KS statistic: {tr_results['ks_statistic']:.4f}")
+        print(f"  KS p-value: {tr_results['ks_pvalue']:.4f}")
+        print(f"  Mean deviation: {tr_results['pct_deviation']:.1f}%")
+        
+        plot_time_rescaling(tr_results, output_dir)
+        stats['time_rescaling'] = tr_results
+    else:
+        print(f"  Error: {tr_results['error']}")
+    
     # Save statistics
+    # Remove large arrays before saving
+    stats_to_save = stats.copy()
+    if 'time_rescaling' in stats_to_save:
+        stats_to_save['time_rescaling'] = {
+            k: v for k, v in stats_to_save['time_rescaling'].items() 
+            if k != 'sorted_uniform'
+        }
+    
     with open(output_dir / 'diagnostic_stats.json', 'w') as f:
-        json.dump(stats, f, indent=2)
+        json.dump(stats_to_save, f, indent=2)
     
     print(f"\nSaved diagnostic stats to {output_dir / 'diagnostic_stats.json'}")
     

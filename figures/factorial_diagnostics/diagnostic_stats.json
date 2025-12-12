@@ -1,0 +1,18 @@
+{
+  "pearson_mean": 5.5376286323784526e-05,
+  "pearson_std": 1.0077712728905268,
+  "pearson_skew": 40.66249360709084,
+  "pearson_kurtosis": 2439.7172539486032,
+  "pearson_min": -0.06685145482346731,
+  "pearson_max": 169.9148378651788,
+  "n_large_residuals": 7288,
+  "pct_large_residuals": 0.09363135889961056,
+  "time_rescaling": {
+    "n_intervals": 723,
+    "ks_statistic": 0.04112715928450378,
+    "ks_pvalue": 0.16849167823768907,
+    "max_deviation": 0.040807239590094135,
+    "mean_deviation": 0.013492565806833992,
+    "pct_deviation": 1.3492565806833992
+  }
+}

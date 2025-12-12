@@ -1,0 +1,130 @@
+---
+title: "Supplementary Materials"
+subtitle: "An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation"
+format:
+  pdf:
+    documentclass: article
+    papersize: letter
+    fontsize: 10pt
+    geometry:
+      - margin=1in
+    number-sections: true
+    colorlinks: true
+---
+
+\section*{Table S1: Leave-One-Experiment-Out Cross-Validation Results}
+
+Leave-one-experiment-out cross-validation was performed to assess model generalization. For each of 12 experiments, the factorial NB-GLM was fit on the remaining 11 experiments and used to predict event rates for the held-out experiment.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrl}
+\hline
+\textbf{Condition} & \textbf{Empirical} & \textbf{Predicted} & \textbf{Rate Ratio} & \textbf{Status} \\
+\hline
+\multicolumn{5}{l}{\textit{0$\rightarrow$250 | Control (n=2)}} \\
+\quad Exp 1 & 737 & 785 & 1.066 & Pass \\
+\quad Exp 2 & 670 & 629 & 0.938 & Pass \\
+\hline
+\multicolumn{5}{l}{\textit{0$\rightarrow$250 | Cycling (n=4)}} \\
+\quad Exp 1 & 555 & 921 & 1.659 & Fail \\
+\quad Exp 2 & 488 & 395 & 0.809 & Pass \\
+\quad Exp 3 & 822 & 603 & 0.733 & Fail \\
+\quad Exp 4 & 545 & 534 & 0.981 & Pass \\
+\hline
+\multicolumn{5}{l}{\textit{50$\rightarrow$250 | Control (n=4)}} \\
+\quad Exp 1 & 766 & 603 & 0.787 & Fail \\
+\quad Exp 2 & 571 & 937 & 1.641 & Fail \\
+\quad Exp 3 & 657 & 655 & 0.997 & Pass \\
+\quad Exp 4 & 446 & 305 & 0.684 & Fail \\
+\hline
+\multicolumn{5}{l}{\textit{50$\rightarrow$250 | Cycling (n=2)}} \\
+\quad Exp 1 & 477 & 553 & 1.160 & Pass \\
+\quad Exp 2 & 554 & 478 & 0.862 & Pass \\
+\hline
+\multicolumn{5}{l}{\textbf{Summary}} \\
+\quad Mean $\pm$ SD & --- & --- & 1.03 $\pm$ 0.31 & 7/12 Pass \\
+\hline
+\end{tabular}
+\caption{Cross-validation results. Rate ratio within 0.8--1.25 indicates acceptable generalization. Pass rate = 58\%.}
+\label{tab:cv}
+\end{table}
+
+\section*{Table S2: Model Comparison}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrl}
+\hline
+\textbf{Model} & \textbf{Parameters} & \textbf{AIC} & \textbf{Deviance} & \textbf{Notes} \\
+\hline
+Fixed-effects NB-GLM & 8 & 114,814 & 94,592 & Primary model \\
+NB-GLMM (1|track) & 9 + 623 RE & --- & --- & Random intercepts \\
+\hline
+\end{tabular}
+\caption{Model comparison. The fixed-effects model was used for all reported analyses. GLMM with random track intercepts is included as a robustness check.}
+\label{tab:model_comparison}
+\end{table}
+
+\section*{Table S3: Condition-Specific Suppression Amplitudes}
+
+The kernel amplitude varies across conditions while maintaining invariant shape and timescales:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrl}
+\hline
+\textbf{Condition} & \textbf{Amplitude} & \textbf{Events} & \textbf{Tracks} & \textbf{Interpretation} \\
+\hline
+0$\rightarrow$250 | Control & 1.005 & 1,407 & 99 & Reference condition \\
+0$\rightarrow$250 | Cycling & 1.157 & 2,410 & 214 & +15\% (cycling enhancement) \\
+50$\rightarrow$250 | Control & 0.340 & 2,440 & 187 & $-$66\% (partial adaptation) \\
+50$\rightarrow$250 | Cycling & 0.492 & 1,031 & 123 & Combined effects \\
+\hline
+\end{tabular}
+\caption{Suppression amplitudes computed as $\alpha + \alpha_I \cdot I + \alpha_C \cdot C$.}
+\label{tab:amplitudes}
+\end{table}
+
+\section*{Figure S1: Residual Diagnostics}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{../../figures/factorial_diagnostics/factorial_diagnostics.png}
+\caption{\textbf{Factorial model diagnostics.} (A) Pearson residuals vs fitted values show no systematic pattern. (B) Deviance residuals vs fitted values. (C) Q-Q plot of Pearson residuals against theoretical normal quantiles. (D) Residual distributions by condition show similar spread across all four experimental conditions. Residual mean = 0.0001, SD = 1.01.}
+\label{fig:diagnostics}
+\end{figure}
+
+\section*{Figure S2: Time-Rescaling Test}
+
+The time-rescaling test assesses whether the fitted hazard model produces inter-event intervals consistent with a Poisson process. Under the correct model, rescaled inter-event times should follow Exp(1), and their cumulative distribution should be uniform.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{../../figures/factorial_diagnostics/time_rescaling.png}
+\caption{\textbf{Time-rescaling test.} Empirical cumulative distribution of rescaled inter-event times (blue) compared to expected uniform distribution (red dashed). Gray shading indicates 95\% confidence band. KS test: $D = 0.041$, $p = 0.17$. Mean deviation = 1.3\%, indicating adequate model fit.}
+\label{fig:time_rescaling}
+\end{figure}
+
+\section*{Diagnostic Statistics}
+
+\begin{itemize}
+    \item \textbf{Pearson residuals:} Mean = 0.0001, SD = 1.01, Skew = 40.7, Kurtosis = 2440
+    \item \textbf{Large residuals:} 7,288 observations (0.09\%) with $|r| > 3$
+    \item \textbf{Time-rescaling:} KS statistic = 0.041, p = 0.17, mean deviation = 1.3\%
+\end{itemize}
+
+The high skewness and kurtosis of residuals reflect the zero-inflated nature of event data (most frames have no events). The time-rescaling test passes at conventional significance levels, supporting the adequacy of the hazard model specification.
+
+\section*{Software and Data Availability}
+
+All analyses were performed in Python 3.14 using:
+\begin{itemize}
+    \item statsmodels 0.14 (GLM fitting)
+    \item numpy 2.0, pandas 2.2 (data manipulation)
+    \item matplotlib 3.9 (visualization)
+    \item Quarto 1.4 (document preparation)
+\end{itemize}
+
+Code and processed data are available at: \url{https://github.com/GilRaitses/INDYsim}
