@@ -64,9 +64,9 @@ We validate this kernel against experimental data from GMR61 larvae under 10 s O
 
 \subsection{Experimental Data}
 
-Data were collected from GMR61 \textit{Drosophila} larvae expressing channelrhodopsins. Animals were tracked at 20 Hz on an agar substrate while receiving optogenetic LED stimulation in a square-wave pattern: 10 s ON at 250 PWM, 20 s OFF (30 s cycle). For this study, we analyzed \textbf{55 tracks} containing \textbf{1,407 reorientation-onset events} from 2 experimental sessions under the 0$\rightarrow$250 PWM, control (7 PWM background) condition.
+Data were collected from GMR61 \textit{Drosophila} larvae expressing channelrhodopsins. Animals were tracked at 20 Hz on an agar substrate while receiving optogenetic LED stimulation in a square-wave pattern: 10 s ON at 250 PWM, 20 s OFF (30 s cycle). For this study, we analyzed \textbf{55 tracks} containing \textbf{1,407 reorientation-onset events} from 2 experimental sessions under the $0\rightarrow250$ PWM, control (7 PWM background) condition.
 
-Reorientation events were detected using a curvature-threshold algorithm that identifies the onset of heading changes. This inclusive definition captures both large sustained turns and brief head sweeps; events with measurable duration ($>$0.1 s) were classified as ``true turns'' ($N=319$) for behavioral interpretation.
+Reorientation events were detected using a curvature-threshold algorithm that identifies the onset of heading changes. This inclusive definition captures both large sustained turns and brief head sweeps; events with measurable duration ${>}0.1$ s were classified as ``true turns'' ($N=319$) for behavioral interpretation.
 
 \subsection{Hazard Model Structure}
 
@@ -143,7 +143,7 @@ The hazard model was fit to \textbf{all 1,407 inclusive onset events}, which inc
 
 For trajectory simulation and behavioral interpretation, events were filtered to those with \texttt{turn\_duration} $> 0.1$ s ($N = 319$, 23\% of total). This two-stage approach follows standard practice in larval navigation modeling: hazard fitting uses the full temporal structure while behavioral output focuses on salient events.
 
-For the factorial extension (Section~\ref{sec:factorial}), we pooled 12 experiments comprising 7,288 events across 623 tracks. Two experiments with anomalously high event counts (approximately 10--20$\times$ other sessions) were excluded because their annotation statistics were inconsistent with the remaining dataset.
+For the factorial extension (Section~\ref{sec:factorial}), we pooled 12 experiments comprising 7,288 events across 623 tracks. Two experiments with anomalously high event counts (approximately $10$--$20\times$ other sessions) were excluded because their annotation statistics were inconsistent with the remaining dataset.
 
 \subsection{Rate Calibration}
 
@@ -170,7 +170,7 @@ We implemented a RUN/TURN state machine driven by the hazard model:
 \begin{itemize}
     \item Angle sampled from $\mathcal{N}(\mu = 7^\circ, \sigma = 86^\circ)$
     \item Duration sampled from Lognormal (median $= 1.1$ s)
-    \item Speed reduced to 0.4$\times$ run speed
+    \item Speed reduced to $0.4\times$ run speed
     \item Return to RUN after duration elapsed
 \end{itemize}
 
@@ -212,7 +212,7 @@ Total events & 1,407 & 1,371 & PASS \\
 Rate ratio & --- & 0.974 & Target: 0.8--1.25 \\
 LED-OFF rate & $\sim$1.9/min & $\sim$1.9/min & MATCH \\
 LED-ON rate & $\sim$1.0/min & $\sim$1.0/min & MATCH \\
-Suppression & 2.0$\times$ & 1.9$\times$ & MATCH \\
+Suppression & $2.0\times$ & $1.9\times$ & MATCH \\
 \hline
 \end{tabular}
 \end{table}
@@ -220,7 +220,7 @@ Suppression & 2.0$\times$ & 1.9$\times$ & MATCH \\
 The peri-stimulus time histogram (PSTH) comparison reveals close agreement between model predictions and empirical observations (Figure~\ref{fig:validation}A--B). The correlation between simulated and empirical event histograms is $r = 0.84$, indicating good capture of temporal dynamics around stimulus transitions. Notably, the model correctly reproduces:
 \begin{itemize}
     \item The rapid onset of suppression within 0.5 s of LED activation (Figure~\ref{fig:validation}A, gray shaded region)
-    \item The sustained $\sim$2$\times$ reduction in event rate during the 10 s LED-ON period
+    \item The sustained ${\sim}2\times$ reduction in event rate during the 10 s LED-ON period
     \item The gradual recovery to baseline following LED offset
 \end{itemize}
 
@@ -252,7 +252,7 @@ The turn angle distribution (Figure~\ref{fig:distributions}A) shows high variabi
 \subsection{Factorial Analysis of Intensity and Background Effects}
 \label{sec:factorial}
 
-To assess generalization beyond the reference condition, we extended the model to a 2$\times$2 factorial design varying LED1 intensity (0$\rightarrow$250 vs 50$\rightarrow$250 PWM) and LED2 background pattern (Constant 7 PWM vs Cycling 5--15 PWM). This analysis pooled 12 experiments comprising 623 tracks and 7,288 events across all four conditions (Figure~\ref{fig:factorial}).
+To assess generalization beyond the reference condition, we extended the model to a $2\times2$ factorial design varying LED1 intensity ($0\rightarrow250$ vs $50\rightarrow250$ PWM) and LED2 background pattern (Constant 7 PWM vs Cycling 5--15 PWM). This analysis pooled 12 experiments comprising 623 tracks and 7,288 events across all four conditions (Figure~\ref{fig:factorial}).
 
 The factorial model extends the hazard function with condition-specific modulation:
 
@@ -261,7 +261,7 @@ The factorial model extends the hazard function with condition-specific modulati
 \label{eq:factorial}
 \end{equation}
 
-\noindent where $I$ indicates the 50$\rightarrow$250 intensity condition and $C$ indicates the cycling background condition.
+\noindent where $I$ indicates the $50\rightarrow250$ intensity condition and $C$ indicates the cycling background condition.
 
 \begin{table}[h]
 \centering
@@ -284,13 +284,13 @@ $\gamma$ (Rebound) & $1.669$ & $[0.470, 2.869]$ & --- & Post-offset enhancement 
 
 The factorial analysis reveals that both experimental manipulations significantly modulate the optogenetic response (Table~\ref{tab:factorial}; Figure~\ref{fig:factorial}):
 
-\textbf{Intensity effect (50$\rightarrow$250 vs 0$\rightarrow$250):} The 50$\rightarrow$250 condition shows 66\% weaker suppression amplitude ($\alpha_I = -0.665$, $p < 0.001$). This is consistent with partial adaptation: larvae pre-exposed to 50 PWM baseline illumination exhibit reduced sensitivity to the subsequent intensity step, suggesting that the sensory pathway has already partially adapted to the ambient light level.
+\textbf{Intensity effect ($50\rightarrow250$ vs $0\rightarrow250$):} The $50\rightarrow250$ condition shows 66\% weaker suppression amplitude ($\alpha_I = -0.665$, $p < 0.001$). This is consistent with partial adaptation: larvae pre-exposed to 50 PWM baseline illumination exhibit reduced sensitivity to the subsequent intensity step, suggesting that the sensory pathway has already partially adapted to the ambient light level.
 
 \textbf{Cycling background effect (Cycling vs Constant):} The cycling background (LED2 oscillating 5--15 PWM) increases suppression amplitude by 15\% ($\alpha_C = 0.152$, $p = 0.004$). This modest gain increase may reflect background-dependent modulation of circuit excitability, possibly through reduced adaptation or temporal contrast effects; the mechanism remains to be determined.
 
 \textbf{Interaction effect:} A modest interaction ($\beta_{IC} = -0.119$, $p = 0.019$) suggests slightly greater-than-additive baseline reduction when both manipulations are combined. Given limited statistical power for detecting small interactions (estimated $\sim$30--40\% for effects of this magnitude), we present this interaction as exploratory and do not base conclusions on it.
 
-The condition-specific suppression amplitudes (Figure~\ref{fig:factorial}A) range from 0.34 (50$\rightarrow$250 | Constant, weakest) to 1.16 (0$\rightarrow$250 | Cycling, strongest), representing a 3.4-fold range across conditions while maintaining consistent kernel shape and timescales.
+The condition-specific suppression amplitudes (Figure~\ref{fig:factorial}A) range from 0.34 ($50\rightarrow250$ | Constant, weakest) to 1.16 ($0\rightarrow250$ | Cycling, strongest), representing a 3.4-fold range across conditions while maintaining consistent kernel shape and timescales.
 
 Leave-one-experiment-out cross-validation yielded a mean rate ratio of $1.03 \pm 0.31$ across 12 held-out experiments (58\% within the 0.8--1.25 target range), indicating reasonable but imperfect generalization. The substantial inter-experiment variance ($\sigma = 0.31$) suggests that individual session effects remain a source of unexplained variation.
 
@@ -313,9 +313,9 @@ The analytic kernel enables:
 
 \subsection{Factorial Design Insights}
 
-The extension to a 2$\times$2 factorial design reveals that kernel shape and timescales are remarkably stable across conditions, while amplitude is condition-dependent. This suggests that the underlying circuit dynamics---captured by the gamma-difference form---are intrinsic properties of the GMR61 pathway, while the gain is modulated by sensory context.
+The extension to a $2\times2$ factorial design reveals that kernel shape and timescales are remarkably stable across conditions, while amplitude is condition-dependent. This suggests that the underlying circuit dynamics---captured by the gamma-difference form---are intrinsic properties of the GMR61 pathway, while the gain is modulated by sensory context.
 
-The partial adaptation effect (66\% weaker suppression for 50$\rightarrow$250) is consistent with Weber-Fechner scaling: the response to a stimulus depends on the ratio of intensities rather than the absolute magnitude. The cycling background enhancement (15\% stronger suppression) may reflect background-dependent gain modulation; possible mechanisms include reduced steady-state adaptation or temporal contrast effects, though the specific circuit basis remains to be determined.
+The partial adaptation effect (66\% weaker suppression for $50\rightarrow250$) is consistent with Weber-Fechner scaling: the response to a stimulus depends on the ratio of intensities rather than the absolute magnitude. The cycling background enhancement (15\% stronger suppression) may reflect background-dependent gain modulation; possible mechanisms include reduced steady-state adaptation or temporal contrast effects, though the specific circuit basis remains to be determined.
 
 Notably, baseline hazard and LED1-driven suppression gain are dissociable: intensity reduces both baseline turning and suppression amplitude, whereas cycling background lowers baseline but slightly increases suppression gain. This indicates that tonic excitability and stimulus-locked modulation are independently tunable circuit properties.
 
@@ -345,7 +345,7 @@ Potential extensions include:
 
 We present an analytic hazard kernel for optogenetically-driven larval reorientation that combines interpretability with predictive accuracy. The 6-parameter gamma-difference form captures two biologically meaningful timescales ($\tau_1 = 0.29$ s, $\tau_2 = 3.81$ s) and reproduces empirical event statistics with high fidelity (rate ratio $= 0.97$, $R^2 = 0.968$).
 
-Extension to a 2$\times$2 factorial design (12 experiments, 623 tracks, 7,288 events) reveals that the kernel shape is conserved across conditions while amplitude is modulated: partial adaptation (50$\rightarrow$250 PWM) reduces suppression by 66\%, while a cycling background increases suppression by 15\%. All factorial effects are statistically significant, demonstrating that the model can quantify condition-specific modulation of sensorimotor processing.
+Extension to a $2\times2$ factorial design (12 experiments, 623 tracks, 7,288 events) reveals that the kernel shape is conserved across conditions while amplitude is modulated: partial adaptation ($50\rightarrow250$ PWM) reduces suppression by 66\%, while a cycling background increases suppression by 15\%. All factorial effects are statistically significant, demonstrating that the model can quantify condition-specific modulation of sensorimotor processing.
 
 Embedded in a RUN/TURN trajectory simulator, the model generates realistic larval behavior that matches observed turn rates (1.88 vs 1.84 turns/min). This framework provides a foundation for quantitative analysis of sensorimotor processing across experimental conditions and genotypes.
 
@@ -386,7 +386,7 @@ All code and processed data are available at \url{https://github.com/GilRaitses/
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figure2_validation.png}
-\caption{\textbf{Model validation against empirical data.} The calibrated hazard model reproduces key features of larval reorientation behavior. \textbf{(A)} Peri-stimulus time histogram (PSTH) showing event rate aligned to LED onset (time = 0). Empirical data (black) and model simulation (red) both show rapid suppression within 0.5 s of LED activation (gray shaded region indicates LED-ON period). The model captures both the $\sim$2$\times$ reduction in event rate during stimulation and the gradual recovery after LED offset. PSTH correlation $r = 0.84$. \textbf{(B)} Suppression dynamics comparison. During LED-ON, both empirical and simulated data show $\sim$50\% reduction in turn probability relative to baseline (LED-OFF). Early suppression (0--3 s) and late suppression (3--8 s) are both captured within 5\% of empirical values. \textbf{(C)} Hazard function correlation: frame-by-frame comparison of analytic hazard $\lambda(t)$ with binned empirical event rate shows strong linear relationship ($R^2 = 0.962$), confirming the model captures instantaneous dynamics rather than merely aggregate statistics. Rate ratio (simulated/empirical) = 0.974, within target range of 0.8--1.25.}
+\caption{\textbf{Model validation against empirical data.} The calibrated hazard model reproduces key features of larval reorientation behavior. \textbf{(A)} Peri-stimulus time histogram (PSTH) showing event rate aligned to LED onset (time = 0). Empirical data (black) and model simulation (red) both show rapid suppression within 0.5 s of LED activation (gray shaded region indicates LED-ON period). The model captures both the ${\sim}2\times$ reduction in event rate during stimulation and the gradual recovery after LED offset. PSTH correlation $r = 0.84$. \textbf{(B)} Suppression dynamics comparison. During LED-ON, both empirical and simulated data show $\sim$50\% reduction in turn probability relative to baseline (LED-OFF). Early suppression (0--3 s) and late suppression (3--8 s) are both captured within 5\% of empirical values. \textbf{(C)} Hazard function correlation: frame-by-frame comparison of analytic hazard $\lambda(t)$ with binned empirical event rate shows strong linear relationship ($R^2 = 0.962$), confirming the model captures instantaneous dynamics rather than merely aggregate statistics. Rate ratio (simulated/empirical) = 0.974, within target range of 0.8--1.25.}
 \label{fig:validation}
 \end{figure}
 
@@ -407,7 +407,7 @@ All code and processed data are available at \url{https://github.com/GilRaitses/
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figure5_factorial.png}
-\caption{\textbf{Factorial analysis of intensity and background effects.} Extension of the hazard model to a 2$\times$2 factorial design (12 experiments, 623 tracks, 7,288 events) reveals condition-specific modulation of suppression amplitude. \textbf{(A)} Heatmap of suppression amplitude ($\alpha + \alpha_I \cdot I + \alpha_C \cdot C$) across the four experimental conditions. Values range from 0.34 (50$\rightarrow$250 | Constant, weakest suppression) to 1.16 (0$\rightarrow$250 | Cycling, strongest suppression), representing a 3.4-fold range. Rows: background pattern (Constant 7 PWM vs Cycling 5--15 PWM); columns: LED1 intensity step (0$\rightarrow$250 vs 50$\rightarrow$250 PWM). Blue indicates weaker suppression; red indicates stronger suppression. \textbf{(B)} Forest plot of factorial coefficient estimates with 95\% confidence intervals. All effects are statistically significant ($p < 0.05$, marked with asterisks). Key findings: (1) Intensity modulation ($\alpha_I = -0.665$) indicates 66\% weaker suppression for the 50$\rightarrow$250 condition, consistent with partial adaptation to baseline illumination. (2) Cycling background modulation ($\alpha_C = +0.152$) indicates 15\% stronger suppression with oscillating LED2, suggesting reduced adaptation. (3) The baseline effects ($\beta_I = -0.199$, $\beta_C = -0.108$) show 18\% and 10\% reduction in overall hazard respectively. (4) A synergistic interaction ($\beta_{IC} = -0.119$) indicates greater-than-additive effects when both manipulations are combined. The rebound coefficient ($\gamma = 1.67$) is robustly positive, confirming enhanced event probability after LED offset.}
+\caption{\textbf{Factorial analysis of intensity and background effects.} Extension of the hazard model to a $2\times2$ factorial design (12 experiments, 623 tracks, 7,288 events) reveals condition-specific modulation of suppression amplitude. \textbf{(A)} Heatmap of suppression amplitude ($\alpha + \alpha_I \cdot I + \alpha_C \cdot C$) across the four experimental conditions. Values range from 0.34 ($50\rightarrow250$ | Constant, weakest suppression) to 1.16 ($0\rightarrow250$ | Cycling, strongest suppression), representing a 3.4-fold range. Rows: background pattern (Constant 7 PWM vs Cycling 5--15 PWM); columns: LED1 intensity step ($0\rightarrow250$ vs $50\rightarrow250$ PWM). Blue indicates weaker suppression; red indicates stronger suppression. \textbf{(B)} Forest plot of factorial coefficient estimates with 95\% confidence intervals. All effects are statistically significant ($p < 0.05$, marked with asterisks). Key findings: (1) Intensity modulation ($\alpha_I = -0.665$) indicates 66\% weaker suppression for the $50\rightarrow250$ condition, consistent with partial adaptation to baseline illumination. (2) Cycling background modulation ($\alpha_C = +0.152$) indicates 15\% stronger suppression with oscillating LED2, suggesting reduced adaptation. (3) The baseline effects ($\beta_I = -0.199$, $\beta_C = -0.108$) show 18\% and 10\% reduction in overall hazard respectively. (4) A synergistic interaction ($\beta_{IC} = -0.119$) indicates greater-than-additive effects when both manipulations are combined. The rebound coefficient ($\gamma = 1.67$) is robustly positive, confirming enhanced event probability after LED offset.}
 \label{fig:factorial}
 \end{figure}
 
