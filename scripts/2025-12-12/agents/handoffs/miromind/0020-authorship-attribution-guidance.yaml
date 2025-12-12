@@ -1,0 +1,206 @@
+---
+id: "0020"
+timestamp: "2025-12-12T01:15:00Z"
+from: cursor-agent
+to: miromind
+subject: "Authorship and Attribution Guidance for INDYsim Manuscript"
+priority: high
+context: pre-submission
+
+---
+
+# Research Prompt: Authorship and Attribution Best Practices
+
+## Background
+
+I am preparing to submit a manuscript titled **"An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation"** to bioRxiv. Before finalizing the author list and acknowledgments, I need guidance on proper attribution following established research ethics guidelines.
+
+## The Situation
+
+### Data Source
+- The experimental data (larval tracking under optogenetic stimulation) was collected in **Mirna's lab**
+- I received the data in processed form (HDF5 files) for analysis
+- The experiments used GMR61 *Drosophila* larvae with channelrhodopsin expression
+- Data includes 14 experiments across 4 conditions (2×2 factorial design)
+
+### People Involved
+
+| Person | Role | Contribution |
+|--------|------|--------------|
+| **Gil Raitses** (me) | Graduate student / Analyst | All computational analysis: hazard model development, gamma-difference kernel fitting, factorial analysis, trajectory simulation, manuscript writing, figure generation, code development |
+| **Devindi Goonawardhana ("Dev")** | Experimentalist | Collected all experimental data (larval tracking, optogenetic stimulation), ran experiments, processed raw video to tracking data |
+| **Mirna [Last name?]** | Lab PI | Provided lab resources, experimental infrastructure, likely supervised experimental design, may have contributed to experimental conception |
+| **Ki Young Jeong** | Course instructor | Teaching context where this analysis was developed; may have provided guidance on analysis approach |
+
+### What I Did (My Contributions)
+1. **Model Development**: Conceived and implemented the gamma-difference hazard kernel
+2. **Statistical Analysis**: NB-GLM fitting, factorial analysis, cross-validation, GLMM robustness check
+3. **Validation**: Time-rescaling test, PSTH correlation, rate ratio metrics
+4. **Simulation**: RUN/TURN trajectory simulator
+5. **Manuscript**: All writing, all figures, all code
+6. **Novel Contributions**: 
+   - The 6-parameter analytic kernel form (vs 12-basis raised-cosine)
+   - Factorial extension showing intensity/background effects
+   - Interpretation of kernel parameters in biological terms
+
+### What I Did NOT Do
+1. Design the experiments
+2. Collect the data
+3. Build the tracking infrastructure
+4. Create the optogenetic stimulation system
+5. Develop the larval tracking algorithms
+
+---
+
+## Questions Requiring Guidance
+
+### Q1: Authorship Criteria
+
+According to ICMJE (International Committee of Medical Journal Editors) and CRediT (Contributor Roles Taxonomy) guidelines:
+
+1. **Who qualifies as an author?**
+   - Does data collection alone qualify for authorship?
+   - Does providing data (without involvement in analysis or writing) qualify?
+   - Does lab PI supervision of data collection qualify?
+   - Does course instruction qualify?
+
+2. **What are the four ICMJE criteria?**
+   - Substantial contributions to conception/design OR acquisition/analysis/interpretation
+   - Drafting OR critical revision of manuscript
+   - Final approval of version to be published
+   - Agreement to be accountable for all aspects
+
+### Q2: Specific Attribution Questions
+
+1. **Devindi Goonawardhana (Dev)**:
+   - She collected all the data but was not involved in analysis or writing
+   - Does this meet ICMJE criteria for authorship?
+   - If not authorship, what is appropriate acknowledgment language?
+   - Should she be offered co-authorship with opportunity to contribute to revision?
+
+2. **Mirna (Lab PI)**:
+   - She provided lab resources and likely supervised experimental design
+   - Was she involved in the conception of THIS specific analysis?
+   - What is standard practice for lab PIs whose data is analyzed externally?
+   - Should she be contacted before submission?
+
+3. **Ki Young Jeong (Course Instructor)**:
+   - The analysis was developed in a course context
+   - Did he provide substantive intellectual contribution to the analysis approach?
+   - Is acknowledgment sufficient, or could authorship be appropriate?
+
+4. **Me (Gil Raitses)**:
+   - As sole analyst and manuscript author, am I the clear first author?
+   - Is single authorship appropriate if others contributed data?
+
+### Q3: CRediT Roles Analysis
+
+Please map the contributions to CRediT taxonomy:
+
+| Role | Gil | Dev | Mirna | Ki Young |
+|------|-----|-----|-------|----------|
+| Conceptualization | ? | ? | ? | ? |
+| Data curation | ? | ? | ? | ? |
+| Formal analysis | ? | ? | ? | ? |
+| Funding acquisition | ? | ? | ? | ? |
+| Investigation | ? | ? | ? | ? |
+| Methodology | ? | ? | ? | ? |
+| Project administration | ? | ? | ? | ? |
+| Resources | ? | ? | ? | ? |
+| Software | ? | ? | ? | ? |
+| Supervision | ? | ? | ? | ? |
+| Validation | ? | ? | ? | ? |
+| Visualization | ? | ? | ? | ? |
+| Writing – original draft | ? | ? | ? | ? |
+| Writing – review & editing | ? | ? | ? | ? |
+
+### Q4: Ethical and Practical Considerations
+
+1. **Permission to use data**:
+   - Was there explicit agreement that this data could be used for publication?
+   - Is there a data use agreement or collaboration understanding?
+   - Should Mirna's lab be contacted before bioRxiv submission?
+
+2. **Prior publication**:
+   - Has this data been published before in any form?
+   - Are there any restrictions on analysis/publication?
+
+3. **Institutional considerations**:
+   - Are there university policies on authorship for course-derived work?
+   - Does the course have specific publication guidelines?
+
+4. **Communication best practices**:
+   - What is the professional way to reach out to Mirna and Dev?
+   - How to frame the conversation about authorship vs acknowledgment?
+
+### Q5: Recommended Author List Scenarios
+
+Please provide guidance on these scenarios:
+
+**Scenario A: Single Author**
+- Gil Raitses (sole author)
+- Acknowledgments: Dev (data collection), Mirna (lab resources), Ki Young (course guidance)
+- When is this appropriate?
+
+**Scenario B: Two Authors**
+- Gil Raitses, Devindi Goonawardhana
+- Acknowledgments: Mirna (lab resources), Ki Young (course guidance)
+- When is this appropriate?
+
+**Scenario C: Three Authors**
+- Gil Raitses, Devindi Goonawardhana, Mirna [Last name]
+- Acknowledgments: Ki Young (course guidance)
+- When is this appropriate?
+
+**Scenario D: Four Authors**
+- Gil Raitses, Devindi Goonawardhana, Ki Young Jeong, Mirna [Last name]
+- When is this appropriate?
+
+### Q6: Acknowledgment Language
+
+If individuals are acknowledged rather than listed as authors, what is appropriate language?
+
+Examples needed for:
+1. Experimentalist who collected data
+2. Lab PI who provided resources/data access
+3. Course instructor who provided academic context
+
+---
+
+## Context: The Manuscript
+
+**Title**: An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation
+
+**Key Contributions**:
+- Novel 6-parameter gamma-difference kernel (vs 12-basis flexible kernel)
+- Factorial analysis of intensity and background effects
+- RUN/TURN trajectory simulator
+- Validation framework (rate ratio, PSTH, time-rescaling)
+
+**Status**: 
+- Complete manuscript with figures
+- Supplement with GLMM robustness check
+- Ready for bioRxiv submission pending authorship resolution
+
+---
+
+## What I Need
+
+1. **Clear guidance** on who should be listed as author vs acknowledged
+2. **Template language** for acknowledgments if individuals are not authors
+3. **Recommended communication approach** for contacting Mirna and Dev
+4. **Risk assessment** of submitting without explicit collaboration agreement
+5. **Citation of relevant guidelines** (ICMJE, CRediT, journal policies)
+
+---
+
+## Additional Context
+
+- This is my first first-author publication
+- I want to do this correctly and ethically
+- I am prepared to include others as authors if appropriate
+- I do not want to claim credit I don't deserve, nor deny credit to others
+- The analysis is novel and represents substantial independent work
+- The data was essential but I did not participate in its collection
+
+Please provide comprehensive guidance based on established research ethics and publishing best practices.

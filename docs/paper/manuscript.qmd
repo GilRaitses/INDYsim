@@ -323,11 +323,11 @@ Notably, baseline hazard and LED1-driven suppression gain are dissociable: inten
 
 \textbf{Cross-condition generalization:} While the factorial model captures main effects well (mean rate ratio = 1.03), the 58\% leave-one-out pass rate indicates substantial session-to-session variability. This may reflect experimental factors (e.g., agar moisture, larval developmental stage) not captured by the model.
 
-\textbf{Fixed-effects model:} The current analysis uses a fixed-effects NB-GLM that pools across experiments without random intercepts for track or experiment. This provides valid population-average estimates but does not partition variance between experimental sessions. A mixed-effects extension (GLMM) would be a natural refinement.
+\textbf{Fixed-effects model:} The primary analysis uses a fixed-effects NB-GLM that pools across experiments. A robustness check using NB-GLMM with random track intercepts (Supplementary Table S2b) confirmed that the key kernel parameters differ by less than 3.5\% between models, with random effect SD $= 0.59$ indicating substantial between-track variation in baseline rate.
 
 \textbf{Event definition:} Reorientation events were defined using \texttt{is\_reorientation\_start} from the tracking pipeline, yielding 7,288 events across all factorial conditions. Of these, 77\% have zero measured duration (onset events including micro head sweeps), while 23\% have duration $> 0.1$ s (true turns). The hazard model was fit to all events to maximize power; trajectory simulations use only the filtered subset.
 
-\textbf{Poisson assumption:} Time-rescaling analysis showed $\approx$13\% deviation from the ideal Poisson model (mean rescaled IEI $= 0.87$ vs expected 1.0), suggestive of short-term dependencies such as refractoriness. Incorporating an explicit post-event kernel could improve IEI fits but would not change the main LED1-driven suppression dynamics.
+\textbf{Poisson assumption:} Time-rescaling analysis showed modest deviation from the ideal Poisson model (KS test $p = 0.17$, mean deviation 1.3\%), within acceptable limits for this class of models. Any remaining deviation may reflect short-term dependencies such as refractoriness; incorporating an explicit post-event kernel could improve IEI fits but would not change the main LED1-driven suppression dynamics.
 
 \textbf{Trajectory simplifications:} The RUN/TURN simulator omits edge avoidance, head sweeps, and speed gradients. These simplifications are appropriate for demonstrating hazard-driven timing but limit biomechanical realism.
 
@@ -355,7 +355,7 @@ Embedded in a RUN/TURN trajectory simulator, the model generates realistic larva
 
 \section*{Data and Code Availability}
 
-All code and processed data are available at [repository URL].
+All code and processed data are available at \url{https://github.com/GilRaitses/INDYsim}.
 
 \section*{References}
 
