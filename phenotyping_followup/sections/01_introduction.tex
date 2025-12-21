@@ -1,0 +1,31 @@
+\section{Introduction}
+
+\subsection{Individual Analysis Challenges}
+
+Population-level analysis of larval reorientation behavior under optogenetic stimulation has established that response timing follows a gamma-difference kernel with two distinct timescales. The fast excitatory component governs initial response probability, while a slower inhibitory component suppresses reorientations over the following seconds. The population-level model is robust across experimental conditions. Individual larvae may exhibit distinct behavioral phenotypes reflecting variability in sensorimotor integration. Characterizing individual-level variability would enable identification of distinct behavioral strategies and determination of sample sizes needed for future phenotyping studies.
+
+\subsection{Reorientation Events as a Point Process}
+
+Larval locomotion alternates between forward runs and lateral turns. At each moment during a run, the larva may initiate a turn with some probability that depends on recent sensory history. These run-to-turn transition times constitute a point process, which represents discrete events at random times in continuous time. The gamma-difference kernel $K(t)$ modulates the instantaneous hazard rate of initiating a turn as a function of time since LED onset. Positive kernel values elevate turn probability; negative values suppress turns (Figure~\ref{fig:psth_kernel}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig3_psth_kernel_v2.pdf}
+\caption{\textbf{From empirical PSTH to generative model.}
+\textbf{(A)} Empirical peri-stimulus time histogram (PSTH) showing reorientation event rate aligned to LED onset (t=0). Events are binned in 0.5-second intervals. The biphasic response shows early excitation (peak at $\sim$2s) followed by suppression (trough at $\sim$5s).
+\textbf{(B)} Fitted gamma-difference kernel $K(t) = A \cdot \Gamma(t; \alpha_1, \beta_1) - B \cdot \Gamma(t; \alpha_2, \beta_2)$. Positive values indicate increased event probability; negative values indicate suppression relative to baseline.
+\textbf{(C)} Per-frame event probability $p(t) = \exp(\beta_0 + K(t))$, where $\beta_0$ is the baseline log-hazard. The kernel modulates this probability around the $\sim$2\% baseline rate.
+\textbf{(D)} Discrete-time Bernoulli process. At each 50ms frame, a random draw determines whether an event occurs based on $p(t)$. The generative process can simulate synthetic tracks matching empirical statistics.}
+\label{fig:psth_kernel}
+\end{figure}
+
+The parametric kernel $K(t)$ provides a mechanistic explanation for the empirical PSTH shape. Fast excitation with $\tau_1 \approx 0.3$s drives the initial peak, while slow suppression with $\tau_2 \approx 4$s creates the subsequent trough. The gamma-difference form enables both prediction by evaluating $K(t)$ at arbitrary time points and simulation by generating synthetic events via Bernoulli sampling.
+
+The point process formulation has two implications. The appropriate likelihood function rewards high hazard at observed event times and penalizes high hazard during periods without events. Event times are not exchangeable because their relationship to the stimulus protocol matters, constraining valid bootstrap procedures.
+
+\subsection{Data Requirements and Objectives}
+
+Individual-level inference from sparse event data poses a fundamental challenge. The gamma-difference kernel has 6 free parameters, including two amplitudes $A$ and $B$ controlling the strength of excitatory and inhibitory components, and four shape parameters $\alpha_1$, $\beta_1$, $\alpha_2$, $\beta_2$ that determine when each component peaks and how quickly it decays. Typical 10--20 minute recordings yield only 18--25 events per larva. The resulting data-to-parameter ratio of 3:1 is far below the 10:1 commonly recommended for reliable nonlinear estimation.
+
+The central question is therefore not ``Do phenotypes exist?'' but ``Can phenotypes be reliably detected with available data?'' Simulation-based inference provides the framework for testing whether fitting and clustering methods recover ground truth from synthetic trajectories with known parameters. Individual-level kernels are fitted to simulated and empirical tracks. Apparent clusters are tested for validation survival. Data requirements are quantified. The analysis establishes whether population-level or individual-level inference is appropriate.
+

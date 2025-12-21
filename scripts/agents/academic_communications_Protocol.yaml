@@ -1,0 +1,328 @@
+# Korean Communication Protocol
+# For writing to Korean professors, colleagues, and academic contacts
+
+**Effective Date:** 2025-12-16
+**Authority:** Gil Raitses
+**Scope:** All email and written communication to Korean academic contacts
+
+---
+
+## Core Principles
+
+### 1. Direct, Factual Communication
+- State facts clearly without excessive explanation
+- Avoid emotional language or self-flagellation
+- Present information matter-of-factly
+- No promises about future actions; state what is being done now
+
+### 2. Brief, Professional Apology (When Needed)
+- One sentence apology, no elaboration
+- Follow immediately with factual explanation
+- No repeated apologies or excessive remorse
+- Example: "I sincerely apologize for [specific issue]."
+
+### 3. Factual Explanation (Not Excuses)
+- Explain what happened factually
+- No defensive language
+- No blame-shifting
+- Just state the circumstances
+
+### 4. Clear Request (Not Begging)
+- State what you need directly
+- No excessive politeness or deference
+- Professional but straightforward
+- Example: "I sincerely ask you to accept [X]."
+
+### 5. Show Current Work (Not Promises)
+- Describe what you are doing now using present tense ("I am conducting", "are being fitted")
+- State what will be available (factual, not promise)
+- Avoid repetitive "I am" statements; vary with passive voice and factual statements
+- Use passive voice to reduce self-focus ("The work will be presented" vs "I will present")
+- Let actions speak rather than making commitments
+- Present tense for ongoing work, factual statements for future availability
+
+---
+
+## Forbidden Patterns
+
+### ❌ DO NOT USE:
+- Excessive apologies ("I'm so sorry, I deeply apologize, I feel terrible...")
+- Emotional language ("I'm devastated, I'm worried, I hope you understand...")
+- Promises about future actions ("I promise to...", "I will definitely...")
+- Begging or excessive deference ("I beg you", "I humbly request...")
+- Repeated apologies in same email
+- Long explanations of why something happened
+- Self-flagellation or excessive self-criticism
+- Repetitive "I am" statements (vary with passive voice and factual statements)
+- Direct demands ("I need you to...", "You must...")
+- Excessive self-reference (use passive voice and process-focused language)
+- Local file paths that recipient cannot access
+
+### ✅ DO USE:
+- Brief, direct apology: "I sincerely apologize for [X]."
+- Factual explanation: "I found [fact]. I did not receive [fact]. I learned [fact]."
+- Indirect requests: "I would be grateful if you could consider [X]." or "If you deem it suitable, [X] could [Y]."
+- Current work description: "I am conducting [X]. [Y] are being performed. The results will be available [when]."
+- Passive voice to reduce self-focus: "The work will be presented" vs "I will present"
+- Present tense for ongoing work: "are being fitted", "is being used", "is running"
+- Factual statements for future availability: "will be available at [location] [when]"
+- Professional closing: "Sincerely," or "Best regards,"
+- Indirect collaboration invitations: "I would appreciate any feedback you could provide, and I would be honored if you could serve as [role]."
+
+---
+
+## Email Structure Template
+
+```
+Subject: [Brief, factual subject]
+
+Dear [Name],
+
+[Brief apology if needed - one sentence]
+[Factual explanation - 2-3 sentences max]
+
+[Current work/status - factual description]
+[What is available now]
+[What will be available - factual statement, not promise]
+
+[Clear request - direct and professional]
+
+Sincerely,
+[Your Name]
+```
+
+---
+
+## Example: Late Submission (Based on Seongjin's Email)
+
+**Good Example:**
+```
+Dear [Professor],
+
+I sincerely apologize for this late submission.
+
+I found the deadline was [time]. I did not receive [notification]. I learned [fact] just now, so I attach [materials] in this email.
+
+I am currently [doing X]. The results will be available [when].
+
+I sincerely ask you to accept [materials] for [purpose].
+
+Sincerely,
+[Name]
+```
+
+**Bad Example (Too Apologetic):**
+```
+Dear [Professor],
+
+I am so deeply sorry and devastated that I missed the deadline. I feel terrible about this and I hope you can understand. I promise I will never do this again. I beg you to please accept my submission. I'm really worried about this and I hope you don't think poorly of me.
+
+[excessive emotional language continues...]
+```
+
+---
+
+## Tone Guidelines
+
+### Apology Tone
+- **Good:** "I sincerely apologize for [X]." (one sentence)
+- **Bad:** "I'm so sorry, I deeply apologize, I feel terrible, I hope you understand..."
+
+### Explanation Tone
+- **Good:** "I found [fact]. I did not receive [fact]. I learned [fact]."
+- **Bad:** "I was really busy and things got crazy and I didn't realize..."
+
+### Request Tone
+- **Good (Direct):** "I sincerely ask you to accept [X]."
+- **Good (Indirect):** "I would be grateful if you could consider [X]." or "If you deem it suitable, [X] could [Y]."
+- **Bad:** "I beg you, please, I really need this, I hope you can help me..."
+
+### Work Description Tone
+- **Good:** "I am conducting [X]. [Y] are being performed. The results will be available [when]."
+- **Good (Passive):** "The work will be presented at [location]." (reduces self-focus)
+- **Good (Present tense):** "Individual-level kernels are being fitted. The cross-validation pipeline is running."
+- **Bad:** "I promise to finish this soon, I will definitely send it, I guarantee..."
+
+### Collaboration Invitation Tone
+- **Good:** "I would appreciate any feedback you could provide, and I would be honored if you could serve as [role]."
+- **Good:** "We would appreciate any feedback you could provide, and we would be honored if you could serve as [role]." (when appropriate)
+- **Bad:** "I need you to be my co-author" or "Please collaborate with me"
+
+---
+
+## Cultural Notes
+
+### Korean Academic Communication Style
+- Direct and factual, not emotional
+- Brief apologies, not lengthy explanations
+- Professional respect without excessive deference
+- Indirect requests preferred over direct demands
+- Actions speak louder than words (show work, don't promise)
+- Reduced self-reference through passive voice and process-focused language
+- Present tense for ongoing work, factual statements for outcomes
+
+### Key Differences from Western Academic Style
+- Less emotional language
+- Shorter apologies
+- More factual, less explanatory
+- Indirect requests rather than direct demands (but still clear, not vague)
+- Focus on current state rather than future promises
+- More use of passive voice to reduce self-focus
+- Less repetitive self-reference ("I am" statements)
+- Collaboration invitations are indirect and conditional
+
+### Language Patterns for Manuscript Writing
+- Use passive voice strategically to reduce self-focus
+- Vary sentence structure to avoid repetitive patterns
+- Present tense for ongoing work ("are being fitted", "is running")
+- Factual statements for outcomes ("will be available", "has been completed")
+- Process-focused language ("The analysis addresses X" vs "I am analyzing X")
+- Indirect phrasing for requests and invitations
+
+---
+
+## Application Checklist
+
+Before sending email to Korean academic contact:
+
+- [ ] Apology is one sentence maximum
+- [ ] Explanation is factual, not emotional
+- [ ] No promises about future actions
+- [ ] Current work described factually using present tense
+- [ ] Request is indirect but clear ("I would be grateful if..." or "If you deem it suitable...")
+- [ ] No repeated apologies
+- [ ] No excessive deference or begging
+- [ ] Tone is matter-of-fact, not emotional
+- [ ] Passive voice used to reduce self-focus where appropriate
+- [ ] No repetitive "I am" statements (varied with passive voice)
+- [ ] No local file paths that recipient cannot access
+- [ ] Collaboration invitations phrased indirectly and conditionally
+- [ ] Multiple requests handled with indirect phrasing ("If appropriate...", "I also ask that...")
+
+---
+
+## Examples from Seongjin's Email
+
+**Apology:**
+- "I sincerely apologize for this late submission of my letter."
+- ✅ One sentence, direct, professional
+
+**Explanation:**
+- "I found the link was still active last weekend, and I did not get any further email from the Rockefeller University regarding the submission site getting closed, I thought the link would be still available."
+- ✅ Factual, explains circumstances without excuses
+
+**Request:**
+- "I sincerely ask you to accept this letter for Gil Raitses's application to your program."
+- ✅ Direct, clear, professional
+
+**Supporting Information:**
+- "He has very strong interest in your program and specified three faculty members he wanted to work with."
+- ✅ Factual, relevant, not emotional
+
+## Examples from Final Email Draft
+
+**Indirect Request:**
+- "I would be grateful if you could consider the attached manuscript and supplementary materials as the final report."
+- ✅ Indirect but clear, professional
+
+**Multiple Requests:**
+- "I also ask that the follow-up phenotyping analysis be considered as related work in place of some of the lab assignments."
+- ✅ Second request phrased indirectly, not demanding
+
+**Ongoing Work (Present Tense):**
+- "I'm conducting a pilot phenotyping analysis. Individual-level kernels are being fitted. The cross-validation pipeline is running."
+- ✅ Present tense, varied structure, process-focused
+
+**Passive Voice for Self-Focus Reduction:**
+- "The work will be presented at Mirna's lab meeting on Monday."
+- ✅ Passive voice reduces self-focus while remaining factual
+
+**Indirect Conditional Request:**
+- "If you deem it suitable, this could be considered toward the class presentation requirement."
+- ✅ Indirect, conditional, deferential without begging
+
+**Collaboration Invitation:**
+- "I would appreciate any feedback you could provide, and I would be honored if you could serve as a corresponding author."
+- ✅ Indirect, conditional, respectful, not demanding
+
+---
+
+## Application to Manuscript Writing
+
+This protocol's principles extend to academic manuscript writing, providing guidance for clear, professional prose that reduces self-focus and emphasizes process and findings.
+
+### Language Patterns for Manuscripts
+
+**Reduce Self-Reference:**
+- Use passive voice strategically: "Individual-level kernels are being fitted" vs "I am fitting individual-level kernels"
+- Process-focused language: "The analysis addresses X" vs "I am analyzing X"
+- Factual statements: "The results demonstrate Y" vs "I found that Y"
+
+**Avoid Repetitive Patterns:**
+- Vary sentence structure to avoid "I am" repetition
+- Mix active and passive voice appropriately
+- Use different verb forms (present progressive, simple present, passive)
+
+**Tense Usage:**
+- Present tense for ongoing work: "are being fitted", "is running", "are being performed"
+- Factual statements for outcomes: "will be available", "has been completed", "addresses X"
+- Past tense for completed work: "was performed", "were analyzed"
+
+**Indirect Phrasing:**
+- For limitations: "This analysis may be limited by..." vs "I was limited by..."
+- For future work: "Future work should address..." vs "I will address..."
+- For acknowledgments: "We would appreciate feedback" vs "I need feedback"
+
+### Structure Patterns for Manuscripts
+
+**Organization:**
+- Present methods and findings before discussion
+- Show work before making claims
+- Factual statements before interpretations
+- Process description before outcomes
+
+**Request/Invitation Handling:**
+- Place acknowledgments after presenting work
+- Use indirect phrasing for collaboration invitations
+- Conditional statements: "If appropriate...", "We would be honored if..."
+
+**Multiple Points:**
+- Use parallel structure for lists
+- Vary list length (not always three items)
+- Integrate lists into prose when possible
+
+### Tone Patterns for Manuscripts
+
+**Matter-of-Fact:**
+- No emotional language
+- No excessive explanation
+- Factual statements over interpretations
+- Process-focused over outcome-focused
+
+**Professional Respect:**
+- Indirect but clear phrasing
+- Not demanding or presumptuous
+- Conditional invitations
+- Deferential without begging
+
+**Process Emphasis:**
+- Emphasize what is being done
+- Describe methodology clearly
+- Show work rather than claim outcomes
+- Let results speak for themselves
+
+### Integration with Manuscript Style Protocol
+
+This protocol complements the MANUSCRIPT_STYLE_PROTOCOL.md:
+- **Pronoun bridges:** Avoid "This" at sentence start; use explicit nouns
+- **Colon before lists:** Integrate lists into prose when possible
+- **Passive voice:** Use strategically to reduce self-focus
+- **Process language:** Emphasize methodology and process over personal actions
+
+## Attestation
+
+This protocol is based on observed Korean academic communication patterns, particularly from Seongjin Park's email example and refined through analysis of final email drafts. It emphasizes directness, factual communication, professional respect without excessive emotional language or deference, and strategic use of passive voice and indirect phrasing.
+
+**Signed:** Gil Raitses  
+**Date:** 2025-12-16  
+**Last Updated:** 2025-12-17

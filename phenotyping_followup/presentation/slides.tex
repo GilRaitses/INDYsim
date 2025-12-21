@@ -1,0 +1,210 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{default}
+\usecolortheme{dove}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\title{Phenotyping Follow-up: The Identifiability Problem}
+\author{Gil Raitses}
+\date{December 2024}
+
+\begin{document}
+
+% ==============================================================================
+\begin{frame}
+\titlepage
+\end{frame}
+
+% ==============================================================================
+% FIGURE 1: Design Kernel Sweep
+% ==============================================================================
+\begin{frame}{Design $\times$ Kernel Regime Sweep}
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/fig_design_kernel_sweep.png}
+
+\vspace{0.3cm}
+\footnotesize
+Systematic comparison of 4 stimulation designs across 6 kernel regimes. Red dashed box marks our actual kernel (A/B = 0.125). Fisher Information, power, bias, and event counts shown.
+\end{frame}
+
+% FAQ for Figure 1
+\begin{frame}{FAQ: Design $\times$ Kernel Sweep}
+\textbf{Q: Where do the 6 A/B ratios come from?}\\
+They span from strongly inhibitory (0.125, our kernel) through balanced (1.0) to excitatory-dominated (4.0). B is fixed at 12; A varies.
+
+\vspace{0.4cm}
+\textbf{Q: Why does Fisher Information explode at high A/B?}\\
+Numerical artifact. When excitation dominates, the hazard becomes very high, and the grid search hits boundaries. Those values are not meaningful.
+
+\vspace{0.4cm}
+\textbf{Q: Why is power ``nan'' for some cells?}\\
+Power calculation failed when variance was too high or sample size too small for the t-test to converge.
+
+\vspace{0.4cm}
+\textbf{Q: What do the event counts tell us?}\\
+At A/B = 0.125, all designs produce similar events ($\sim$16-17). The differences in bias/RMSE are NOT due to more events---they're due to more \textit{informative} events.
+\end{frame}
+
+% ==============================================================================
+% FIGURE 2: The Identifiability Problem (v3)
+% ==============================================================================
+\begin{frame}{The Identifiability Problem}
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/fig2_identifiability_v3.png}
+
+\vspace{0.3cm}
+\footnotesize
+(A) Same event count, different estimation error. (B) Fisher Information: burst extracts 10$\times$ more. (C) MLE recovery by design. (D) Why continuous fails.
+\end{frame}
+
+% FAQ for Figure 2
+\begin{frame}{FAQ: The Identifiability Problem}
+\textbf{Q: Where do the bias/RMSE numbers come from?}\\
+200 larvae simulated with known $\tau_1$ = 0.63s, fit with MLE. Bias = mean(fitted) - true. RMSE = sqrt(mean((fitted - true)$^2$)).
+
+\vspace{0.4cm}
+\textbf{Q: What is Fisher Information and why does it matter?}\\
+Fisher Information quantifies how much information each event carries about $\tau_1$. Higher = more precise estimates. Computed by integrating $(\partial\lambda/\partial\tau_1)^2 / \lambda$ over the stimulus window.
+
+\vspace{0.4cm}
+\textbf{Q: Why does burst give 10$\times$ more info with the same events?}\\
+The excitatory peak is at t $\approx$ 0.2-0.3s after LED onset. Burst samples this window 10 times per cycle; continuous samples it once.
+
+\vspace{0.4cm}
+\textbf{Q: Why is bias +0.61s for continuous?}\\
+The MLE finds $\tau_1 \approx 1.24$s instead of 0.63s because the likelihood surface is flat---many $\tau_1$ values produce similar likelihoods with so few informative events.
+\end{frame}
+
+% ==============================================================================
+% FIGURE 3: Hierarchical Shrinkage
+% ==============================================================================
+\begin{frame}{Hierarchical Bayesian Modeling}
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/core/fig3_hierarchical_shrinkage.png}
+
+\vspace{0.3cm}
+\footnotesize
+Caterpillar plot showing 95\% credible intervals for all 256 tracks. Orange intervals (8.6\%) exclude the population mean; gray intervals (91.4\%) are consistent with the population.
+\end{frame}
+
+% FAQ for Figure 3
+\begin{frame}{FAQ: Hierarchical Modeling}
+\textbf{Q: What is shrinkage?}\\
+Hierarchical Bayesian estimation pulls extreme MLE estimates toward the population mean. With sparse data, almost all individuals shrink to the same value.
+
+\vspace{0.4cm}
+\textbf{Q: Why are 91\% of larvae ``population-consistent''?}\\
+With only $\sim$25 events and a 6-parameter model, the data cannot distinguish most individuals from the population mean. The wide credible intervals overlap the population value.
+
+\vspace{0.4cm}
+\textbf{Q: What about the 8.6\% outliers?}\\
+These have credible intervals that exclude the population mean. Most are ``fast responders'' with $\tau_1 \approx 0.45$s vs. population $\tau_1 = 0.63$s. They require independent validation.
+
+\vspace{0.4cm}
+\textbf{Q: Does this mean individual phenotyping is impossible?}\\
+With current protocols, yes. With burst stimulation, individual $\tau_1$ becomes estimable at current event counts.
+\end{frame}
+
+% ==============================================================================
+% FIGURE 4: Stimulation Schematic
+% ==============================================================================
+\begin{frame}{Stimulation Protocol Designs}
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/fig_stimulation_schematic.png}
+
+\vspace{0.3cm}
+\footnotesize
+Four designs compared: Continuous (10s ON), Burst (10$\times$0.5s), Medium (4$\times$1s), Long (2$\times$2s). All have same total ON time (10s) within the 30s cycle.
+\end{frame}
+
+% FAQ for Figure 4
+\begin{frame}{FAQ: Stimulation Protocols}
+\textbf{Q: Why these specific pulse durations?}\\
+Burst (0.5s) is matched to $\tau_1 \approx 0.6$s---the excitatory peak. Medium (1s) and Long (2s) test whether longer pulses help.
+
+\vspace{0.4cm}
+\textbf{Q: Why not even shorter pulses?}\\
+Pulses $<$ 0.3s would clip the excitatory peak before it develops. The kernel needs time to rise.
+
+\vspace{0.4cm}
+\textbf{Q: Why 0.5s gaps between burst pulses?}\\
+Trade-off: shorter gaps = more pulses per cycle, but inhibition accumulates. 0.5s lets inhibition partially decay.
+
+\vspace{0.4cm}
+\textbf{Q: What about the blue LED / LED2?}\\
+Not analyzed in this sweep. The schematic shows only the red LED (LED1) stimulation that drives photophobic responses.
+\end{frame}
+
+% ==============================================================================
+% FIGURE 5: Summary Comparison
+% ==============================================================================
+\begin{frame}{Design Comparison Summary}
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/fig_design_comparison_summary.png}
+
+\vspace{0.3cm}
+\footnotesize
+Four-panel comparison of experimental designs. Burst consistently shows best performance for inhibitory kernels.
+\end{frame}
+
+% FAQ for Figure 5
+\begin{frame}{FAQ: Design Comparison}
+\textbf{Q: Which design should we recommend?}\\
+For inhibitory kernels (B/A $>$ 4): \textbf{Burst}. For balanced or excitatory kernels: \textbf{Continuous} is fine.
+
+\vspace{0.4cm}
+\textbf{Q: Why did earlier analysis say burst ``failed''?}\\
+Earlier analysis measured \textbf{classification power} (can we tell fast vs. typical apart?). That showed 41.5\% vs 42.5\%---negligible. This analysis measures \textbf{estimation quality} (bias, RMSE), which shows 4$\times$ improvement.
+
+\vspace{0.4cm}
+\textbf{Q: Can we use burst for all experiments?}\\
+Yes, for phenotyping $\tau_1$. Burst is never worse than continuous and is often better for inhibitory kernels.
+
+\vspace{0.4cm}
+\textbf{Q: What's the practical recommendation?}\\
+Change protocol from 10s continuous ON to 10$\times$0.5s pulses with 0.5s gaps. Same total stimulation, 4$\times$ better estimation.
+\end{frame}
+
+% ==============================================================================
+% KEY NUMBERS SLIDE
+% ==============================================================================
+\begin{frame}{Key Numbers to Remember}
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Design} & \textbf{Events} & \textbf{Fisher Info} & \textbf{Bias} & \textbf{RMSE} \\
+\hline
+Continuous 10s & 16.3 & 0.29 & +0.61s & 0.71s \\
+\textbf{Burst 10$\times$0.5s} & 16.9 & \textbf{2.88} & \textbf{+0.14s} & \textbf{0.38s} \\
+Medium 4$\times$1s & 16.4 & 1.15 & +0.40s & 0.63s \\
+Long 2$\times$2s & 16.1 & 0.58 & +0.57s & 0.74s \\
+\hline
+\end{tabular}
+
+\vspace{0.5cm}
+\textbf{Bottom line:} Burst extracts 10$\times$ more information, reducing bias by 4$\times$, with the same number of events.
+\end{frame}
+
+% FAQ for Key Numbers
+\begin{frame}{FAQ: Key Numbers}
+\textbf{Q: How were these computed?}\\
+200 larvae $\times$ 20 cycles (10 min). Known $\tau_1$ = 0.63s. Simulate events, fit MLE, compute bias/RMSE.
+
+\vspace{0.4cm}
+\textbf{Q: Why 20 cycles instead of 40 (full protocol)?}\\
+Conservative estimate. Full protocol would give more events and better estimates.
+
+\vspace{0.4cm}
+\textbf{Q: Is bias of +0.14s acceptable?}\\
+For detecting a 0.2s difference between phenotypes, +0.14s bias leaves little margin. Would need $\sim$50 events with burst or $\sim$100 with continuous for bias $<$ 0.1s.
+
+\vspace{0.4cm}
+\textbf{Q: What's the take-home message?}\\
+The ``100 events'' heuristic is \textbf{design-dependent}. With burst, you need fewer events. The issue is not just count---it's information per event.
+\end{frame}
+
+\end{document}
+

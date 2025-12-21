@@ -1,0 +1,69 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+% \usepackage{natbib}  % Removed - using thebibliography instead
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Graphics path
+\graphicspath{{figures/}{figures/core/}{figures/validation/}{figures/interactive/}}
+
+% Title and authors
+\title{Quantitative Guidelines for Behavioral Phenotyping from Sparse Point-Process Data}
+
+\author{Gil Raitses\textsuperscript{1}, Devindi Goonawardhana\textsuperscript{2}, Mirna Mihovilovic-Skanata\textsuperscript{2} \\[0.5em]
+\small \textsuperscript{1}Syracuse University \\
+\small \textsuperscript{2}Department of Physics, Syracuse University}
+
+\date{December 2025}
+
+\begin{document}
+
+\maketitle
+
+% Abstract
+\begin{abstract}
+Behavioral phenotyping requires reliable estimation of individual differences from sparse event data. When larvae respond to light with reorientation events, timing is governed by response kernels with excitatory and inhibitory components. Population-level estimation is robust, but individual-level inference is essential for genetic screens and neural circuit mapping.
+
+Individual kernel parameters are structurally non-identifiable under standard experimental protocols. With approximately 20 events per larva, maximum likelihood estimation produces estimates spanning the full parameter range. The failure is not a sample size problem: the inhibitory component suppresses events precisely when the excitatory parameter would be most informative.
+
+Design optimization reveals regime-dependent solutions. For inhibition-dominated kernels, burst stimulation provides higher Fisher Information. For excitatory kernels, continuous stimulation suffices. Composite phenotypes derived from event statistics bypass kernel fitting and achieve reliable recovery with current data.
+
+These findings establish quantitative guidelines for sparse point-process phenotyping. The framework applies broadly where validated population models do not translate to individual-level inference.
+
+\textbf{Keywords:} behavioral phenotyping, point process, identifiability, experimental design, \textit{Drosophila} larvae
+\end{abstract}
+
+\onehalfspacing
+
+% Main text
+\input{sections/01_introduction}
+\input{sections/02_methods}
+\input{sections/03_results}
+\input{sections/04_discussion}
+\input{sections/05_conclusion}
+
+% Appendix
+\input{sections/09_appendix}
+
+% Acknowledgments
+\section*{Acknowledgments}
+We thank the members of the laboratory for helpful discussions and feedback on the manuscript.
+
+% Data Availability
+\section*{Data Availability}
+All data and analysis code are available in the project repository. Processed data are stored in HDF5 format. Analysis scripts are written in Python with NumPy, SciPy, scikit-learn, and NumPyro dependencies.
+
+% References
+\input{sections/08_references}
+
+\end{document}

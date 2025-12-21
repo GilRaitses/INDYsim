@@ -1,0 +1,187 @@
+role: research-agent
+task_id: 0063
+task_name: psth_calculation_method_investigation
+priority: high
+date: 2025-12-21
+
+# ============================================================================
+# RESEARCH TASK: PSTH Calculation Method Investigation
+# ============================================================================
+
+## Status: 🔍 RESEARCH NEEDED
+
+Investigate whether PSTH (Peri-Stimulus Time Histogram) calculations in the phenotyping analysis are using the correct empirical method (binning actual events) or incorrectly using parametric kernel evaluation.
+
+## Research Question
+
+**Is the PSTH calculation using empirical binning of actual events (correct) or parametric kernel evaluation `rate(t) = baseline_rate × exp(K(t))` (potentially incorrect)?**
+
+## Background
+
+The phenotyping follow-up study analyzes larval reorientation behavior using:
+1. **Kernel Fitting**: Maximum likelihood fitting of gamma-difference kernels to event times
+2. **PSTH Computation**: Computing peri-stimulus time histograms to visualize event rates
+3. **Validation**: Comparing fitted kernels to empirical PSTH for fit quality (R²)
+
+**The Concern**: Uncertainty about whether PSTH calculations correctly use empirical binning vs. parametric kernel evaluation.
+
+## Key Files to Investigate
+
+### Primary Analysis Code
+- `phenotyping_followup/code/07_deep_eda.py` - `compute_track_psth()` function
+- `phenotyping_followup/code/08_fno_phenotyping.py` - `compute_psth()` function
+- `phenotyping_followup/code/phenotyping_analysis_pipeline.py` - Main pipeline
+- `phenotyping_followup/code/cv_kernel_fits.py` - Cross-validation code
+
+### Methods Documentation
+- `phenotyping_followup/sections/02_methods.tex`
+  - Lines 41-45: Describes parametric PSTH computation
+  - Lines 127-133: Describes empirical PSTH construction
+
+### Related Code
+- `code/validate_simulation.py` - `compute_psth()` function
+- `code/run_bayesian_optimization.py` - `compute_empirical_psth()` function
+- `code/simulate_extended_biphasic.py` - `compute_psth()` function
+
+## Research Questions
+
+1. **What method is actually being used?**
+   - Trace code execution paths for PSTH computation
+   - Identify which functions are called
+   - Determine if events are binned or kernel functions evaluated
+
+2. **Is there a documentation/implementation mismatch?**
+   - Compare methods section to actual code
+   - Check for inconsistencies
+
+3. **What are the implications if wrong method is used?**
+   - Assess bias potential
+   - Impact on results validity
+
+4. **Where is PSTH used for validation?**
+   - Find R² calculation comparing kernel to PSTH
+   - Verify it compares parametric predictions to empirical PSTH (correct) vs. parametric to parametric (incorrect)
+
+5. **Are there multiple PSTH functions with different methods?**
+   - Catalog all `compute_psth()` functions
+   - Identify which use binning vs. kernel evaluation
+   - Determine which are actually called
+
+## Root Cause Hypotheses
+
+### Hypothesis 1: Correct Implementation
+- Code uses `np.histogram()` on actual event times
+- Events aligned to LED onsets before binning
+- Normalization uses number of cycles and bin width
+- **Conclusion**: Empirical PSTH correctly implemented
+
+### Hypothesis 2: Incorrect Implementation
+- Code evaluates `exp(K(t))` instead of binning events
+- No histogram/bin counting of actual events
+- **Conclusion**: Parametric PSTH incorrectly used where empirical needed
+
+### Hypothesis 3: Mixed Usage
+- Some analyses use empirical, others use parametric
+- Documentation describes one method, code uses another
+- **Conclusion**: Inconsistent methodology
+
+### Hypothesis 4: Terminology Confusion
+- "Parametric PSTH" means PSTH computed from parametric fits, not kernel evaluation
+- Distinction is "PSTH from events" vs. "predicted PSTH from kernel"
+- **Conclusion**: Terminology issue, not implementation error
+
+## Expected Deliverables
+
+1. **Code Audit Report**
+   - List all PSTH computation functions
+   - Document method each uses (empirical vs. parametric)
+   - Trace execution paths
+
+2. **Root Cause Analysis**
+   - Identify specific issue (if any)
+   - Explain why it occurred
+   - Assess severity and impact
+
+3. **Recommendations**
+   - How to fix (if incorrect)
+   - How to clarify documentation (if correct)
+   - Best practices
+
+4. **Verification Checklist**
+   - Steps to verify correctness
+   - Tests to prevent regression
+   - Documentation updates needed
+
+## Research Approach
+
+1. **Static Code Analysis**
+   - Read all PSTH-related functions
+   - Trace function calls
+   - Identify data flow: events → PSTH
+
+2. **Dynamic Analysis** (if possible)
+   - Run example PSTH computations
+   - Verify outputs match expected method
+   - Check intermediate values
+
+3. **Documentation Review**
+   - Compare methods section to implementation
+   - Check for inconsistencies
+   - Identify clarification needs
+
+4. **Literature Review**
+   - Standard PSTH computation methods
+   - When to use parametric vs. empirical
+   - Trade-offs
+
+## Success Criteria
+
+✅ Clearly identifies which method(s) are being used
+✅ Determines if there is a problem (and what it is)
+✅ Provides actionable recommendations
+✅ Resolves uncertainty about PSTH calculation correctness
+
+## Additional Context
+
+- Analysis compares simulated vs. empirical data
+- Kernel fitting: maximum likelihood with L-BFGS-B
+- Events generated via discrete-time Bernoulli process (simulations)
+- Empirical: 10-79 events per track (sparse)
+- Simulated: 145-338 events per track (denser)
+
+## Priority: HIGH
+
+This affects validity of entire phenotyping analysis. If PSTH computation is incorrect, it could invalidate:
+- Kernel fit quality assessments (R² comparisons)
+- Validation metrics
+- Simulated vs. empirical comparisons
+- Clustering results based on PSTH features
+
+## Related Files
+
+- Research prompt: `scripts/2025-12-21/agent-handoffs/research-agent/psth-calculation-investigation-prompt.md`
+- **ACTUAL CODE**: `scripts/2025-12-21/agent-handoffs/research-agent/psth-functions-actual-code.md` ⭐ **READ THIS FIRST**
+
+- Response critique: `scripts/2025-12-21/agent-handoffs/research-agent/psth-response-critique.md`
+- Methods section: `phenotyping_followup/sections/02_methods.tex`
+- Main analysis code: `phenotyping_followup/code/`
+
+## Critical Update: Actual Code Analysis
+
+**IMPORTANT:** A previous analysis made assumptions without reading code. The actual implementations have been documented in `psth-functions-actual-code.md`.
+
+**Key Finding:** All PSTH functions found use **EMPIRICAL binning** (not parametric evaluation). The only parametric rate calculation (`baseline_rate * exp(K(t))`) is in a visualization script.
+
+**Next Steps:**
+1. Read `psth-functions-actual-code.md` for actual implementations
+2. Find where R² is computed (methods says it compares kernel to empirical PSTH)
+3. Verify R² calculation compares parametric predictions to empirical PSTH (correct)
+4. Update methods section if needed to match actual implementation
+
+## Notes
+
+- User raised concern after parameter sweep completion
+- Previous analysis made critical error by assuming without reading code
+- All PSTH functions found are empirical - need to verify R² calculation
+- May require documentation clarification (methods describes parametric PSTH but code uses empirical)
+

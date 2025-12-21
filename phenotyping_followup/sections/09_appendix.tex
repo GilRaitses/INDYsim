@@ -1,0 +1,184 @@
+\appendix
+
+\section{Detailed Clustering Methodology}
+\label{app:clustering}
+
+\subsection{Clustering Stability Analysis}
+
+K-means clustering was performed on standardized kernel features ($\tau_1$, $\tau_2$, $A$, $B$) for $k = 2, 3, 4, 5$ clusters. Stability was assessed via bootstrap resampling (50 iterations) with Adjusted Rand Index (ARI).
+
+\subsubsection{Simulated Data Results}
+
+On 300 simulated tracks, clustering stability increased monotonically with $k$:
+
+\begin{table}[h]
+\centering
+\caption{Clustering stability on simulated data (N=300 tracks)}
+\label{tab:sim_clustering_app}
+\begin{tabular}{cccc}
+\hline
+\textbf{k} & \textbf{Silhouette} & \textbf{Stability (ARI)} & \textbf{Cluster Sizes} \\
+\hline
+2 & 0.760 & 0.513 $\pm$ 0.506 & \{294, 6\} \\
+3 & 0.497 & 0.703 $\pm$ 0.357 & \{75, 6, 219\} \\
+4 & 0.501 & 0.841 $\pm$ 0.218 & \{70, 220, 6, 4\} \\
+5 & 0.471 & \textbf{0.920} $\pm$ 0.099 & \{153, 6, 65, 72, 4\} \\
+\hline
+\end{tabular}
+\end{table}
+
+The high silhouette score for $k=2$ was driven by separation of 6 outlier tracks from the 294-track majority. The $k=5$ solution showed highest stability (ARI = 0.920) with lowest variance.
+
+\subsubsection{Empirical Data Results}
+
+\begin{table}[h]
+\centering
+\caption{Clustering stability on empirical data (N=260 tracks)}
+\label{tab:emp_clustering_app}
+\begin{tabular}{cccc}
+\hline
+\textbf{k} & \textbf{Silhouette} & \textbf{Stability (ARI)} & \textbf{Cluster Sizes} \\
+\hline
+2 & 0.435 & 0.478 $\pm$ 0.500 & \{140, 120\} \\
+3 & 0.503 & 0.918 $\pm$ 0.200 & \{11, 129, 120\} \\
+4 & 0.539 & \textbf{0.945} $\pm$ 0.104 & \{128, 11, 115, 6\} \\
+5 & \textbf{0.573} & 0.937 $\pm$ 0.089 & \{115, 11, 68, 6, 60\} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Cluster Validation Results}
+
+\begin{table}[h]
+\centering
+\caption{Statistical validation of empirical phenotype clusters}
+\label{tab:validation_app}
+\begin{tabular}{ccccc}
+\hline
+\textbf{k} & \textbf{Permutation p} & \textbf{Gap Optimal?} & \textbf{Train/Test ARI} & \textbf{Validated?} \\
+\hline
+2 & 0.022* & No & 0.15 (Poor) & Partial \\
+3 & 0.002** & No & 0.74 (Good) & \textbf{Yes} \\
+4 & $<$0.001*** & No & 0.79 (Good) & \textbf{Yes} \\
+5 & $<$0.001*** & No & 0.78 (Good) & \textbf{Yes} \\
+\hline
+\end{tabular}
+\end{table}
+
+The gap statistic indicated optimal $k=1$, suggesting continuous variation rather than discrete subpopulations.
+
+%==============================================================================
+\section{Neural Operator Analysis}
+\label{app:fno}
+
+Given limitations of parametric fitting, a Fourier Neural Operator (FNO) was trained to learn the mapping from PSTH to kernel shape directly.
+
+\subsection{Validation on Synthetic Data}
+
+The FNO was trained on 2000 synthetic tracks with known ground-truth kernels.
+
+\begin{table}[h]
+\centering
+\caption{Kernel recovery performance on synthetic validation data}
+\begin{tabular}{lcc}
+\hline
+\textbf{Model} & \textbf{Kernel Correlation (r)} & \textbf{MSE} \\
+\hline
+FNO & 0.921 & 0.103 \\
+MLP baseline & 0.978 & 0.035 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Application to Empirical Data}
+
+\begin{table}[h]
+\centering
+\caption{Clustering of FNO-derived kernels}
+\begin{tabular}{lccc}
+\hline
+\textbf{k} & \textbf{Silhouette} & \textbf{ARI vs PSTH} & \textbf{ARI vs Parametric} \\
+\hline
+3 & 0.326 & 0.250 & 0.011 \\
+4 & 0.303 & 0.276 & 0.011 \\
+5 & 0.255 & 0.200 & 0.011 \\
+\hline
+\end{tabular}
+\end{table}
+
+The near-zero ARI between FNO-derived and parametric clusters indicates that parametric fitting creates artifacts unrelated to behavioral structure.
+
+%==============================================================================
+\section{Round-Trip Validation Protocol}
+\label{app:roundtrip}
+
+To test whether identified phenotypes represent recoverable individual differences, round-trip validation was performed.
+
+\subsection{Simulation Protocol}
+
+A total of 260 synthetic tracks were generated. Each track was assigned to a phenotype cluster based on empirical proportions. Kernel parameters were sampled from that cluster's distribution. Reorientation events were simulated via discrete-time Bernoulli process with $p(t) = \exp(\beta_0 + K(t))$. Kernels were then fitted to the simulated events and the fitted parameters were clustered for comparison to ground truth.
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\caption{Round-trip simulation validation results}
+\label{tab:roundtrip_app}
+\begin{tabular}{lcc}
+\hline
+\textbf{Metric} & \textbf{Observed} & \textbf{Expected} \\
+\hline
+Fit success rate & 98.8\% & $>$90\% (pass) \\
+Cluster recovery (ARI) & \textbf{0.128} & $>$0.5 (FAIL) \\
+$\tau_1$ correlation & -0.03 & $>$0.5 (FAIL) \\
+$\tau_2$ correlation & \textbf{-0.62} & $>$0.5 (FAIL) \\
+$A$ correlation & 0.35 & $>$0.5 (FAIL) \\
+$B$ correlation & -0.01 & $>$0.5 (FAIL) \\
+\hline
+\end{tabular}
+\end{table}
+
+The near-zero or negative parameter correlations indicate that kernel fitting from sparse event data cannot reliably recover ground-truth parameters.
+
+%==============================================================================
+\section{PCA Representation Comparison}
+\label{app:pca}
+
+To investigate whether phenotype clusters reflect genuine behavioral variation, clustering was compared in two representations: PSTH-based (raw event patterns binned in 0.5s intervals, 0-10s post-LED onset, 20 dimensions) and kernel-based (fitted parameters $\tau_1$, $\tau_2$, $A$, $B$, 4 dimensions).
+
+\begin{table}[h]
+\centering
+\caption{PCA comparison of representations}
+\begin{tabular}{lcc}
+\hline
+\textbf{Metric} & \textbf{PSTH} & \textbf{Kernel} \\
+\hline
+PC1 variance explained & 15\% & 39\% \\
+PCs for 90\% variance & 16 & 4 \\
+Silhouette (k=4) & 0.52 & 0.54 \\
+\hline
+\end{tabular}
+\end{table}
+
+When clustering was performed independently on each representation, the resulting cluster assignments showed essentially no agreement with an Adjusted Rand Index of 0.01 at k=4. Individuals clustered together by kernel parameters are not clustered together by event patterns.
+
+%==============================================================================
+\section{Statistical Enhancement Details}
+\label{app:enhancements}
+
+\subsection{Power Analysis}
+
+The simulation-based power analysis answered how many events per larva are needed to reliably detect a fast responder. Power increased monotonically with event count: at 25 events (current data) power was approximately 20--30\%, at 100 events power reached 75--85\%, and at 150 events power exceeded 90\%. Type I error remained controlled near the nominal 5\% level across all event counts tested.
+
+\subsection{Posterior Predictive Checks}
+
+The hierarchical Bayesian model passed PPC with $>$90\% of tracks showing observed event patterns consistent with posterior predictions for event count, mean ISI, and PSTH shape.
+
+\subsection{Model Comparison}
+
+Model comparison between the full 6-parameter and reduced 2-parameter models demonstrated that the reduced model is preferred for the majority of tracks. The reduced model achieved lower BIC in $>$60\% of tracks.
+
+\subsection{Cross-Experiment Generalization}
+
+Leave-one-experiment-out cross-validation assessed population parameter stability across 14 experiments. The coefficient of variation for $\tau_1$ across folds was $<$15\%.
+

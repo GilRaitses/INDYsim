@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Gil Raitses" />
+  <meta name="author" content="Mirna Mihovilovic Skanata" />
+  <title>Individual-level behavioral phenotyping in Drosophila larvae using simulation-based inference: Supplementary Material</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Individual-level behavioral phenotyping in
+<em>Drosophila</em> larvae using simulation-based inference:
+Supplementary Material</h1>
+<p class="author">Gil Raitses</p>
+<p class="author">Mirna Mihovilovic Skanata</p>
+</header>
+<h1 class="unnumbered" id="supplementary-methods">Supplementary
+Methods</h1>
+<h2 class="unnumbered" id="simulation-parameters">Simulation
+Parameters</h2>
+<p>[Details of simulation parameters will be added here]</p>
+<h2 class="unnumbered" id="kernel-fitting-details">Kernel Fitting
+Details</h2>
+<p>[Detailed kernel fitting procedures and optimization parameters]</p>
+<h2 class="unnumbered" id="clustering-algorithm-details">Clustering
+Algorithm Details</h2>
+<p>[Detailed clustering parameters and validation metrics]</p>
+<h1 class="unnumbered" id="supplementary-results">Supplementary
+Results</h1>
+<h2 class="unnumbered" id="individual-track-kernel-fits">Individual
+Track Kernel Fits</h2>
+<p>[Summary statistics of individual kernel fits]</p>
+<h2 class="unnumbered" id="cross-validation-results">Cross-Validation
+Results</h2>
+<p>[Detailed cross-validation results tables]</p>
+<h2 class="unnumbered" id="clustering-stability-metrics">Clustering
+Stability Metrics</h2>
+<p>[Detailed clustering stability analysis]</p>
+<h1 class="unnumbered" id="supplementary-figures">Supplementary
+Figures</h1>
+<p>[Supplementary figures will be added here]</p>
+<h1 class="unnumbered" id="computational-field-notes">Computational
+Field Notes</h1>
+<p>This section documents implementation decisions made during the
+analysis pipeline development, with emphasis on preserving statistical
+rigor.</p>
+<h2 class="unnumbered" id="gpu-vectorization-for-power-analysis">GPU
+Vectorization for Power Analysis</h2>
+<h4 class="unnumbered" id="section"></h4>
+<p><span>Initial serial implementation.</span> The power analysis was
+initially implemented in sequential Python (NumPy/SciPy). After 9+ hours
+of CPU execution, only 2 of 8 event-count conditions had completed.
+Projected total runtime exceeded 70 hours, making this approach
+impractical. The serial script was terminated and reimplemented for GPU
+execution. This section documents the reimplementation to confirm that
+statistical rigor was preserved.</p>
+<h4 class="unnumbered" id="section-1"></h4>
+<p><span>Computational requirements.</span> The simulation-based power
+analysis (main text, Methods: Power Analysis) requires fitting 100
+population tracks <span class="math inline">\(\times\)</span> 100
+fast-responder tracks <span class="math inline">\(\times\)</span> 8
+event counts <span class="math inline">\(\times\)</span> 50 bootstrap
+replicates <span class="math inline">\(= 800{,}000\)</span> model fits.
+Sequential CPU execution was estimated at <span
+class="math inline">\(&gt;\)</span>70 hours.</p>
+<p>To accelerate computation, the pipeline was migrated to GPU using JAX
+with full vectorization. This implementation choice maintains 100%
+statistical equivalence to sequential execution:</p>
+<ul>
+<li><p><strong>Simulation fidelity</strong>: Each track is simulated
+from the same gamma-difference kernel model with reproducible random
+seeds via JAX’s PRNG key splitting.</p></li>
+<li><p><strong>Optimization equivalence</strong>: MLE optimization uses
+identical objective functions (log-likelihood with integral term) and
+convergence criteria.</p></li>
+<li><p><strong>Bootstrap procedure</strong>: Parametric bootstrap
+samples are generated identically—simulate from fitted parameters,
+refit, collect parameter estimates.</p></li>
+<li><p><strong>CI calculation</strong>: Confidence intervals computed as
+2.5th–97.5th percentiles of bootstrap distributions.</p></li>
+<li><p><strong>Error rate definitions</strong>: Type I error =
+proportion of population tracks whose CI excludes true <span
+class="math inline">\(\tau_1\)</span>; Power = proportion of
+fast-responder tracks whose CI excludes population mean.</p></li>
+</ul>
+<p>The only difference is <em>execution strategy</em>:
+<code>vmap(process_track)(keys)</code> processes all 100 tracks in
+parallel on GPU, whereas a Python <code>for</code> loop processes them
+sequentially on CPU. Mathematically, these are
+identical—<code>vmap</code> is a parallel map operator with no side
+effects that could alter results.</p>
+<p>Random number handling ensures reproducibility:</p>
+<pre><code>key = PRNGKey(42)
+keys = split(key, 100)
+# Sequential: for i in range(100): simulate(keys[i])
+# Vectorized: vmap(simulate)(keys)  # Same keys, same results</code></pre>
+<p>Final runtime with GPU vectorization: <span
+class="math inline">\(\sim\)</span>30 minutes (Tesla T4) vs <span
+class="math inline">\(&gt;\)</span>70 hours (CPU sequential), a <span
+class="math inline">\(&gt;\)</span>140<span
+class="math inline">\(\times\)</span> speedup with zero impact on
+statistical validity.</p>
+<h2 class="unnumbered" id="event-definition-verification">Event
+Definition Verification</h2>
+<p>During validation pipeline development, a critical inconsistency was
+identified: some scripts used <code>klein_run_table/time0</code> (run
+start times) while others used <code>is_reorientation_start</code>
+(reorientation onset times). These are distinct events:</p>
+<ul>
+<li><p><strong>Run start</strong>: The larva begins a forward locomotion
+bout.</p></li>
+<li><p><strong>Reorientation onset</strong>: The larva transitions from
+run to turn (the event modeled by the kernel).</p></li>
+</ul>
+<p>All pipelines were verified to use
+<code>is_reorientation_start</code> consistently, matching the event
+definition in the original study.</p>
+<h2 class="unnumbered" id="multi-start-optimization">Multi-Start
+Optimization</h2>
+<p>The 6-parameter gamma-difference kernel produces a non-convex
+likelihood surface. Initial implementations used single-start
+optimization, which converged to local minima in <span
+class="math inline">\(\sim\)</span>15–20% of tracks, producing
+qualitatively incorrect kernel shapes (e.g., inverted polarity,
+implausible time constants).</p>
+<p>The corrected implementation uses grid search initialization:</p>
+<ul>
+<li><p><span class="math inline">\(\tau_1 \in \{0.3, 0.6,
+0.9\}\)</span> s</p></li>
+<li><p><span class="math inline">\(\tau_2 \in \{1.0, 2.0,
+3.0\}\)</span> s</p></li>
+<li><p><span class="math inline">\(A/B \in \{1.0,
+2.0\}\)</span></p></li>
+</ul>
+<p>yielding 18 initial points. The solution with highest final
+log-likelihood was retained.</p>
+<h2 class="unnumbered"
+id="structural-identifiability-analysis">Structural Identifiability
+Analysis</h2>
+<p>During power analysis debugging, a fundamental structural
+identifiability issue was discovered that explains the difficulty of
+individual-level kernel fitting.</p>
+<h4 class="unnumbered" id="section-2"></h4>
+<p><span>The problem.</span> The gamma-difference kernel with population
+parameters <span class="math inline">\(A = 1.5\)</span> and <span
+class="math inline">\(B = 12.0\)</span> produces a predominantly
+<em>inhibitory</em> response: <span class="math inline">\(K(t) &lt;
+0\)</span> for <span class="math inline">\(t &gt; 0.2\)</span> s during
+LED-ON. This means:</p>
+<ol>
+<li><p>Events are <em>suppressed</em> during LED-ON relative to
+LED-OFF.</p></li>
+<li><p>Only <span class="math inline">\(\sim\)</span>20% of events occur
+during LED-ON, despite LED-ON comprising 33% of the stimulus
+cycle.</p></li>
+<li><p>A typical track has only <span
+class="math inline">\(\sim\)</span>2 events in the LED-ON window where
+<span class="math inline">\(\tau_1\)</span> information is
+concentrated.</p></li>
+</ol>
+<h4 class="unnumbered" id="section-3"></h4>
+<p><span>Diagnostic evidence.</span> Likelihood surface analysis
+revealed that the log-likelihood is nearly flat across a wide range of
+<span class="math inline">\(\tau_1\)</span> values. For a representative
+track with 11 total events (2 in LED-ON):</p>
+<pre><code>True tau1 = 0.63s
+LL at tau1=0.63: -53.98
+LL at tau1=1.50: -53.83 (HIGHER - MLE converges here)
+Fitted tau1: 1.87s (3x too high)</code></pre>
+<p>The MLE finds a spuriously high <span
+class="math inline">\(\tau_1\)</span> because the likelihood difference
+between true and incorrect values is smaller than stochastic
+variation.</p>
+<h4 class="unnumbered" id="section-4"></h4>
+<p><span>Why longer tracks do not help.</span> The ratio of informative
+(LED-ON) to uninformative (LED-OFF) events is determined by the stimulus
+protocol and kernel shape, not by track duration. Extending recordings
+from 20 to 80 minutes would increase total events proportionally, but
+the <span class="math inline">\(\sim\)</span>20% informative fraction
+would remain constant. The Fisher information for <span
+class="math inline">\(\tau_1\)</span> grows only with informative events
+in the LED-ON window.</p>
+<h4 class="unnumbered" id="section-5"></h4>
+<p><span>Implications.</span> This finding validates the manuscript’s
+conclusion that individual <span class="math inline">\(\tau_1\)</span>
+estimation is not feasible under the current experimental design. The
+problem is structural (kernel parameterization + stimulus protocol)
+rather than merely data sparsity. Resolution would require either:</p>
+<ul>
+<li><p>Modified experimental design (higher duty cycle, pulse trains),
+or</p></li>
+<li><p>Simplified model (only <span
+class="math inline">\(\tau_1\)</span> varies by individual; other
+parameters fixed at population values).</p></li>
+</ul>
+<h1 class="unnumbered" id="code-availability">Code Availability</h1>
+<p>All analysis code is available at <a
+href="https://github.com/GilRaitses/indysim"
+class="uri">https://github.com/GilRaitses/indysim</a> in the
+<code>scripts/2025-12-16/phenotyping_followup/code/</code>
+directory.</p>
+</body>
+</html>

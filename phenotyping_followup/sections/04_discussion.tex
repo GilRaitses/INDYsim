@@ -1,0 +1,37 @@
+\section{Discussion}
+
+\subsection{Structural Identifiability Explains Individual Phenotyping Failure}
+
+The gamma-difference kernel is predominantly inhibitory. For most of the LED-ON window, the kernel value is negative. The LED stimulus suppresses reorientation events during LED-ON relative to LED-OFF. The Fisher information for $\tau_1$ is proportional to:
+\begin{equation}
+I(\tau_1) = \int \frac{1}{\lambda(t;\theta)} \left( \frac{\partial \lambda(t;\theta)}{\partial \tau_1} \right)^2 dt
+\end{equation}
+where $\lambda(t)$ is the instantaneous hazard rate. Because the kernel is nearly flat and negative for most of the LED-ON window, the derivative $\partial \lambda / \partial \tau_1$ is small precisely where informative events could occur, yielding near-zero information per individual. Data sparsity compounds the problem. Each larva provides few events distributed across a 6-parameter likelihood surface that is nearly flat in the $\tau_1$ direction. MLE finds local optima rather than true parameters.
+
+\subsection{Design Optimization Reveals Regime-Dependent Solutions}
+
+The identifiability problem is not simply about event count. Information content per event matters equally. Burst stimulation yields substantially higher Fisher Information for $\tau_1$ compared to continuous stimulation (Figure~\ref{fig:identifiability}). The mechanism relates to information localization. The excitatory component peaks early after LED onset and carries nearly all $\tau_1$ information. Continuous stimulation samples this early window once per cycle, while burst stimulation samples it multiple times. The systematic design comparison across kernel regimes (Figure~\ref{fig:design_comparison}) reveals that optimal protocols depend on whether the kernel is inhibition-dominated or excitation-dominated.
+
+The optimal design depends on kernel regime. For inhibition-dominated kernels, burst stimulation is required. For balanced or excitatory kernels, continuous stimulation is sufficient because higher event rates provide adequate information. A persistent bias appears at high excitation-to-inhibition ratios regardless of design, suggesting either model misspecification or grid boundary effects for excitatory-dominated kernels.
+
+\subsection{Composite Phenotypes Bypass Kernel Fitting}
+
+Given structural identifiability limitations, phenotyping strategies that bypass full kernel estimation are recommended. The ON/OFF event rate ratio provides a single-parameter summary estimable even with few ON-events per larva. First-event latency provides another robust measure.
+
+Simulation validation reveals asymmetric recoverability. Precision (modulating ON/OFF hazard ratio) achieves high correlation with true latent scores even at low event counts, regardless of baseline hazard. Burstiness (temporal clustering via self-excitation) is more difficult to recover. At low baseline hazard typical of current data, correlation with true scores remains poor even at higher event counts. Recovery improves substantially at higher baseline hazard. The practical implication is that Precision can be reliably phenotyped from current data, while Burstiness phenotyping requires either higher stimulus intensity or burst stimulation protocols.
+
+\subsection{Condition Effects Confound Individual Differences}
+
+Variance decomposition analysis revealed that condition effects account for a substantial portion of $\tau_1$ variance across the experimental conditions. Apparent individual differences may reflect condition assignment rather than true phenotypic variation. Future phenotyping analyses should either restrict to within-condition comparisons or explicitly model condition as a covariate.
+
+\subsection{Dataset Composition Explains Population Parameter Differences}
+
+The population-level $\tau_1$ estimated here differs from the original study. The difference reflects dataset composition. Fewer tracks from fewer experiments were analyzed in the original study compared to the broader dataset analyzed here. Estimation method also differs, with pooled MLE in the original study compared to hierarchical Bayesian modeling here. The original estimate characterizes fast response under optimal stimulation conditions, while the hierarchical estimate represents average response across the broader experimental landscape.
+
+\subsection{Limitations}
+
+Data sparsity remains the fundamental limitation. The data-to-parameter ratio is approximately 3 to 1, far below the 10 to 1 commonly recommended for reliable nonlinear estimation. Power analysis indicates that substantially more events are needed under continuous stimulation; burst stimulation reduces this requirement.
+
+The dataset spans multiple experimental conditions with different $\tau_1$ values. Condition effects confound individual phenotyping; within-condition analyses are recommended.
+
+The gamma-difference kernel form may not capture all behavioral variation. Candidate fast responders require independent replication before they can be considered established phenotypes.

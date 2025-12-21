@@ -1,0 +1,163 @@
+\section{Results}
+
+\subsection{260 Tracks Meet Quality Criteria}
+
+From the consolidated experimental dataset of 701 unique larval tracks across 14 experiments, 424 tracks representing 60.5\% were identified with successful MAGAT behavioral segmentation. The remaining 277 tracks had zero detected reorientation events, indicating segmentation failure rather than biological inactivity.
+
+After applying duration thresholds of at least 10 minutes and event count thresholds of at least 10 events, 260 tracks remained for individual-level phenotyping analysis. The tracks averaged 25.2 reorientation events per track, ranging from 10 to 79 events, with mean duration of 16.3 minutes. The 424 tracks with successful MAGAT segmentation contained 7,867 reorientation events (mean 19.0 events per track).
+
+The 6-parameter gamma-difference kernel fitted to tracks with median 18 events yields a data-to-parameter ratio of three to one. Individual-level parameter estimates are therefore expected to be unstable and heavily influenced by prior assumptions or regularization.
+
+\subsection{Individual Kernels Fit Successfully with High Apparent Separation}
+
+Kernel fitting succeeded for all 260 empirical tracks meeting the quality criteria. For comparison, 300 simulated 10-minute tracks were analyzed, generated from population-level parameters with track-specific random intercepts. Simulated tracks showed 8--25 events per track with mean 14.9 events, matching the empirical event rate of ~1.5 events/min. Kernel fitting succeeded for all simulated tracks with mean parameter recovery within 5\% of ground truth values.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{core/fig1_clustering_illusion.pdf}
+\caption{\textbf{The clustering illusion reveals apparent separation is not genuine.}
+\textbf{(A)} Principal component analysis of kernel parameters shows a unimodal distribution with no discrete cluster boundaries. Points are colored by density, not cluster assignment, revealing continuous variation rather than distinct phenotypes.
+\textbf{(B)} All validation methods failed to recover cluster assignments. Round-trip clustering achieved ARI = 0.13, PSTH vs kernel agreement achieved ARI = 0.01, FNO vs parametric achieved ARI = 0.01, and Bayesian vs MLE achieved ARI $\approx$ 0. All values fall below the success threshold of 0.5.
+\textbf{(C)} Gap statistic analysis suggests optimal $k=1$ cluster. The gap statistic compares within-cluster dispersion to that expected under a null distribution. Higher values indicate better clustering, but the maximum occurs at $k=1$, indicating no discrete clusters exist.}
+\label{fig:clustering_illusion}
+\end{figure}
+
+\subsubsection{Four Clusters Emerge with 99.6\% Classification Accuracy}
+
+Linear discriminant analysis achieved 99.6\% classification accuracy (10-fold CV), confirming that the four clusters are clearly separable in kernel parameter space. However, principal component analysis of kernel parameters reveals a unimodal distribution with no discrete cluster boundaries (Figure~\ref{fig:clustering_illusion}). The apparent separation in high-dimensional parameter space does not reflect genuine phenotypic structure. The gap statistic, which compares within-cluster dispersion to that expected under a null distribution, suggests optimal $k=1$ cluster, indicating that the four-cluster solution may be an artifact of sparse data rather than biological reality. Table~\ref{tab:centroids} shows cluster centroids.
+
+\begin{table}[h]
+\centering
+\caption{Cluster centroids (k=4) showing mean kernel parameters per phenotype}
+\label{tab:centroids}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Cluster} & \textbf{N (\%)} & \textbf{$\tau_1$ (s)} & \textbf{$\tau_2$ (s)} & \textbf{A} & \textbf{B} \\
+\hline
+0: Standard & 128 (49\%) & 0.22 & 6.6 & 0.37 & 19.9 \\
+1: Inverted timescales & 11 (4\%) & \textbf{5.0} & \textbf{0.63} & 0.55 & 20.0 \\
+2: Strong excitation & 115 (44\%) & 0.22 & 9.7 & \textbf{5.0} & 20.0 \\
+3: Weak suppression & 6 (2\%) & 0.18 & 10.8 & 4.2 & \textbf{12.2} \\
+\hline
+\end{tabular}
+\end{table}
+
+All four kernel parameters differed significantly across clusters (Kruskal-Wallis, all $p < 0.001$) with large effect sizes: $\tau_1$ ($\eta^2 = 0.97$), $A$ ($\eta^2 = 0.97$), $B$ ($\eta^2 = 0.81$), and $\tau_2$ ($\eta^2 = 0.17$). Detailed clustering stability analysis is provided in Appendix~\ref{app:clustering}.
+
+\subsection{Round-Trip Validation Reveals Phenotypes Are Not Recoverable}
+
+Round-trip validation tested whether identified phenotypes represent recoverable individual differences. Synthetic tracks were generated from phenotype-specific kernel parameters. Kernels were fitted to the synthetic data. Cluster assignments were compared to ground truth.
+
+The validation failed. Cluster recovery ARI was 0.128, below the expected threshold of 0.5. Parameter correlations were near zero or negative, with $\tau_1$ correlation $r = -0.03$ and $\tau_2$ correlation $r = -0.62$. The near-zero correlations indicate that kernel fitting from sparse event data with approximately 25 events per track cannot reliably recover ground-truth parameters. Full protocol details are provided in Appendix~\ref{app:roundtrip}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig6_posterior_predictive.pdf}
+\caption{\textbf{Posterior predictive checks validate the hierarchical Bayesian model.}
+\textbf{(A)} Pass rates by metric. The model passes posterior predictive checks for event count and mean inter-stimulus interval (ISI), with approximately 54\% of tracks showing observed statistics within the 95\% posterior predictive interval. PSTH shape correlation shows lower pass rates, indicating some model misspecification for temporal dynamics.
+\textbf{(B)} Overall model adequacy. The pie chart shows the proportion of tracks passing at least two of three PPC metrics. Approximately 37\% of tracks pass the adequacy threshold, suggesting the model captures key aspects of the data but may require refinement for temporal structure.}
+\label{fig:posterior_predictive}
+\end{figure}
+
+\subsection{Hierarchical Bayesian Model Reveals Population Homogeneity}
+
+A hierarchical Bayesian model was fit to jointly estimate population and individual parameters, properly accounting for uncertainty and regularizing sparse tracks.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{core/fig3_hierarchical_shrinkage.pdf}
+\caption{\textbf{Hierarchical Bayesian modeling reveals population homogeneity.}
+\textbf{(A)} Caterpillar plot showing 95\% credible intervals for $\tau_1$ for all 256 tracks, sorted by posterior mean. Orange intervals (22 tracks, 8.6\%) have CIs that exclude the population mean; gray intervals (234 tracks, 91.4\%) are consistent with the population. The vertical red line marks the population mean ($\tau_1 = 0.63$s).
+\textbf{(B)} MLE vs Bayesian $\tau_1$ estimates. Extreme MLE values (up to 5s) are shrunk toward the population mean ($\approx$0.65s) by the hierarchical prior.}
+\label{fig:shrinkage}
+\end{figure}
+
+\subsubsection{Population $\tau_1 = 0.63$s, Slower Than Original Estimate}
+
+The hierarchical model reveals that the population mean $\tau_1$ is 0.63~s, slower than initial MLE estimates suggested (Figure~\ref{fig:shrinkage}). This slower timescale indicates that the typical larval response to LED stimulation peaks later than previously estimated. The population $\tau_2$ of 2.48~s reflects slow suppression dynamics. Individual variation around these population means is moderate, with standard deviations of 0.31~s for $\tau_1$ and 0.46~s for $\tau_2$, indicating that most larvae cluster near the population average rather than forming distinct phenotypic groups.
+
+\subsubsection{8.6\% of Tracks Are Genuine Outliers}
+
+The hierarchical model distinguishes genuine individual differences from estimation noise by comparing credible intervals to the population mean (Figure~\ref{fig:shrinkage}). Only 8.6\% of tracks show $\tau_1$ values that genuinely differ from the population, far fewer than the apparent phenotypic clusters suggested by independent MLE fitting. The discrepancy between hierarchical Bayesian and MLE-based clustering, with ARI approximately 0, confirms that the four-cluster solution was an artifact of sparse data rather than biological reality. Most tracks are consistent with a single population distribution, with outliers representing potential fast responders requiring independent validation.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{core/fig_combined_summary.pdf}
+\caption{\textbf{Validation results and hierarchical shrinkage.}
+\textbf{(A)} PCA of kernel parameters shows a unimodal distribution with scattered outliers, not discrete clusters. Points are colored by density, not cluster assignment.
+\textbf{(B)} All validation methods failed. Round-trip clustering achieved ARI = 0.13, PSTH vs kernel agreement achieved ARI = 0.01, FNO vs parametric achieved ARI = 0.01, and Bayesian vs MLE achieved ARI $\approx$ 0. Green dashed line indicates success threshold (ARI = 0.5).
+\textbf{(C)} Caterpillar plot of individual $\tau_1$ posterior distributions sorted by mean. Orange intervals indicate the 8.6\% of tracks whose 95\% CIs exclude the population mean (red vertical line at 0.63s). Gray intervals show the 91\% of tracks consistent with the population.
+\textbf{(D)} Violin comparison of $\tau_1$ posteriors for normal (n=234) vs outlier (n=22) tracks. Outliers cluster at lower $\tau_1$ ($\approx$0.45s), suggesting faster response dynamics. Dashed line indicates population mean.}
+\label{fig:summary}
+\end{figure}
+
+The validation failures and hierarchical shrinkage shown in Figure~\ref{fig:summary} demonstrate that apparent phenotypic clusters are artifacts of sparse data rather than genuine individual differences. The hierarchical Bayesian model reveals that most tracks are consistent with the population mean, with only 8.6\% identified as genuine outliers.
+
+Figure~\ref{fig:shrinkage} shows how hierarchical Bayesian estimation shrinks extreme MLE estimates toward the population mean. The 22 outlier tracks identified by the hierarchical model represent candidate fast responders (Figure~\ref{fig:fast_responders}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{core/fig4_fast_responders.pdf}
+\caption{\textbf{Candidate fast responders.}
+\textbf{(A)} Violin plot comparing $\tau_1$ distributions for normal (n=234) vs outlier (n=22) tracks. Outliers show systematically lower $\tau_1$ (median $\approx$0.45s) compared to normal tracks (median $\approx$0.70s).
+\textbf{(B)} Kernel shape comparison. The population kernel (blue, $\tau_1 = 0.63$s) and hypothetical fast-responder kernel (orange dashed, $\tau_1 = 0.45$s) show the expected difference in peak response time. With only 22 candidate tracks and no independent validation, the candidates require confirmation in a separate experiment.}
+\label{fig:fast_responders}
+\end{figure}
+
+\subsection{Current Data Achieves Only 20--30\% Power}
+
+Simulation-based power analysis determined how many events per larva are needed to reliably detect a fast responder. Power increased monotonically with the number of events per track. At $N = 25$ events (current data), power was approximately 20--30\%. At $N = 100$ events, power reached 75--85\%. Type I error remained controlled near the nominal 5\% level across all event counts tested.
+
+With only $\sim$18--25 events per track and power of 20--30\%, at most one-third of true fast responders can be detected. To achieve 80\% power for detecting a $\Delta\tau_1 = 0.2$~s difference, approximately 100 events per track are required, roughly 4$\times$ more than typical 20-minute recordings provide. Detailed power analysis results are provided in Appendix~\ref{app:enhancements}.
+
+The identifiability problem is not simply about event count. Information content per event matters equally. Burst stimulation yields substantially higher Fisher Information for $\tau_1$ compared to continuous stimulation (Figure~\ref{fig:identifiability}). The mechanism relates to information localization. The excitatory component peaks early after LED onset and carries nearly all $\tau_1$ information. Continuous stimulation samples this early window once per cycle, while burst stimulation samples it multiple times.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig2_identifiability_v3.pdf}
+\caption{\textbf{The identifiability problem and design optimization.}
+\textbf{(A)} Bias and RMSE for $\tau_1$ estimation across four stimulus designs at current event counts ($\sim$17 events). Burst design (10$\times$0.5s pulses) achieves bias of 0.14s and RMSE of 0.38s, compared to continuous design with bias $>$0.6s and RMSE $>$0.7s.
+\textbf{(B)} Fisher Information for $\tau_1$ across designs. Burst design provides 10$\times$ higher information per unit ON time than continuous stimulation.
+\textbf{(C)} MLE parameter recovery showing systematic positive bias with continuous stimulation.
+\textbf{(D)} The inhibition-dominated kernel (B/A $\approx$ 8) concentrates $\tau_1$ information in the early excitatory phase (0--0.3s post-onset), which burst designs sample repeatedly.}
+\label{fig:identifiability}
+\end{figure}
+
+\subsection{Optimal Design Depends on Kernel Regime}
+
+The systematic sweep across six A/B ratios from 0.125 to 4.0 and four stimulation designs reveals that optimal protocol depends on kernel regime (Figure~\ref{fig:design_comparison}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_design_comparison_summary.pdf}
+\caption{\textbf{Design recommendations depend on kernel regime.}
+\textbf{(A)} Fisher Information for $\tau_1$ across four stimulation designs and six kernel regimes (A/B = 0.125 to 4.0). Burst design provides highest information for inhibitory kernels (A/B $\leq$ 0.25); continuous design is sufficient for excitatory kernels.
+\textbf{(B)} Statistical power to detect a 0.2s difference in $\tau_1$. At A/B = 0.125, only burst achieves 100\% power; at A/B $\geq$ 0.25, all designs succeed.
+\textbf{(C)} Estimation bias by regime. Burst reduces bias from 0.6s to 0.14s for inhibitory kernels. For A/B $\geq$ 1.0, all designs show persistent bias of approximately 0.65s.
+\textbf{(D)} Event counts increase dramatically with A/B ratio: 17 events at A/B = 0.125 vs 228--4815 events at A/B $\geq$ 0.5.}
+\label{fig:design_comparison}
+\end{figure}
+
+Figure~\ref{fig:stimulation_schematic} illustrates the four stimulation designs compared.
+
+For inhibitory-dominated kernels with A/B at or below 0.25, burst stimulation is optimal. At the current experimental parameters (A/B = 0.125), burst achieves bias of 0.14s and RMSE of 0.38s with approximately 17 events, compared to bias greater than 0.6s for continuous stimulation. Fisher Information is 10-fold higher for burst.
+
+For balanced kernels with A/B near 0.25, all pulsed designs achieve near-perfect estimation. Bias drops below 0.02s and event counts increase to approximately 46 per track.
+
+For excitatory-dominated kernels with A/B at or above 0.5, continuous stimulation becomes optimal. Event counts increase dramatically to 228--735 events per track because the excitatory component drives rather than suppresses events. All designs achieve full power, but continuous is simpler to implement.
+
+At very high A/B ratios of 1.0 or above, all designs show persistent bias of approximately 0.65s regardless of event count. The pattern suggests a different identifiability limitation, possibly related to parameter grid boundaries or model misspecification for excitatory-dominated responses.
+
+The practical recommendation for current data with A/B approximately 0.125 is to use burst stimulation with 10 pulses of 0.5s ON and 0.5s gaps to achieve reliable $\tau_1$ estimation without extending recording duration.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_stimulation_schematic.pdf}
+\caption{\textbf{Comparison of LED stimulation designs within a 30-second cycle.}
+\textbf{(A)} Current design: 10s continuous ON followed by 20s OFF. Low power and high bias result from spending most time in the inhibitory regime.
+\textbf{(B)} Recommended burst design: 10 pulses of 0.5s ON with 0.5s gaps. Achieves 8$\times$ more informative events by repeatedly sampling the excitatory onset.
+\textbf{(C)} Medium pulse design: 4 pulses of 1s ON. Moderate improvement with longer pulses and fewer onsets.
+\textbf{(D)} Long pulse design: 2 pulses of 2s ON. Minimal improvement due to too few onsets to adequately sample the kernel.
+Statistics show events per track, RMSE, power, and duty cycle for each design.}
+\label{fig:stimulation_schematic}
+\end{figure}

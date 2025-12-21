@@ -1,0 +1,46 @@
+# Large data files - DO NOT TRACK
+*.parquet
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pt
+*.pth
+*.zip
+*.tar.gz
+
+# Data directories
+data/
+results/
+output/
+temp/
+
+# Virtual environments
+.venv/
+.venv-*/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# IDE
+.cursor/
+.vscode/
+.idea/
+
+# Build artifacts
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.synctex.gz
+
+# Old cleanup scripts
+clean_git_history*.sh
+

@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Gil Raitses1, Devindi Goonawardhana2, Mirna Mihovilovic-Skanata2 1Syracuse University 2Department of Physics, Syracuse University" />
+  <title>Quantitative Guidelines for Behavioral Phenotyping from Sparse Point-Process Data</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Quantitative Guidelines for Behavioral Phenotyping
+from Sparse Point-Process Data</h1>
+<p class="author">Gil Raitses<sup>1</sup>, Devindi
+Goonawardhana<sup>2</sup>, Mirna Mihovilovic-Skanata<sup>2</sup><br />
+<sup>1</sup>Syracuse University<br />
+<sup>2</sup>Department of Physics, Syracuse University</p>
+<p class="date">December 2025</p>
+<div class="abstract">
+<div class="abstract-title">Abstract</div>
+<p>Behavioral phenotyping requires reliable estimation of individual
+differences from sparse event data. When larvae respond to light with
+reorientation events, timing is governed by response kernels with
+excitatory and inhibitory components. Population-level estimation is
+robust, but individual-level inference is essential for genetic screens
+and neural circuit mapping.</p>
+<p>Individual kernel parameters are structurally non-identifiable under
+standard experimental protocols. With approximately 20 events per larva,
+maximum likelihood estimation produces estimates spanning the full
+parameter range. The failure is not a sample size problem: the
+inhibitory component suppresses events precisely when the excitatory
+parameter would be most informative.</p>
+<p>Design optimization reveals regime-dependent solutions. For
+inhibition-dominated kernels, burst stimulation provides higher Fisher
+Information. For excitatory kernels, continuous stimulation suffices.
+Composite phenotypes derived from event statistics bypass kernel fitting
+and achieve reliable recovery with current data.</p>
+<p>These findings establish quantitative guidelines for sparse
+point-process phenotyping. The framework applies broadly where validated
+population models do not translate to individual-level inference.</p>
+<p><strong>Keywords:</strong> behavioral phenotyping, point process,
+identifiability, experimental design, <em>Drosophila</em> larvae</p>
+</div>
+</header>
+<h1 id="introduction">Introduction</h1>
+<h2 id="individual-analysis-challenges">Individual Analysis
+Challenges</h2>
+<p>Population-level analysis of larval reorientation behavior under
+optogenetic stimulation has established that response timing follows a
+gamma-difference kernel with two distinct timescales. The fast
+excitatory component governs initial response probability, while a
+slower inhibitory component suppresses reorientations over the following
+seconds. The population-level model is robust across experimental
+conditions. Individual larvae may exhibit distinct behavioral phenotypes
+reflecting variability in sensorimotor integration. Characterizing
+individual-level variability would enable identification of distinct
+behavioral strategies and determination of sample sizes needed for
+future phenotyping studies.</p>
+<h2 id="reorientation-events-as-a-point-process">Reorientation Events as
+a Point Process</h2>
+<p>Larval locomotion alternates between forward runs and lateral turns.
+At each moment during a run, the larva may initiate a turn with some
+probability that depends on recent sensory history. These run-to-turn
+transition times constitute a point process, which represents discrete
+events at random times in continuous time. The gamma-difference kernel
+<span class="math inline">\(K(t)\)</span> modulates the instantaneous
+hazard rate of initiating a turn as a function of time since LED onset.
+Positive kernel values elevate turn probability; negative values
+suppress turns (Figure <a href="#fig:psth_kernel"
+data-reference-type="ref" data-reference="fig:psth_kernel">1</a>).</p>
+<figure id="fig:psth_kernel">
+<embed src="fig3_psth_kernel_v2.pdf" />
+<figcaption><strong>From empirical PSTH to generative model.</strong>
+<strong>(A)</strong> Empirical peri-stimulus time histogram (PSTH)
+showing reorientation event rate aligned to LED onset (t=0). Events are
+binned in 0.5-second intervals. The biphasic response shows early
+excitation (peak at <span class="math inline">\(\sim\)</span>2s)
+followed by suppression (trough at <span
+class="math inline">\(\sim\)</span>5s). <strong>(B)</strong> Fitted
+gamma-difference kernel <span class="math inline">\(K(t) = A \cdot
+\Gamma(t; \alpha_1, \beta_1) - B \cdot \Gamma(t; \alpha_2,
+\beta_2)\)</span>. Positive values indicate increased event probability;
+negative values indicate suppression relative to baseline.
+<strong>(C)</strong> Per-frame event probability <span
+class="math inline">\(p(t) = \exp(\beta_0 + K(t))\)</span>, where <span
+class="math inline">\(\beta_0\)</span> is the baseline log-hazard. The
+kernel modulates this probability around the <span
+class="math inline">\(\sim\)</span>2% baseline rate.
+<strong>(D)</strong> Discrete-time Bernoulli process. At each 50ms
+frame, a random draw determines whether an event occurs based on <span
+class="math inline">\(p(t)\)</span>. The generative process can simulate
+synthetic tracks matching empirical statistics.</figcaption>
+</figure>
+<p>The parametric kernel <span class="math inline">\(K(t)\)</span>
+provides a mechanistic explanation for the empirical PSTH shape. Fast
+excitation with <span class="math inline">\(\tau_1 \approx 0.3\)</span>s
+drives the initial peak, while slow suppression with <span
+class="math inline">\(\tau_2 \approx 4\)</span>s creates the subsequent
+trough. The gamma-difference form enables both prediction by evaluating
+<span class="math inline">\(K(t)\)</span> at arbitrary time points and
+simulation by generating synthetic events via Bernoulli sampling.</p>
+<p>The point process formulation has two implications. The appropriate
+likelihood function rewards high hazard at observed event times and
+penalizes high hazard during periods without events. Event times are not
+exchangeable because their relationship to the stimulus protocol
+matters, constraining valid bootstrap procedures.</p>
+<h2 id="data-requirements-and-objectives">Data Requirements and
+Objectives</h2>
+<p>Individual-level inference from sparse event data poses a fundamental
+challenge. The gamma-difference kernel has 6 free parameters, including
+two amplitudes <span class="math inline">\(A\)</span> and <span
+class="math inline">\(B\)</span> controlling the strength of excitatory
+and inhibitory components, and four shape parameters <span
+class="math inline">\(\alpha_1\)</span>, <span
+class="math inline">\(\beta_1\)</span>, <span
+class="math inline">\(\alpha_2\)</span>, <span
+class="math inline">\(\beta_2\)</span> that determine when each
+component peaks and how quickly it decays. Typical 10–20 minute
+recordings yield only 18–25 events per larva. The resulting
+data-to-parameter ratio of 3:1 is far below the 10:1 commonly
+recommended for reliable nonlinear estimation.</p>
+<p>The central question is therefore not “Do phenotypes exist?” but “Can
+phenotypes be reliably detected with available data?” Simulation-based
+inference provides the framework for testing whether fitting and
+clustering methods recover ground truth from synthetic trajectories with
+known parameters. Individual-level kernels are fitted to simulated and
+empirical tracks. Apparent clusters are tested for validation survival.
+Data requirements are quantified. The analysis establishes whether
+population-level or individual-level inference is appropriate.</p>
+<h1 id="methods">Methods</h1>
+<h2 id="simulated-trajectory-generation">Simulated Trajectory
+Generation</h2>
+<p>A total of 300 simulated trajectories were generated with 75 tracks
+per condition across four experimental conditions matching the main
+study’s 2×2 factorial design. The conditions were 0-250 Constant with
+low intensity constant stimulation, 0-250 Cycling with low intensity
+cycling stimulation, 50-250 Constant with high intensity constant
+stimulation, and 50-250 Cycling with high intensity cycling stimulation
+(Figure <a href="#fig:simulation_design" data-reference-type="ref"
+data-reference="fig:simulation_design">2</a>).</p>
+<figure id="fig:simulation_design">
+<embed src="fig_simulation_design.pdf" />
+<figcaption><strong>Simulated trajectory generation: event count
+comparison.</strong> <strong>(A)</strong> Histogram comparing event
+counts per track for empirical (n=260) and simulated (n=300) datasets.
+Simulated tracks show similar event counts (mean 14.9, range 8–25)
+compared to empirical tracks (mean 25.2, range 10–79). The empirical
+tracks have higher counts due to longer average duration (16.3 min)
+compared to simulated tracks (10 min). Both datasets show similar event
+rates ( 1.5 events/min), confirming that the simulation parameters match
+empirical baseline rates. <strong>(B)</strong> Box plot comparison
+showing the distribution of event counts. Simulated tracks (median 15
+events) and empirical tracks (median 18 events) both yield a 3:1
+data-to-parameter ratio (18 events : 6 parameters), highlighting the
+data sparsity challenge in individual-level phenotyping. The similarity
+in event counts validates that the simulation correctly captures
+empirical event rates.</figcaption>
+</figure>
+<p>Each trajectory was simulated using the validated simulator from the
+main study. The simulation incorporated population-level
+gamma-difference kernel parameters, empirical turn angle and duration
+distributions, run/turn state dynamics with hazard model. Track duration
+was 10 minutes.</p>
+<h2 id="individual-level-kernel-fitting">Individual-Level Kernel
+Fitting</h2>
+<p>For each simulated track, a gamma-difference kernel was fitted using
+the same form as the population-level model: <span
+class="math display">\[K(t) = A \cdot \text{Gamma}(t; \alpha_1, \beta_1)
+- B \cdot \text{Gamma}(t; \alpha_2, \beta_2)\]</span></p>
+<p>where <span class="math inline">\(\tau_1 = \alpha_1 \beta_1\)</span>
+and <span class="math inline">\(\tau_2 = \alpha_2 \beta_2\)</span> are
+the fast and slow timescales, respectively.</p>
+<p>The kernel value <span class="math inline">\(K(t)\)</span> represents
+the contribution to the log-hazard rate at time lag <span
+class="math inline">\(t\)</span> after LED stimulus onset. In the hazard
+model, the instantaneous event probability per frame is: <span
+class="math display">\[p(t) = \exp(\beta_0 + K(t_{\text{since
+onset}}))\]</span> where <span class="math inline">\(\beta_0\)</span> is
+the baseline log-hazard. Positive kernel values increase event
+probability, while negative values decrease it. For example, if <span
+class="math inline">\(K(2.0) = +0.5\)</span> at 2 seconds after LED
+onset, the event probability increases by a factor of <span
+class="math inline">\(\exp(0.5) \approx 1.65\)</span> relative to
+baseline. Conversely, if <span class="math inline">\(K(5.0) =
+-1.0\)</span> at 5 seconds after onset, the probability decreases by a
+factor of <span class="math inline">\(\exp(-1.0) \approx 0.37\)</span>,
+representing suppression.</p>
+<p>Kernel fitting was performed using maximum likelihood estimation
+(MLE). The log-likelihood for a point process with instantaneous hazard
+rate <span class="math inline">\(\lambda(t)\)</span> is: <span
+class="math display">\[\log L = \sum_{i=1}^{N} \log \lambda(t_i) -
+\int_0^T \lambda(t) \, dt\]</span> where <span
+class="math inline">\(t_i\)</span> are the observed event times and
+<span class="math inline">\(T\)</span> is the total observation
+duration. The first term rewards high hazard at event times; the second
+penalizes high hazard during non-event periods. In the discrete-time
+Bernoulli formulation, <span class="math inline">\(\lambda(t) =
+\exp(\beta_0 + K(t_{\text{since onset}}))\)</span>. The integral is
+approximated by summation over frames.</p>
+<p>To avoid local minima in the non-convex likelihood surface,
+optimization was initialized from a grid of 18 starting points spanning
+plausible parameter ranges (<span class="math inline">\(\tau_1 \in
+\{0.3, 0.6, 0.9\}\)</span> s, <span class="math inline">\(\tau_2 \in
+\{1.0, 2.0, 3.0\}\)</span> s, <span class="math inline">\(A/B \in \{1.0,
+2.0\}\)</span>). The solution with highest log-likelihood was retained.
+Optimization used L-BFGS-B with Nelder-Mead fallback for numerical
+stability.</p>
+<p>The parametric kernel form enables computation of event rates at any
+time point without requiring data binning or extrapolation. To compute
+the peri-stimulus time histogram (PSTH) from fitted kernel parameters,
+the kernel function is evaluated at a fine time grid (e.g., <span
+class="math inline">\(t \in [-3, 10]\)</span> seconds relative to LED
+onset) and converted to event rate: <span
+class="math display">\[\text{rate}(t) = \text{baseline\_rate} \times
+\exp(K(t))\]</span> where baseline rate is estimated from pre-stimulus
+periods. The parametric approach provides smooth, continuous rate
+estimates at arbitrary temporal resolution, in contrast to empirical
+PSTH methods that require binning events and may have sparse data in
+some time bins.</p>
+<h2 id="feature-extraction">Feature Extraction</h2>
+<p>For each track, kernel parameters (<span
+class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>, <span
+class="math inline">\(\alpha_1\)</span>, <span
+class="math inline">\(\beta_1\)</span>, <span
+class="math inline">\(\alpha_2\)</span>, <span
+class="math inline">\(\beta_2\)</span>) were extracted along with
+behavioral features including turn rate in turns per minute, mean turn
+duration in seconds, and run fraction. Fit quality was measured as <span
+class="math inline">\(R^2\)</span> between the fitted kernel and
+empirical PSTH.</p>
+<p>Turn rate was calculated as the number of turn events (state
+transitions from RUN to TURN) divided by track duration, with automatic
+validation to detect inflated rates.</p>
+<h2 id="clustering-analysis">Clustering Analysis</h2>
+<p>Unsupervised clustering was applied to identify distinct behavioral
+phenotypes using K-means clustering with Euclidean distance on
+standardized features and hierarchical clustering with Ward linkage on
+standardized features. The feature set included kernel parameters <span
+class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, and <span
+class="math inline">\(B\)</span> alongside behavioral features including
+turn rate, turn duration, and run fraction. Cluster selection used
+silhouette score optimization across <span class="math inline">\(k =
+2\)</span> to <span class="math inline">\(7\)</span> clusters.</p>
+<h2 id="cross-validation-and-cluster-validation">Cross-Validation and
+Cluster Validation</h2>
+<p>Kernel fitting robustness was assessed through leave-one-track-out
+cross-validation, comparing fitted parameters to original track
+parameters via correlation and mean squared error. Bootstrap confidence
+intervals were computed for mean kernel parameters using 100 resamples,
+with track-level resampling to respect temporal autocorrelation.
+Clustering stability was measured through bootstrap agreement matrices
+across 100 resamples. Seed sensitivity was quantified via Adjusted Rand
+Index across 20 random seeds. Per-cluster silhouette scores provided
+additional quality assessment.</p>
+<p>Before characterizing phenotypic clusters, a three-stage validation
+ensured clusters represent genuine structure rather than noise. Stage 1
+tested significance via permutation. Five hundred null datasets were
+generated by independently shuffling each feature column. Clusters were
+considered significant if the observed silhouette score exceeded 95% of
+null silhouettes. Stage 2 applied the gap statistic to select optimal
+<span class="math inline">\(k\)</span> by comparing within-cluster
+dispersion to uniform reference samples. Stage 3 assessed
+reproducibility using 80/20 train/test splits repeated 20 times. K-means
+was fitted on training data. Test samples were assigned to nearest
+training centroids. The Adjusted Rand Index between centroid-assigned
+labels and labels from independent test-set clustering measured
+reproducibility.</p>
+<div id="tab:cluster_validation">
+<table>
+<caption>Cluster validation criteria</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Stage</th>
+<th style="text-align: left;">Test</th>
+<th style="text-align: left;">Threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">Permutation significance</td>
+<td style="text-align: left;"><span class="math inline">\(p &lt;
+0.05\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">Gap statistic support</td>
+<td style="text-align: left;">Gap<span class="math inline">\((k)
+\geq\)</span> Gap<span class="math inline">\((k+1) -
+s_{k+1}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">Train/test reproducibility</td>
+<td style="text-align: left;">ARI <span class="math inline">\(&gt;
+0.5\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="empirical-data-quality-control">Empirical Data Quality
+Control</h2>
+<h3 id="empirical-data-processing">Empirical Data Processing</h3>
+<p>Empirical larval trajectories were processed using methods
+established in the main study. Trajectory extraction and behavioral
+state segmentation were performed using MAGAT Analyzer (Gershow et al.,
+2012), which identifies behavioral states including runs,
+reorientations, and head swings. Reverse crawl detection was performed
+using the algorithm developed by Mason Klein, which identifies periods
+of backward movement (SpeedRunVel <span class="math inline">\(&lt;
+0\)</span> for <span class="math inline">\(\geq 3\)</span> seconds) from
+trajectory data.</p>
+<p>The consolidated dataset contains two complementary representations
+of behavioral events. The <em>events group</em> records reorientation
+start events detected by MAGAT segmentation. Each row represents a
+discrete reorientation onset (False<span
+class="math inline">\(\to\)</span>True transition in the reorientation
+state), providing direct event counts suitable for point-process
+modeling. The <em>Klein run table</em> records run segments between
+reorientations, following Mason Klein’s methodology. Each row represents
+a forward movement period (run) that begins with a reorientation event.
+The Klein run table contains 8,822 run entries across 424 tracks (mean
+20.8 runs per track), while the events group contains 7,867
+reorientation starts across 414 tracks (mean 19.0 reorientations per
+track). The difference arises because the Klein run table counts all
+runs (including final runs that may not end in reorientations), while
+the events group counts only reorientation onset events.</p>
+<p>For kernel fitting, the events group with
+<code>is_reorientation_start</code> was used because it directly counts
+reorientation events, which serve as the dependent variable in the
+hazard model. The Klein run table provides complementary information
+about run-level statistics but is not used for event counting in the
+kernel model. This segmentation step is required for kernel fitting
+because it defines the reorientation onset events used as the dependent
+variable in the hazard model.</p>
+<p>A critical data quality issue was identified. Of 701 unique
+experiment-track pairs in the consolidated dataset, only 424 (60.5%)
+successfully passed MAGAT segmentation. The remaining 277 tracks (39.5%)
+have zero reorientation events in the events table and no entries in the
+Klein run table, indicating complete segmentation failure rather than
+biological low-activity phenotypes.</p>
+<h3 id="track-selection-criteria">Track Selection Criteria</h3>
+<p>Tracks were filtered hierarchically for phenotyping analysis. First,
+duration was required to be at least 10 minutes to ensure sufficient
+LED-ON cycles for kernel estimation. Second, successful MAGAT
+segmentation was confirmed by presence of reorientation events in the
+events group (tracks with zero reorientation events were excluded).
+Third, at least 10 reorientation events were required for adequate
+statistical power. After filtering, 260 tracks remained for analysis
+(Table <a href="#tab:track_filtering" data-reference-type="ref"
+data-reference="tab:track_filtering">2</a>).</p>
+<p>All kernel fitting and phenotyping analyses, including model
+comparison and leave-one-experiment-out cross-validation, used the
+events group with <code>is_reorientation_start</code> as the source of
+reorientation event times. This ensures consistency across all analyses.
+The Klein run table provides complementary information about run-level
+statistics but is not used for event counting in any analysis.</p>
+<div id="tab:track_filtering">
+<table>
+<caption>Track filtering pipeline for empirical phenotyping
+analysis</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Filter Stage</strong></th>
+<th style="text-align: right;"><strong>Tracks</strong></th>
+<th style="text-align: right;"><strong>Mean Events/Track</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">All tracks (consolidated dataset)</td>
+<td style="text-align: right;">701</td>
+<td style="text-align: right;">11.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">With Klein run table entry</td>
+<td style="text-align: right;">424</td>
+<td style="text-align: right;">18.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">Without Klein entry (excluded)</td>
+<td style="text-align: right;">277</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Duration <span
+class="math inline">\(\geq\)</span> 10 min</td>
+<td style="text-align: right;">349</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;">With Klein data</td>
+<td style="text-align: right;">299</td>
+<td style="text-align: right;">22.7</td>
+</tr>
+<tr>
+<td style="text-align: left;">Without Klein data (excluded)</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Events <span
+class="math inline">\(\geq\)</span> 10 (final)</td>
+<td style="text-align: right;"><strong>260</strong></td>
+<td style="text-align: right;"><strong>25.2</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="kernel-fitting-success-criteria">Kernel Fitting Success
+Criteria</h3>
+<p>Individual-level kernel fitting was considered successful when
+L-BFGS-B optimization converged within parameter bounds. The fitted
+kernel was required to exhibit expected gamma-difference characteristics
+with a fast excitatory peak followed by slow suppressive trough. Time
+constants were required to remain physiologically plausible with <span
+class="math inline">\(\tau_1\)</span> between 0.1 and 3.0 seconds and
+<span class="math inline">\(\tau_2\)</span> between 1.0 and 10.0
+seconds. Parameter bounds were set based on population-level estimates.
+Amplitude <span class="math inline">\(A\)</span> was bounded in [0.1,
+5.0], fast shape <span class="math inline">\(\alpha_1\)</span> in [1.0,
+5.0], fast scale <span class="math inline">\(\beta_1\)</span> in [0.05,
+1.0] seconds, suppression amplitude <span
+class="math inline">\(B\)</span> in [5.0, 20.0], slow shape <span
+class="math inline">\(\alpha_2\)</span> in [2.0, 8.0], and slow scale
+<span class="math inline">\(\beta_2\)</span> in [0.3, 2.0] seconds.</p>
+<h2 id="comparison-of-simulated-vs.-empirical-data">Comparison of
+Simulated vs. Empirical Data</h2>
+<p>Parallel analyses were performed on simulated and empirical datasets.
+The simulated dataset contained 300 tracks with 10-minute duration. The
+empirical dataset contained 260 tracks with 10-20 minute duration.
+Simulated tracks generated from the population-level hazard model showed
+8-25 events per track with mean 14.9 events, while empirical tracks
+showed 10-79 events per track with mean 25.2 events. The difference in
+total event counts reflects the longer average duration of empirical
+tracks (16.3 min) compared to simulated tracks (10 min), while both
+datasets show similar event rates ( 1.5 events/min). Simulated tracks
+used population-level kernel parameters with only track-specific random
+intercepts with standard deviation <span class="math inline">\(\sigma =
+0.38\)</span> (calibrated via parameter sweep to match empirical rate),
+while empirical tracks may exhibit genuine kernel parameter variation.
+Simulated data was expected to show minimal phenotypic clustering, while
+empirical data might reveal distinct behavioral phenotypes not captured
+by the random-intercept model.</p>
+<h2 id="psth-and-kernel-relationship">PSTH and Kernel Relationship</h2>
+<p>The relationship between the peri-stimulus time histogram (PSTH), the
+gamma-difference kernel <span class="math inline">\(K(t)\)</span>, and
+the Bernoulli event generation process is illustrated in Figure <a
+href="#fig:psth_kernel" data-reference-type="ref"
+data-reference="fig:psth_kernel">1</a> (Introduction). The parametric
+kernel <span class="math inline">\(K(t)\)</span> provides a mechanistic
+explanation for the empirical PSTH shape. Fast excitation with <span
+class="math inline">\(\tau_1 \approx 0.3\)</span>s drives the initial
+peak, while slow suppression with <span class="math inline">\(\tau_2
+\approx 4\)</span>s creates the subsequent trough. The gamma-difference
+form enables both prediction by evaluating <span
+class="math inline">\(K(t)\)</span> at arbitrary time points and
+simulation by generating synthetic events via Bernoulli sampling.</p>
+<h2 id="psth-construction-and-optimal-bin-width">PSTH Construction and
+Optimal Bin Width</h2>
+<p>The peri-stimulus time histogram (PSTH) visualizes event rates
+relative to stimulus onset. Construction involves aligning all event
+sequences to LED activation at <span class="math inline">\(t=0\)</span>.
+The observation window is divided into bins of width <span
+class="math inline">\(\Delta\)</span>. Events are counted per bin across
+all stimulus presentations. Counts are normalized by trial count and bin
+width to obtain rate in events per second.</p>
+<p>Bin width critically affects PSTH quality. Too narrow yields noisy
+estimates, while too wide obscures temporal structure. Following
+Shimazaki and Shinomoto, the optimal bin width <span
+class="math inline">\(\Delta^*\)</span> minimizes the cost function
+<span class="math inline">\(C(\Delta) = (2\bar{k} -
+v)/\Delta^2\)</span>, where <span class="math inline">\(\bar{k}\)</span>
+is mean event count per bin and <span class="math inline">\(v\)</span>
+is variance across bins. The derivation assumes events are generated by
+an inhomogeneous Poisson process. The PSTH must be an unbiased
+estimator. Bin counts must be approximately independent. For the present
+data, optimal bin widths of 0.4-0.6 seconds were computed.</p>
+<p>The parametric gamma-difference kernel <span
+class="math inline">\(K(t)\)</span> provides an alternative that avoids
+the bias-variance tradeoff. The continuous rate estimate <span
+class="math inline">\(\hat{\lambda}(t) = \lambda_0 \cdot
+\exp(K(t))\)</span> enables rate estimation at arbitrary temporal
+resolution. Statistical strength is shared across time points via the
+parametric form. Fewer parameters are required than typical PSTH
+representations. The tradeoff is that parametric fitting requires
+sufficient data for reliable estimation, while PSTH construction works
+with any event count.</p>
+<h2 id="fourier-neural-operator-for-kernel-recovery">Fourier Neural
+Operator for Kernel Recovery</h2>
+<p>Given the failure of parametric fitting to recover individual kernel
+parameters, a neural operator approach was explored that learns the
+mapping from event patterns to kernel shapes end-to-end. A 1D Fourier
+Neural Operator (FNO) takes a normalized PSTH vector with 20 bins
+covering 0-10s post-LED onset as input. A lifting layer projects to 64
+hidden dimensions. Four FNO layers apply spectral convolution in Fourier
+space with 8 retained modes plus pointwise convolution and GELU
+activation. GELU (Gaussian Error Linear Unit) is a smooth activation
+function that provides better gradient flow than ReLU. The final layer
+projects to kernel values on a 60-point grid. The spectral convolution
+operates as <span class="math inline">\((\mathcal{K}v)(x) =
+\mathcal{F}^{-1}(R \cdot \mathcal{F}(v))(x)\)</span> where <span
+class="math inline">\(R\)</span> is a learned weight tensor.</p>
+<p>Training data comprised 2000 synthetic tracks with kernel parameters
+sampled uniformly across ranges <span class="math inline">\(\tau_1 \in
+[0.1, 1.0]\)</span>, <span class="math inline">\(\tau_2 \in [2.0,
+8.0]\)</span>, <span class="math inline">\(A \in [0.5, 3.0]\)</span>,
+and <span class="math inline">\(B \in [5.0, 25.0]\)</span>. Events were
+simulated via discrete-time Bernoulli process. PSTH was computed from
+simulated events. The model was trained to minimize MSE between
+predicted and true kernel curves using Adam optimizer with
+ReduceLROnPlateau scheduler for 100 epochs. Neural operators offer
+advantages over parametric fitting. Parameters are regularized by joint
+training across all tracks. The model learns kernel shape without
+assuming gamma-difference form. Deep learning naturally handles noisy
+inputs.</p>
+<figure id="fig:data_sparsity">
+<embed src="core/fig2_data_sparsity.pdf" />
+<figcaption><strong>Data sparsity explains parameter
+instability.</strong> <strong>(A)</strong> Event distribution across
+tracks. Current data averages <span
+class="math inline">\(\sim\)</span>25 events per track, while reliable
+parameter estimation requires <span
+class="math inline">\(\sim\)</span>100 events. <strong>(B)</strong> MLE
+<span class="math inline">\(\tau_1\)</span> estimates span an
+implausible range (0–5s) due to sparse data. Most values fall outside
+the biological range (0.3–1.0s), indicating fitting failures rather than
+genuine individual differences. <strong>(C)</strong> The mathematical
+problem: 4 kernel parameters (<span
+class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>) estimated from 25 events yields a 6:1
+data-to-parameter ratio, making the problem
+underdetermined.</figcaption>
+</figure>
+<h2 id="hierarchical-bayesian-model">Hierarchical Bayesian Model</h2>
+<p>Given the limitations of independent track-level fitting, a
+hierarchical Bayesian model jointly estimates population and individual
+parameters. When MLE is applied independently to each track, sparse data
+with only 20 events for 6 parameters produces extreme estimates. The
+<span class="math inline">\(\tau_1\)</span> values range from 0.1s to 5s
+even when all larvae share similar true parameters (Figure <a
+href="#fig:data_sparsity" data-reference-type="ref"
+data-reference="fig:data_sparsity">3</a>). Hierarchical modeling
+addresses this by estimating population-level means <span
+class="math inline">\(\mu_{\tau_1}\)</span> and <span
+class="math inline">\(\mu_{\tau_2}\)</span> and variances <span
+class="math inline">\(\sigma_{\tau_1}\)</span> and <span
+class="math inline">\(\sigma_{\tau_2}\)</span> simultaneously with
+individual parameters. Individual <span
+class="math inline">\(\tau_1\)</span> estimates are then pulled toward
+<span class="math inline">\(\mu_{\tau_1}\)</span> in proportion to their
+uncertainty. A track with 5 events is pulled strongly toward the
+population mean, while a track with 50 events retains more of its
+individual signal. The resulting posterior distributions for each
+individual include credible intervals that account for both measurement
+uncertainty and population variability.</p>
+<p>At the population level, hyperpriors specify: <span
+class="math display">\[\begin{aligned}
+\mu_{\tau_1} &amp;\sim \text{Normal}(\log(0.3), 0.5) \notag \\
+\mu_{\tau_2} &amp;\sim \text{Normal}(\log(4.0), 0.5) \notag \\
+\sigma_{\tau_1}, \sigma_{\tau_2} &amp;\sim \text{HalfNormal}(0.3) \notag
+\end{aligned}\]</span></p>
+<p>At the individual level, partial pooling specifies <span
+class="math inline">\(\tau_{1,i} \sim \text{LogNormal}(\mu_{\tau_1},
+\sigma_{\tau_1})\)</span> and <span class="math inline">\(\tau_{2,i}
+\sim \text{LogNormal}(\mu_{\tau_2}, \sigma_{\tau_2})\)</span>. The
+likelihood is: <span class="math display">\[\text{PSTH}_i(t) \sim
+\text{Normal}(\exp(\beta_0 + K(t; \tau_{1,i}, \tau_{2,i}, A_i, B_i)),
+\sigma_{\text{obs}}) \notag\]</span></p>
+<p>The model has three key properties. Tracks with sparse data are
+pulled toward the population mean, preventing overfitting. Each
+individual’s parameters have posterior distributions with credible
+intervals, allowing identification of tracks that genuinely differ from
+population. Information from all 256 tracks informs the population
+parameters, which in turn regularize each individual estimate.</p>
+<p>Inference used the No-U-Turn Sampler (NUTS) in NumPyro with 500
+warmup iterations and 1000 sampling iterations across 2 independent
+chains. Convergence was assessed via <span
+class="math inline">\(\hat{R}\)</span> statistics and effective sample
+size.</p>
+<h2 id="sec:power_analysis">Power Analysis</h2>
+<p>Power analysis answers a fundamental question: <em>How much data is
+needed to reliably detect a real difference?</em></p>
+<h3 id="two-types-of-errors">Two Types of Errors</h3>
+<p>When claiming that an individual larva differs from the population,
+two types of mistakes are possible. Type I error occurs when a larva is
+claimed to be different when it is actually typical. For example, a
+larva with true <span class="math inline">\(\tau_1 = 0.63\)</span> s
+matching the population average happens to produce an unusual pattern of
+events by chance. The method incorrectly flags it as a fast responder.
+The Type I error rate should be controlled at a pre-specified level,
+conventionally 5%. Among larvae that are truly typical, at most 5%
+should be wrongly flagged as different.</p>
+<p>Type II error occurs when failing to detect a larva that is genuinely
+different. For example, a true fast responder with <span
+class="math inline">\(\tau_1 = 0.43\)</span> s produces events that
+happen to look average, and the method misses it. Power is defined as
+one minus the Type II error rate, which equals the probability of
+correctly detecting a true difference. A power of 80% means that among
+larvae that are genuinely fast responders, 80% are correctly
+identified.</p>
+<p>If power is low, then even if fast responders exist, most will be
+missed. An observed 8% could represent a genuine 8% subpopulation if
+power is high, a small fraction of a much larger subpopulation if power
+is low, or entirely false positives if Type I error is not controlled.
+Power analysis determines which interpretation is plausible.</p>
+<h3 id="simulation-based-power-calculation">Simulation-Based Power
+Calculation</h3>
+<p>Since analytical power formulas do not exist for this nonlinear
+hierarchical model, power was computed by simulation. The effect size
+was defined as <span class="math inline">\(\Delta\tau_1 =
+0.2\)</span> s, comparing population tracks with <span
+class="math inline">\(\tau_1 = 0.63\)</span> s to fast responder tracks
+with <span class="math inline">\(\tau_1 = 0.43\)</span> s. For each
+target event count from 25 to 200, 100 tracks were simulated from each
+kernel type. Tracks were fitted via MLE. 95% confidence intervals for
+<span class="math inline">\(\tau_1\)</span> were computed via parametric
+bootstrap. Type I error was computed as the proportion of population
+tracks whose CI incorrectly excluded 0.63 s, which should be
+approximately 5%. Power was computed as the proportion of fast-responder
+tracks whose CI correctly excluded 0.63 s, which should increase with
+event count (Figure <a href="#fig:power_analysis"
+data-reference-type="ref"
+data-reference="fig:power_analysis">4</a>).</p>
+<p>Three methodological choices are critical for reliable power
+estimation. Confidence intervals were computed via parametric bootstrap
+because standard resampling fails for point processes. Events are not
+exchangeable, resampling destroys temporal structure, and resulting CIs
+would be overconfident. Parametric bootstrap solves this by fitting the
+model to observed data to obtain MLE parameters. New event trains are
+simulated from the fitted model using the same stimulus protocol. The
+model is re-fitted to each simulated track. The 95% CI is computed as
+the 2.5th to 97.5th percentile across 200 bootstrap samples. If a
+larva’s CI excludes the population mean, response timing differs
+significantly from average. The width of the CI determines ability to
+detect differences.</p>
+<figure id="fig:power_analysis">
+<embed src="fig5_power_analysis.pdf" />
+<figcaption><strong>Power analysis quantifies detection
+capability.</strong> <strong>(A)</strong> Power to detect fast
+responders increases monotonically with event count. At the current
+median of 18 events per track, power is approximately 20–30%. To achieve
+80% power for detecting a <span class="math inline">\(\Delta\tau_1 =
+0.2\)</span> s difference, approximately 100–120 events per track are
+required. <strong>(B)</strong> Type I error rate remains controlled near
+the nominal 5% level across all event counts, confirming that the
+parametric bootstrap procedure is well-calibrated.</figcaption>
+</figure>
+<p>The point-process log-likelihood includes both event contributions
+and a penalty for time without events: <span class="math display">\[\log
+L = \sum_{i=1}^{N} \log \lambda(t_i) - \int_0^T \lambda(t) \, dt
+\label{eq:loglik_integral}\]</span> where <span
+class="math inline">\(\lambda(t)\)</span> is instantaneous hazard and
+<span class="math inline">\(T\)</span> is track duration. Omitting the
+integral term would bias estimates toward unrealistically high hazard
+rates.</p>
+<p>The 6-parameter kernel produces a non-convex likelihood surface, so
+MLE was initialized from 18 grid points spanning parameter ranges <span
+class="math inline">\(\tau_1 \in \{0.3, 0.6, 0.9\}\)</span> s, <span
+class="math inline">\(\tau_2 \in \{1.0, 2.0, 3.0\}\)</span> s and <span
+class="math inline">\(A/B \in \{1.0, 2.0\}\)</span>. The optimization
+with highest log-likelihood was retained. Without multi-start
+initialization, approximately 15–20% of tracks converged to local
+minima. Additional implementation details including GPU vectorization
+are documented in the code repository.</p>
+<p>If the analysis is well-calibrated, Type I error should remain
+approximately 5% regardless of event count since the threshold is set to
+achieve this, as confirmed in Figure <a href="#fig:power_analysis"
+data-reference-type="ref" data-reference="fig:power_analysis">4</a>.
+Power increases monotonically with event count. The key output is the
+event count required to achieve 80% power. If this value exceeds the
+typical 18–25 events in the data, the data are under-powered for
+individual-level phenotyping.</p>
+<h2 id="sec:ppc">Posterior Predictive Checks</h2>
+<p>Posterior predictive checks (PPC) were performed to validate the
+hierarchical Bayesian model. For each of 256 tracks, 100 posterior
+samples of <span class="math inline">\((\tau_1, \tau_2)\)</span> were
+drawn. For each sample, a synthetic event train was simulated using the
+Bernoulli process. Summary statistics were computed for each simulation
+including event count, mean inter-stimulus interval (ISI), ISI variance
+and PSTH correlation with observed data.</p>
+<p>The model was considered adequate if <span
+class="math inline">\(\geq\)</span>90% of tracks had observed statistics
+falling within the 95% posterior predictive interval for at least two of
+three metrics.</p>
+<h2 id="sec:model_selection">Model Selection</h2>
+<p>Model comparison was performed between the full 6-parameter model
+with A, <span class="math inline">\(\alpha_1\)</span>, <span
+class="math inline">\(\beta_1\)</span>, B, <span
+class="math inline">\(\alpha_2\)</span>, and <span
+class="math inline">\(\beta_2\)</span> estimated per track and a reduced
+2-parameter model with <span class="math inline">\(\tau_1\)</span> and
+<span class="math inline">\(\tau_2\)</span> estimated per track while A
+and B were fixed at population values. Both models were fitted via MLE
+to a subset of 100 tracks selected from the 260 tracks meeting quality
+criteria. The subset was chosen for computational efficiency while
+maintaining representativeness of the full dataset. The Bayesian
+Information Criterion and Akaike Information Criterion were computed:
+<span class="math display">\[\begin{aligned}
+\text{BIC} &amp;= k \ln(n) - 2 \ln(\hat{L}) \\
+\text{AIC} &amp;= 2k - 2 \ln(\hat{L})
+\end{aligned}\]</span> where <span class="math inline">\(k\)</span> is
+the number of parameters, <span class="math inline">\(n\)</span> is the
+number of events, and <span class="math inline">\(\hat{L}\)</span> is
+the maximum likelihood.</p>
+<p>The model with lower total BIC across tracks was preferred. BIC
+penalizes model complexity more strongly than AIC through the <span
+class="math inline">\(\ln(n)\)</span> term, favoring simpler models when
+data are sparse. For each track, BIC was computed for both the full
+6-parameter model and the reduced 2-parameter model. The difference
+<span class="math inline">\(\Delta\text{BIC} = \text{BIC}_{\text{full}}
+- \text{BIC}_{\text{reduced}}\)</span> was calculated per track.
+Positive <span class="math inline">\(\Delta\text{BIC}\)</span> indicates
+the reduced model is preferred for that track, while negative values
+favor the full model. The total BIC across all tracks was summed for
+each model, and the model with lower total BIC was selected. This
+approach accounts for heterogeneity across tracks, where some tracks may
+benefit from the full model’s flexibility while others are adequately
+described by the reduced model (Figure <a href="#fig:model_comparison"
+data-reference-type="ref"
+data-reference="fig:model_comparison">5</a>).</p>
+<figure id="fig:model_comparison">
+<embed src="fig7_model_comparison.pdf" />
+<figcaption><strong>Model comparison between full 6-parameter and
+reduced 2-parameter models.</strong> <strong>(A)</strong> Mean <span
+class="math inline">\(\Delta\text{BIC}\)</span> across tracks. Positive
+values indicate the reduced model is preferred on average.
+<strong>(B)</strong> Proportion of tracks preferring each model. The pie
+chart shows the percentage of tracks where the full model (6 parameters)
+vs reduced model (2 parameters) achieved lower BIC. <strong>(C)</strong>
+Summary statistics including WAIC (Widely Applicable Information
+Criterion), effective number of parameters, and overall preferred
+model.</figcaption>
+</figure>
+<h2 id="sec:loeo">Leave-One-Experiment-Out Cross-Validation</h2>
+<p>To assess generalization across experiments, leave-one-experiment-out
+cross-validation (LOEO-CV) was performed. For each of 14 experiments,
+the population-level kernel was estimated from the remaining 13
+experiments. Training sets averaged 241.4 tracks per fold (range:
+236–246 tracks), with test sets averaging 18.6 tracks per fold (range:
+14–24 tracks). The predictive log-likelihood was computed for the
+held-out experiment. The coefficient of variation (CV) of population
+<span class="math inline">\(\tau_1\)</span> across folds quantified
+parameter stability: <span class="math display">\[\text{CV} =
+\frac{\sigma_{\tau_1}}{\mu_{\tau_1}} \times 100\%\]</span></p>
+<p>CV <span class="math inline">\(&lt;\)</span>10% indicates stable
+population estimates; CV <span class="math inline">\(&gt;\)</span>20%
+indicates significant experiment-specific effects (Figure <a
+href="#fig:loeo" data-reference-type="ref"
+data-reference="fig:loeo">6</a>).</p>
+<figure id="fig:loeo">
+<embed src="fig8_loeo_validation.pdf" />
+<figcaption><strong>Leave-one-experiment-out cross-validation
+demonstrates parameter stability.</strong> <strong>(A)</strong>
+Population <span class="math inline">\(\tau_1\)</span> estimates across
+14 folds, each holding out one experiment. Error bars show standard
+deviation. The horizontal dashed line indicates the mean across all
+folds. Low variation indicates that population estimates generalize
+across experimental conditions. <strong>(B)</strong> Coefficient of
+variation for population parameters <span
+class="math inline">\(\tau_1\)</span> and <span
+class="math inline">\(\tau_2\)</span>. Both parameters show CV <span
+class="math inline">\(&lt;\)</span>15%, indicating good stability. The
+dashed lines mark thresholds for good (<span
+class="math inline">\(&lt;\)</span>10%) and moderate (10–20%) stability.
+<strong>(C)</strong> Outlier consistency across folds. The bar chart
+shows the number of outliers flagged per fold, with the mean indicated
+by the dashed line. Consistent outlier identification across folds
+supports the robustness of the hierarchical model.</figcaption>
+</figure>
+<h2 id="statistical-analysis">Statistical Analysis</h2>
+<p>All analyses were performed in Python 3.14. Kernel fitting relied on
+<code>scipy.optimize</code>. Hierarchical Bayesian inference employed
+<code>NumPyro</code> version 0.13.2 with JAX backend version 0.4.23. The
+hierarchical model implemented partial pooling for population and
+individual kernel parameters <span
+class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, and <span
+class="math inline">\(B\)</span>, with log-normal priors and Bernoulli
+likelihood. MCMC sampling used the No-U-Turn Sampler with 500 warmup and
+1000 sampling iterations across 2 chains.</p>
+<p>GPU-accelerated computations leveraged JAX for vectorized kernel
+evaluations and bootstrap sampling. The gamma-difference kernel <span
+class="math inline">\(K(t)\)</span> was implemented in JAX using
+<code>jax.numpy</code> arrays, enabling automatic differentiation and
+parallel evaluation across multiple time points and parameter sets.
+Kernel evaluations were vectorized over the 50-point time grid spanning
+0.1 to 10.0 seconds and across all 256 tracks simultaneously. Parametric
+bootstrap sampling for power analysis was accelerated by vectorizing
+event simulation and kernel fitting across bootstrap replicates. The JAX
+implementation enabled efficient computation of posterior predictive
+distributions and Fisher Information matrices across design conditions.
+When GPU resources were available, computations were automatically
+offloaded. Otherwise, JAX utilized multi-core CPU parallelism.</p>
+<p>Additional analyses employed <code>scikit-learn</code> for
+clustering, <code>pandas</code> and <code>numpy</code> for data
+manipulation, and custom validation functions for turn rate
+detection.</p>
+<h1 id="results">Results</h1>
+<h2 id="tracks-meet-quality-criteria">260 Tracks Meet Quality
+Criteria</h2>
+<p>From the consolidated experimental dataset of 701 unique larval
+tracks across 14 experiments, 424 tracks representing 60.5% were
+identified with successful MAGAT behavioral segmentation. The remaining
+277 tracks had zero detected reorientation events, indicating
+segmentation failure rather than biological inactivity.</p>
+<p>After applying duration thresholds of at least 10 minutes and event
+count thresholds of at least 10 events, 260 tracks remained for
+individual-level phenotyping analysis. The tracks averaged 25.2
+reorientation events per track, ranging from 10 to 79 events, with mean
+duration of 16.3 minutes. The full Klein run table contains 8,822
+reorientation events across 424 tracks, with mean 20.8 events per track
+and median 18.0 events per track.</p>
+<p>The 6-parameter gamma-difference kernel fitted to tracks with median
+18 events yields a data-to-parameter ratio of three to one.
+Individual-level parameter estimates are therefore expected to be
+unstable and heavily influenced by prior assumptions or
+regularization.</p>
+<h2
+id="individual-kernels-fit-successfully-with-high-apparent-separation">Individual
+Kernels Fit Successfully with High Apparent Separation</h2>
+<p>Kernel fitting succeeded for all 260 empirical tracks meeting the
+quality criteria. For comparison, 300 simulated 10-minute tracks were
+analyzed, generated from population-level parameters with track-specific
+random intercepts. Simulated tracks showed 8–25 events per track with
+mean 14.9 events, matching the empirical event rate of  1.5 events/min.
+Kernel fitting succeeded for all simulated tracks with mean parameter
+recovery within 5% of ground truth values.</p>
+<figure id="fig:clustering_illusion">
+<embed src="core/fig1_clustering_illusion.pdf" />
+<figcaption><strong>The clustering illusion reveals apparent separation
+is not genuine.</strong> <strong>(A)</strong> Principal component
+analysis of kernel parameters shows a unimodal distribution with no
+discrete cluster boundaries. Points are colored by density, not cluster
+assignment, revealing continuous variation rather than distinct
+phenotypes. <strong>(B)</strong> All validation methods failed to
+recover cluster assignments. Round-trip clustering achieved ARI = 0.13,
+PSTH vs kernel agreement achieved ARI = 0.01, FNO vs parametric achieved
+ARI = 0.01, and Bayesian vs MLE achieved ARI <span
+class="math inline">\(\approx\)</span> 0. All values fall below the
+success threshold of 0.5. <strong>(C)</strong> Gap statistic analysis
+suggests optimal <span class="math inline">\(k=1\)</span> cluster. The
+gap statistic compares within-cluster dispersion to that expected under
+a null distribution. Higher values indicate better clustering, but the
+maximum occurs at <span class="math inline">\(k=1\)</span>, indicating
+no discrete clusters exist.</figcaption>
+</figure>
+<h3 id="four-clusters-emerge-with-99.6-classification-accuracy">Four
+Clusters Emerge with 99.6% Classification Accuracy</h3>
+<p>Linear discriminant analysis achieved 99.6% classification accuracy
+(10-fold CV), confirming that the four clusters are clearly separable in
+kernel parameter space. However, principal component analysis of kernel
+parameters reveals a unimodal distribution with no discrete cluster
+boundaries (Figure <a href="#fig:clustering_illusion"
+data-reference-type="ref"
+data-reference="fig:clustering_illusion">7</a>). The apparent separation
+in high-dimensional parameter space does not reflect genuine phenotypic
+structure. The gap statistic, which compares within-cluster dispersion
+to that expected under a null distribution, suggests optimal <span
+class="math inline">\(k=1\)</span> cluster, indicating that the
+four-cluster solution may be an artifact of sparse data rather than
+biological reality. Table <a href="#tab:centroids"
+data-reference-type="ref" data-reference="tab:centroids">3</a> shows
+cluster centroids.</p>
+<div id="tab:centroids">
+<table>
+<caption>Cluster centroids (k=4) showing mean kernel parameters per
+phenotype</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Cluster</strong></th>
+<th style="text-align: center;"><strong>N (%)</strong></th>
+<th style="text-align: center;"><strong><span
+class="math inline">\(\tau_1\)</span> (s)</strong></th>
+<th style="text-align: center;"><strong><span
+class="math inline">\(\tau_2\)</span> (s)</strong></th>
+<th style="text-align: center;"><strong>A</strong></th>
+<th style="text-align: center;"><strong>B</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">0: Standard</td>
+<td style="text-align: center;">128 (49%)</td>
+<td style="text-align: center;">0.22</td>
+<td style="text-align: center;">6.6</td>
+<td style="text-align: center;">0.37</td>
+<td style="text-align: center;">19.9</td>
+</tr>
+<tr>
+<td style="text-align: left;">1: Inverted timescales</td>
+<td style="text-align: center;">11 (4%)</td>
+<td style="text-align: center;"><strong>5.0</strong></td>
+<td style="text-align: center;"><strong>0.63</strong></td>
+<td style="text-align: center;">0.55</td>
+<td style="text-align: center;">20.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">2: Strong excitation</td>
+<td style="text-align: center;">115 (44%)</td>
+<td style="text-align: center;">0.22</td>
+<td style="text-align: center;">9.7</td>
+<td style="text-align: center;"><strong>5.0</strong></td>
+<td style="text-align: center;">20.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">3: Weak suppression</td>
+<td style="text-align: center;">6 (2%)</td>
+<td style="text-align: center;">0.18</td>
+<td style="text-align: center;">10.8</td>
+<td style="text-align: center;">4.2</td>
+<td style="text-align: center;"><strong>12.2</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All four kernel parameters differed significantly across clusters
+(Kruskal-Wallis, all <span class="math inline">\(p &lt; 0.001\)</span>)
+with large effect sizes: <span class="math inline">\(\tau_1\)</span>
+(<span class="math inline">\(\eta^2 = 0.97\)</span>), <span
+class="math inline">\(A\)</span> (<span class="math inline">\(\eta^2 =
+0.97\)</span>), <span class="math inline">\(B\)</span> (<span
+class="math inline">\(\eta^2 = 0.81\)</span>), and <span
+class="math inline">\(\tau_2\)</span> (<span
+class="math inline">\(\eta^2 = 0.17\)</span>). Detailed clustering
+stability analysis is provided in Appendix <a href="#app:clustering"
+data-reference-type="ref" data-reference="app:clustering">6</a>.</p>
+<h2
+id="round-trip-validation-reveals-phenotypes-are-not-recoverable">Round-Trip
+Validation Reveals Phenotypes Are Not Recoverable</h2>
+<p>Round-trip validation tested whether identified phenotypes represent
+recoverable individual differences. Synthetic tracks were generated from
+phenotype-specific kernel parameters. Kernels were fitted to the
+synthetic data. Cluster assignments were compared to ground truth.</p>
+<p>The validation failed. Cluster recovery ARI was 0.128, below the
+expected threshold of 0.5. Parameter correlations were near zero or
+negative, with <span class="math inline">\(\tau_1\)</span> correlation
+<span class="math inline">\(r = -0.03\)</span> and <span
+class="math inline">\(\tau_2\)</span> correlation <span
+class="math inline">\(r = -0.62\)</span>. The near-zero correlations
+indicate that kernel fitting from sparse event data with approximately
+25 events per track cannot reliably recover ground-truth parameters.
+Full protocol details are provided in Appendix <a href="#app:roundtrip"
+data-reference-type="ref" data-reference="app:roundtrip">8</a>.</p>
+<figure id="fig:posterior_predictive">
+<embed src="fig6_posterior_predictive.pdf" />
+<figcaption><strong>Posterior predictive checks validate the
+hierarchical Bayesian model.</strong> <strong>(A)</strong> Pass rates by
+metric. The model passes posterior predictive checks for event count and
+mean inter-stimulus interval (ISI), with approximately 54% of tracks
+showing observed statistics within the 95% posterior predictive
+interval. PSTH shape correlation shows lower pass rates, indicating some
+model misspecification for temporal dynamics. <strong>(B)</strong>
+Overall model adequacy. The pie chart shows the proportion of tracks
+passing at least two of three PPC metrics. Approximately 37% of tracks
+pass the adequacy threshold, suggesting the model captures key aspects
+of the data but may require refinement for temporal
+structure.</figcaption>
+</figure>
+<h2
+id="hierarchical-bayesian-model-reveals-population-homogeneity">Hierarchical
+Bayesian Model Reveals Population Homogeneity</h2>
+<p>A hierarchical Bayesian model was fit to jointly estimate population
+and individual parameters, properly accounting for uncertainty and
+regularizing sparse tracks.</p>
+<figure id="fig:shrinkage">
+<embed src="core/fig3_hierarchical_shrinkage.pdf" />
+<figcaption><strong>Hierarchical Bayesian modeling reveals population
+homogeneity.</strong> <strong>(A)</strong> Caterpillar plot showing 95%
+credible intervals for <span class="math inline">\(\tau_1\)</span> for
+all 256 tracks, sorted by posterior mean. Orange intervals (22 tracks,
+8.6%) have CIs that exclude the population mean; gray intervals (234
+tracks, 91.4%) are consistent with the population. The vertical red line
+marks the population mean (<span class="math inline">\(\tau_1 =
+0.63\)</span>s). <strong>(B)</strong> MLE vs Bayesian <span
+class="math inline">\(\tau_1\)</span> estimates. Extreme MLE values (up
+to 5s) are shrunk toward the population mean (<span
+class="math inline">\(\approx\)</span>0.65s) by the hierarchical
+prior.</figcaption>
+</figure>
+<h3 id="population-tau_1-0.63s-slower-than-original-estimate">Population
+<span class="math inline">\(\tau_1 = 0.63\)</span>s, Slower Than
+Original Estimate</h3>
+<p>The hierarchical model reveals that the population mean <span
+class="math inline">\(\tau_1\)</span> is 0.63 s, slower than initial MLE
+estimates suggested (Figure <a href="#fig:shrinkage"
+data-reference-type="ref" data-reference="fig:shrinkage">9</a>). This
+slower timescale indicates that the typical larval response to LED
+stimulation peaks later than previously estimated. The population <span
+class="math inline">\(\tau_2\)</span> of 2.48 s reflects slow
+suppression dynamics. Individual variation around these population means
+is moderate, with standard deviations of 0.31 s for <span
+class="math inline">\(\tau_1\)</span> and 0.46 s for <span
+class="math inline">\(\tau_2\)</span>, indicating that most larvae
+cluster near the population average rather than forming distinct
+phenotypic groups.</p>
+<h3 id="of-tracks-are-genuine-outliers">8.6% of Tracks Are Genuine
+Outliers</h3>
+<p>The hierarchical model distinguishes genuine individual differences
+from estimation noise by comparing credible intervals to the population
+mean (Figure <a href="#fig:shrinkage" data-reference-type="ref"
+data-reference="fig:shrinkage">9</a>). Only 8.6% of tracks show <span
+class="math inline">\(\tau_1\)</span> values that genuinely differ from
+the population, far fewer than the apparent phenotypic clusters
+suggested by independent MLE fitting. The discrepancy between
+hierarchical Bayesian and MLE-based clustering, with ARI approximately
+0, confirms that the four-cluster solution was an artifact of sparse
+data rather than biological reality. Most tracks are consistent with a
+single population distribution, with outliers representing potential
+fast responders requiring independent validation.</p>
+<figure id="fig:summary">
+<embed src="core/fig_combined_summary.pdf" />
+<figcaption><strong>Validation results and hierarchical
+shrinkage.</strong> <strong>(A)</strong> PCA of kernel parameters shows
+a unimodal distribution with scattered outliers, not discrete clusters.
+Points are colored by density, not cluster assignment.
+<strong>(B)</strong> All validation methods failed. Round-trip
+clustering achieved ARI = 0.13, PSTH vs kernel agreement achieved ARI =
+0.01, FNO vs parametric achieved ARI = 0.01, and Bayesian vs MLE
+achieved ARI <span class="math inline">\(\approx\)</span> 0. Green
+dashed line indicates success threshold (ARI = 0.5).
+<strong>(C)</strong> Caterpillar plot of individual <span
+class="math inline">\(\tau_1\)</span> posterior distributions sorted by
+mean. Orange intervals indicate the 8.6% of tracks whose 95% CIs exclude
+the population mean (red vertical line at 0.63s). Gray intervals show
+the 91% of tracks consistent with the population. <strong>(D)</strong>
+Violin comparison of <span class="math inline">\(\tau_1\)</span>
+posteriors for normal (n=234) vs outlier (n=22) tracks. Outliers cluster
+at lower <span class="math inline">\(\tau_1\)</span> (<span
+class="math inline">\(\approx\)</span>0.45s), suggesting faster response
+dynamics. Dashed line indicates population mean.</figcaption>
+</figure>
+<p>The validation failures and hierarchical shrinkage shown in Figure <a
+href="#fig:summary" data-reference-type="ref"
+data-reference="fig:summary">10</a> demonstrate that apparent phenotypic
+clusters are artifacts of sparse data rather than genuine individual
+differences. The hierarchical Bayesian model reveals that most tracks
+are consistent with the population mean, with only 8.6% identified as
+genuine outliers.</p>
+<p>Figure <a href="#fig:shrinkage" data-reference-type="ref"
+data-reference="fig:shrinkage">9</a> shows how hierarchical Bayesian
+estimation shrinks extreme MLE estimates toward the population mean. The
+22 outlier tracks identified by the hierarchical model represent
+candidate fast responders (Figure <a href="#fig:fast_responders"
+data-reference-type="ref"
+data-reference="fig:fast_responders">11</a>).</p>
+<figure id="fig:fast_responders">
+<embed src="core/fig4_fast_responders.pdf" />
+<figcaption><strong>Candidate fast responders.</strong>
+<strong>(A)</strong> Violin plot comparing <span
+class="math inline">\(\tau_1\)</span> distributions for normal (n=234)
+vs outlier (n=22) tracks. Outliers show systematically lower <span
+class="math inline">\(\tau_1\)</span> (median <span
+class="math inline">\(\approx\)</span>0.45s) compared to normal tracks
+(median <span class="math inline">\(\approx\)</span>0.70s).
+<strong>(B)</strong> Kernel shape comparison. The population kernel
+(blue, <span class="math inline">\(\tau_1 = 0.63\)</span>s) and
+hypothetical fast-responder kernel (orange dashed, <span
+class="math inline">\(\tau_1 = 0.45\)</span>s) show the expected
+difference in peak response time. With only 22 candidate tracks and no
+independent validation, the candidates require confirmation in a
+separate experiment.</figcaption>
+</figure>
+<h2 id="current-data-achieves-only-2030-power">Current Data Achieves
+Only 20–30% Power</h2>
+<p>Simulation-based power analysis determined how many events per larva
+are needed to reliably detect a fast responder. Power increased
+monotonically with the number of events per track. At <span
+class="math inline">\(N = 25\)</span> events (current data), power was
+approximately 20–30%. At <span class="math inline">\(N = 100\)</span>
+events, power reached 75–85%. Type I error remained controlled near the
+nominal 5% level across all event counts tested.</p>
+<p>With only <span class="math inline">\(\sim\)</span>18–25 events per
+track and power of 20–30%, at most one-third of true fast responders can
+be detected. To achieve 80% power for detecting a <span
+class="math inline">\(\Delta\tau_1 = 0.2\)</span> s difference,
+approximately 100 events per track are required, roughly 4<span
+class="math inline">\(\times\)</span> more than typical 20-minute
+recordings provide. Detailed power analysis results are provided in
+Appendix <a href="#app:enhancements" data-reference-type="ref"
+data-reference="app:enhancements">10</a>.</p>
+<p>The identifiability problem is not simply about event count.
+Information content per event matters equally. Burst stimulation yields
+substantially higher Fisher Information for <span
+class="math inline">\(\tau_1\)</span> compared to continuous stimulation
+(Figure <a href="#fig:identifiability" data-reference-type="ref"
+data-reference="fig:identifiability">12</a>). The mechanism relates to
+information localization. The excitatory component peaks early after LED
+onset and carries nearly all <span class="math inline">\(\tau_1\)</span>
+information. Continuous stimulation samples this early window once per
+cycle, while burst stimulation samples it multiple times.</p>
+<figure id="fig:identifiability">
+<embed src="fig2_identifiability_v3.pdf" />
+<figcaption><strong>The identifiability problem and design
+optimization.</strong> <strong>(A)</strong> Bias and RMSE for <span
+class="math inline">\(\tau_1\)</span> estimation across four stimulus
+designs at current event counts (<span
+class="math inline">\(\sim\)</span>17 events). Burst design (10<span
+class="math inline">\(\times\)</span>0.5s pulses) achieves bias of 0.14s
+and RMSE of 0.38s, compared to continuous design with bias <span
+class="math inline">\(&gt;\)</span>0.6s and RMSE <span
+class="math inline">\(&gt;\)</span>0.7s. <strong>(B)</strong> Fisher
+Information for <span class="math inline">\(\tau_1\)</span> across
+designs. Burst design provides 10<span
+class="math inline">\(\times\)</span> higher information per unit ON
+time than continuous stimulation. <strong>(C)</strong> MLE parameter
+recovery showing systematic positive bias with continuous stimulation.
+<strong>(D)</strong> The inhibition-dominated kernel (B/A <span
+class="math inline">\(\approx\)</span> 8) concentrates <span
+class="math inline">\(\tau_1\)</span> information in the early
+excitatory phase (0–0.3s post-onset), which burst designs sample
+repeatedly.</figcaption>
+</figure>
+<h2 id="optimal-design-depends-on-kernel-regime">Optimal Design Depends
+on Kernel Regime</h2>
+<p>The systematic sweep across six A/B ratios from 0.125 to 4.0 and four
+stimulation designs reveals that optimal protocol depends on kernel
+regime (Figure <a href="#fig:design_comparison"
+data-reference-type="ref"
+data-reference="fig:design_comparison">13</a>).</p>
+<figure id="fig:design_comparison">
+<embed src="fig_design_comparison_summary.pdf" />
+<figcaption><strong>Design recommendations depend on kernel
+regime.</strong> <strong>(A)</strong> Fisher Information for <span
+class="math inline">\(\tau_1\)</span> across four stimulation designs
+and six kernel regimes (A/B = 0.125 to 4.0). Burst design provides
+highest information for inhibitory kernels (A/B <span
+class="math inline">\(\leq\)</span> 0.25); continuous design is
+sufficient for excitatory kernels. <strong>(B)</strong> Statistical
+power to detect a 0.2s difference in <span
+class="math inline">\(\tau_1\)</span>. At A/B = 0.125, only burst
+achieves 100% power; at A/B <span class="math inline">\(\geq\)</span>
+0.25, all designs succeed. <strong>(C)</strong> Estimation bias by
+regime. Burst reduces bias from 0.6s to 0.14s for inhibitory kernels.
+For A/B <span class="math inline">\(\geq\)</span> 1.0, all designs show
+persistent bias of approximately 0.65s. <strong>(D)</strong> Event
+counts increase dramatically with A/B ratio: 17 events at A/B = 0.125 vs
+228–4815 events at A/B <span class="math inline">\(\geq\)</span>
+0.5.</figcaption>
+</figure>
+<p>Figure <a href="#fig:stimulation_schematic" data-reference-type="ref"
+data-reference="fig:stimulation_schematic">14</a> illustrates the four
+stimulation designs compared.</p>
+<p>For inhibitory-dominated kernels with A/B at or below 0.25, burst
+stimulation is optimal. At the current experimental parameters (A/B =
+0.125), burst achieves bias of 0.14s and RMSE of 0.38s with
+approximately 17 events, compared to bias greater than 0.6s for
+continuous stimulation. Fisher Information is 10-fold higher for
+burst.</p>
+<p>For balanced kernels with A/B near 0.25, all pulsed designs achieve
+near-perfect estimation. Bias drops below 0.02s and event counts
+increase to approximately 46 per track.</p>
+<p>For excitatory-dominated kernels with A/B at or above 0.5, continuous
+stimulation becomes optimal. Event counts increase dramatically to
+228–735 events per track because the excitatory component drives rather
+than suppresses events. All designs achieve full power, but continuous
+is simpler to implement.</p>
+<p>At very high A/B ratios of 1.0 or above, all designs show persistent
+bias of approximately 0.65s regardless of event count. The pattern
+suggests a different identifiability limitation, possibly related to
+parameter grid boundaries or model misspecification for
+excitatory-dominated responses.</p>
+<p>The practical recommendation for current data with A/B approximately
+0.125 is to use burst stimulation with 10 pulses of 0.5s ON and 0.5s
+gaps to achieve reliable <span class="math inline">\(\tau_1\)</span>
+estimation without extending recording duration.</p>
+<figure id="fig:stimulation_schematic">
+<embed src="fig_stimulation_schematic.pdf" />
+<figcaption><strong>Comparison of LED stimulation designs within a
+30-second cycle.</strong> <strong>(A)</strong> Current design: 10s
+continuous ON followed by 20s OFF. Low power and high bias result from
+spending most time in the inhibitory regime. <strong>(B)</strong>
+Recommended burst design: 10 pulses of 0.5s ON with 0.5s gaps. Achieves
+8<span class="math inline">\(\times\)</span> more informative events by
+repeatedly sampling the excitatory onset. <strong>(C)</strong> Medium
+pulse design: 4 pulses of 1s ON. Moderate improvement with longer pulses
+and fewer onsets. <strong>(D)</strong> Long pulse design: 2 pulses of 2s
+ON. Minimal improvement due to too few onsets to adequately sample the
+kernel. Statistics show events per track, RMSE, power, and duty cycle
+for each design.</figcaption>
+</figure>
+<h1 id="discussion">Discussion</h1>
+<h2
+id="structural-identifiability-explains-individual-phenotyping-failure">Structural
+Identifiability Explains Individual Phenotyping Failure</h2>
+<p>The gamma-difference kernel is predominantly inhibitory. For most of
+the LED-ON window, the kernel value is negative. The LED stimulus
+suppresses reorientation events during LED-ON relative to LED-OFF. The
+Fisher information for <span class="math inline">\(\tau_1\)</span> is
+proportional to: <span class="math display">\[I(\tau_1) = \int
+\frac{1}{\lambda(t;\theta)} \left( \frac{\partial
+\lambda(t;\theta)}{\partial \tau_1} \right)^2 dt\]</span> where <span
+class="math inline">\(\lambda(t)\)</span> is the instantaneous hazard
+rate. Because the kernel is nearly flat and negative for most of the
+LED-ON window, the derivative <span class="math inline">\(\partial
+\lambda / \partial \tau_1\)</span> is small precisely where informative
+events could occur, yielding near-zero information per individual. Data
+sparsity compounds the problem. Each larva provides few events
+distributed across a 6-parameter likelihood surface that is nearly flat
+in the <span class="math inline">\(\tau_1\)</span> direction. MLE finds
+local optima rather than true parameters.</p>
+<h2 id="design-optimization-reveals-regime-dependent-solutions">Design
+Optimization Reveals Regime-Dependent Solutions</h2>
+<p>The identifiability problem is not simply about event count.
+Information content per event matters equally. Burst stimulation yields
+substantially higher Fisher Information for <span
+class="math inline">\(\tau_1\)</span> compared to continuous stimulation
+(Figure <a href="#fig:identifiability" data-reference-type="ref"
+data-reference="fig:identifiability">12</a>). The mechanism relates to
+information localization. The excitatory component peaks early after LED
+onset and carries nearly all <span class="math inline">\(\tau_1\)</span>
+information. Continuous stimulation samples this early window once per
+cycle, while burst stimulation samples it multiple times. The systematic
+design comparison across kernel regimes (Figure <a
+href="#fig:design_comparison" data-reference-type="ref"
+data-reference="fig:design_comparison">13</a>) reveals that optimal
+protocols depend on whether the kernel is inhibition-dominated or
+excitation-dominated.</p>
+<p>The optimal design depends on kernel regime. For inhibition-dominated
+kernels, burst stimulation is required. For balanced or excitatory
+kernels, continuous stimulation is sufficient because higher event rates
+provide adequate information. A persistent bias appears at high
+excitation-to-inhibition ratios regardless of design, suggesting either
+model misspecification or grid boundary effects for excitatory-dominated
+kernels.</p>
+<h2 id="composite-phenotypes-bypass-kernel-fitting">Composite Phenotypes
+Bypass Kernel Fitting</h2>
+<p>Given structural identifiability limitations, phenotyping strategies
+that bypass full kernel estimation are recommended. The ON/OFF event
+rate ratio provides a single-parameter summary estimable even with few
+ON-events per larva. First-event latency provides another robust
+measure.</p>
+<p>Simulation validation reveals asymmetric recoverability. Precision
+(modulating ON/OFF hazard ratio) achieves high correlation with true
+latent scores even at low event counts, regardless of baseline hazard.
+Burstiness (temporal clustering via self-excitation) is more difficult
+to recover. At low baseline hazard typical of current data, correlation
+with true scores remains poor even at higher event counts. Recovery
+improves substantially at higher baseline hazard. The practical
+implication is that Precision can be reliably phenotyped from current
+data, while Burstiness phenotyping requires either higher stimulus
+intensity or burst stimulation protocols.</p>
+<h2 id="condition-effects-confound-individual-differences">Condition
+Effects Confound Individual Differences</h2>
+<p>Variance decomposition analysis revealed that condition effects
+account for a substantial portion of <span
+class="math inline">\(\tau_1\)</span> variance across the experimental
+conditions. Apparent individual differences may reflect condition
+assignment rather than true phenotypic variation. Future phenotyping
+analyses should either restrict to within-condition comparisons or
+explicitly model condition as a covariate.</p>
+<h2
+id="dataset-composition-explains-population-parameter-differences">Dataset
+Composition Explains Population Parameter Differences</h2>
+<p>The population-level <span class="math inline">\(\tau_1\)</span>
+estimated here differs from the original study. The difference reflects
+dataset composition. Fewer tracks from fewer experiments were analyzed
+in the original study compared to the broader dataset analyzed here.
+Estimation method also differs, with pooled MLE in the original study
+compared to hierarchical Bayesian modeling here. The original estimate
+characterizes fast response under optimal stimulation conditions, while
+the hierarchical estimate represents average response across the broader
+experimental landscape.</p>
+<h2 id="limitations">Limitations</h2>
+<p>Data sparsity remains the fundamental limitation. The
+data-to-parameter ratio is approximately 3 to 1, far below the 10 to 1
+commonly recommended for reliable nonlinear estimation. Power analysis
+indicates that substantially more events are needed under continuous
+stimulation; burst stimulation reduces this requirement.</p>
+<p>The dataset spans multiple experimental conditions with different
+<span class="math inline">\(\tau_1\)</span> values. Condition effects
+confound individual phenotyping; within-condition analyses are
+recommended.</p>
+<p>The gamma-difference kernel form may not capture all behavioral
+variation. Candidate fast responders require independent replication
+before they can be considered established phenotypes.</p>
+<h1 id="conclusions">Conclusions</h1>
+<h2 id="recommendations-for-future-experiments">Recommendations for
+Future Experiments</h2>
+<p>For researchers seeking individual-level phenotyping of larval
+stimulus-response dynamics, several modifications to standard protocols
+are recommended. Continuous 10s ON pulses should be replaced with burst
+trains of 10 pulses at 0.5s ON with 0.5s gaps; burst designs provide
+higher Fisher Information for <span
+class="math inline">\(\tau_1\)</span> and reduce estimation bias
+substantially. Recordings should be extended to achieve 50 or more
+events per larva with burst stimulation, or 100 or more events with
+continuous stimulation. At 1.3 events per minute, reaching 50 events
+requires approximately 40 minutes of recording. Model simplification
+helps: fixing <span class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, and <span
+class="math inline">\(B\)</span> at population values and estimating
+only <span class="math inline">\(\tau_1\)</span> per individual reduces
+the per-larva parameter count from 6 to 1, improving identifiability
+proportionally. Phenotyping should be conducted within a single,
+well-defined stimulus condition because between-condition variance
+confounds individual-level inference.</p>
+<h2 id="recommended-phenotyping-approach">Recommended Phenotyping
+Approach</h2>
+<p>Given experimental constraints, composite phenotypes offer a
+practical alternative to kernel parameter estimation. The recommended
+approach involves computing seven behavioral measures per larva,
+including ON/OFF event rate ratio, first-event latency, IEI-CV, Fano
+factor, response reliability, habituation slope, and phase coherence.
+Factor analysis then extracts two latent dimensions: Precision for
+timing accuracy and Burstiness for temporal irregularity. The resulting
+factor scores serve as continuous phenotypes for downstream analysis,
+including heritability estimation, genetic association, and neural
+correlate mapping.</p>
+<p>Simulation validation confirms that Precision is recoverable with
+approximately 25 events per larva under current protocols. Burstiness
+requires higher event counts or burst stimulation designs.</p>
+<h2 id="validation-requirements">Validation Requirements</h2>
+<p>Any putative phenotype identified through clustering or hierarchical
+modeling requires validation. Round-trip validation ARI should be
+reported, with values below 0.5 indicating unreliable recovery. Power
+analysis determines whether the study can detect true differences; power
+below 50% means most true phenotypes are missed. Gap statistic reveals
+whether clustering is justified, with optimal <span
+class="math inline">\(k=1\)</span> suggesting continuous rather than
+discrete variation. Independent replication should be required before
+treating candidates as established phenotypes.</p>
+<h2 id="methodological-contribution">Methodological Contribution</h2>
+<p>The present study establishes quantitative guidelines for larval
+phenotyping, including minimum event counts, optimal stimulation
+designs, and validation metrics. Population-level analysis remains
+robust under current protocols. Individual-level analysis requires
+either protocol modifications such as burst stimulation and longer
+recordings, or alternative phenotyping strategies such as composite
+scores rather than kernel parameters.</p>
+<p>The analytical framework developed here, including Fisher Information
+analysis, design sweeps, power curves, and validation cascades, is
+applicable to other sparse point-process phenotyping problems in
+behavioral neuroscience.</p>
+<h1 id="app:clustering">Detailed Clustering Methodology</h1>
+<h2 id="clustering-stability-analysis">Clustering Stability
+Analysis</h2>
+<p>K-means clustering was performed on standardized kernel features
+(<span class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>) for <span class="math inline">\(k = 2,
+3, 4, 5\)</span> clusters. Stability was assessed via bootstrap
+resampling (50 iterations) with Adjusted Rand Index (ARI).</p>
+<h3 id="simulated-data-results">Simulated Data Results</h3>
+<p>On 300 simulated tracks, clustering stability increased monotonically
+with <span class="math inline">\(k\)</span>:</p>
+<div id="tab:sim_clustering_app">
+<table>
+<caption>Clustering stability on simulated data (N=300 tracks)</caption>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>k</strong></th>
+<th style="text-align: center;"><strong>Silhouette</strong></th>
+<th style="text-align: center;"><strong>Stability (ARI)</strong></th>
+<th style="text-align: center;"><strong>Cluster Sizes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.760</td>
+<td style="text-align: center;">0.513 <span
+class="math inline">\(\pm\)</span> 0.506</td>
+<td style="text-align: center;">{294, 6}</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0.497</td>
+<td style="text-align: center;">0.703 <span
+class="math inline">\(\pm\)</span> 0.357</td>
+<td style="text-align: center;">{75, 6, 219}</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0.501</td>
+<td style="text-align: center;">0.841 <span
+class="math inline">\(\pm\)</span> 0.218</td>
+<td style="text-align: center;">{70, 220, 6, 4}</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0.471</td>
+<td style="text-align: center;"><strong>0.920</strong> <span
+class="math inline">\(\pm\)</span> 0.099</td>
+<td style="text-align: center;">{153, 6, 65, 72, 4}</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The high silhouette score for <span
+class="math inline">\(k=2\)</span> was driven by separation of 6 outlier
+tracks from the 294-track majority. The <span
+class="math inline">\(k=5\)</span> solution showed highest stability
+(ARI = 0.920) with lowest variance.</p>
+<h3 id="empirical-data-results">Empirical Data Results</h3>
+<div id="tab:emp_clustering_app">
+<table>
+<caption>Clustering stability on empirical data (N=260 tracks)</caption>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>k</strong></th>
+<th style="text-align: center;"><strong>Silhouette</strong></th>
+<th style="text-align: center;"><strong>Stability (ARI)</strong></th>
+<th style="text-align: center;"><strong>Cluster Sizes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.435</td>
+<td style="text-align: center;">0.478 <span
+class="math inline">\(\pm\)</span> 0.500</td>
+<td style="text-align: center;">{140, 120}</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0.503</td>
+<td style="text-align: center;">0.918 <span
+class="math inline">\(\pm\)</span> 0.200</td>
+<td style="text-align: center;">{11, 129, 120}</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0.539</td>
+<td style="text-align: center;"><strong>0.945</strong> <span
+class="math inline">\(\pm\)</span> 0.104</td>
+<td style="text-align: center;">{128, 11, 115, 6}</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;"><strong>0.573</strong></td>
+<td style="text-align: center;">0.937 <span
+class="math inline">\(\pm\)</span> 0.089</td>
+<td style="text-align: center;">{115, 11, 68, 6, 60}</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="cluster-validation-results">Cluster Validation Results</h2>
+<div id="tab:validation_app">
+<table>
+<caption>Statistical validation of empirical phenotype
+clusters</caption>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>k</strong></th>
+<th style="text-align: center;"><strong>Permutation p</strong></th>
+<th style="text-align: center;"><strong>Gap Optimal?</strong></th>
+<th style="text-align: center;"><strong>Train/Test ARI</strong></th>
+<th style="text-align: center;"><strong>Validated?</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.022*</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">0.15 (Poor)</td>
+<td style="text-align: center;">Partial</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0.002**</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">0.74 (Good)</td>
+<td style="text-align: center;"><strong>Yes</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;"><span
+class="math inline">\(&lt;\)</span>0.001***</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">0.79 (Good)</td>
+<td style="text-align: center;"><strong>Yes</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;"><span
+class="math inline">\(&lt;\)</span>0.001***</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">0.78 (Good)</td>
+<td style="text-align: center;"><strong>Yes</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The gap statistic indicated optimal <span
+class="math inline">\(k=1\)</span>, suggesting continuous variation
+rather than discrete subpopulations.</p>
+<h1 id="app:fno">Neural Operator Analysis</h1>
+<p>Given limitations of parametric fitting, a Fourier Neural Operator
+(FNO) was trained to learn the mapping from PSTH to kernel shape
+directly.</p>
+<h2 id="validation-on-synthetic-data">Validation on Synthetic Data</h2>
+<p>The FNO was trained on 2000 synthetic tracks with known ground-truth
+kernels.</p>
+<table>
+<caption>Kernel recovery performance on synthetic validation
+data</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Model</strong></th>
+<th style="text-align: center;"><strong>Kernel Correlation
+(r)</strong></th>
+<th style="text-align: center;"><strong>MSE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">FNO</td>
+<td style="text-align: center;">0.921</td>
+<td style="text-align: center;">0.103</td>
+</tr>
+<tr>
+<td style="text-align: left;">MLP baseline</td>
+<td style="text-align: center;">0.978</td>
+<td style="text-align: center;">0.035</td>
+</tr>
+</tbody>
+</table>
+<h2 id="application-to-empirical-data">Application to Empirical
+Data</h2>
+<table>
+<caption>Clustering of FNO-derived kernels</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>k</strong></th>
+<th style="text-align: center;"><strong>Silhouette</strong></th>
+<th style="text-align: center;"><strong>ARI vs PSTH</strong></th>
+<th style="text-align: center;"><strong>ARI vs Parametric</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">3</td>
+<td style="text-align: center;">0.326</td>
+<td style="text-align: center;">0.250</td>
+<td style="text-align: center;">0.011</td>
+</tr>
+<tr>
+<td style="text-align: left;">4</td>
+<td style="text-align: center;">0.303</td>
+<td style="text-align: center;">0.276</td>
+<td style="text-align: center;">0.011</td>
+</tr>
+<tr>
+<td style="text-align: left;">5</td>
+<td style="text-align: center;">0.255</td>
+<td style="text-align: center;">0.200</td>
+<td style="text-align: center;">0.011</td>
+</tr>
+</tbody>
+</table>
+<p>The near-zero ARI between FNO-derived and parametric clusters
+indicates that parametric fitting creates artifacts unrelated to
+behavioral structure.</p>
+<h1 id="app:roundtrip">Round-Trip Validation Protocol</h1>
+<p>To test whether identified phenotypes represent recoverable
+individual differences, round-trip validation was performed.</p>
+<h2 id="simulation-protocol">Simulation Protocol</h2>
+<p>A total of 260 synthetic tracks were generated. Each track was
+assigned to a phenotype cluster based on empirical proportions. Kernel
+parameters were sampled from that cluster’s distribution. Reorientation
+events were simulated via discrete-time Bernoulli process with <span
+class="math inline">\(p(t) = \exp(\beta_0 + K(t))\)</span>. Kernels were
+then fitted to the simulated events and the fitted parameters were
+clustered for comparison to ground truth.</p>
+<h2 id="results-1">Results</h2>
+<div id="tab:roundtrip_app">
+<table>
+<caption>Round-trip simulation validation results</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Metric</strong></th>
+<th style="text-align: center;"><strong>Observed</strong></th>
+<th style="text-align: center;"><strong>Expected</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Fit success rate</td>
+<td style="text-align: center;">98.8%</td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>90% (pass)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cluster recovery (ARI)</td>
+<td style="text-align: center;"><strong>0.128</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>0.5 (FAIL)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(\tau_1\)</span> correlation</td>
+<td style="text-align: center;">-0.03</td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>0.5 (FAIL)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span
+class="math inline">\(\tau_2\)</span> correlation</td>
+<td style="text-align: center;"><strong>-0.62</strong></td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>0.5 (FAIL)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\(A\)</span>
+correlation</td>
+<td style="text-align: center;">0.35</td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>0.5 (FAIL)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\(B\)</span>
+correlation</td>
+<td style="text-align: center;">-0.01</td>
+<td style="text-align: center;"><span
+class="math inline">\(&gt;\)</span>0.5 (FAIL)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The near-zero or negative parameter correlations indicate that kernel
+fitting from sparse event data cannot reliably recover ground-truth
+parameters.</p>
+<h1 id="app:pca">PCA Representation Comparison</h1>
+<p>To investigate whether phenotype clusters reflect genuine behavioral
+variation, clustering was compared in two representations: PSTH-based
+(raw event patterns binned in 0.5s intervals, 0-10s post-LED onset, 20
+dimensions) and kernel-based (fitted parameters <span
+class="math inline">\(\tau_1\)</span>, <span
+class="math inline">\(\tau_2\)</span>, <span
+class="math inline">\(A\)</span>, <span
+class="math inline">\(B\)</span>, 4 dimensions).</p>
+<table>
+<caption>PCA comparison of representations</caption>
+<thead>
+<tr>
+<th style="text-align: left;"><strong>Metric</strong></th>
+<th style="text-align: center;"><strong>PSTH</strong></th>
+<th style="text-align: center;"><strong>Kernel</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">PC1 variance explained</td>
+<td style="text-align: center;">15%</td>
+<td style="text-align: center;">39%</td>
+</tr>
+<tr>
+<td style="text-align: left;">PCs for 90% variance</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Silhouette (k=4)</td>
+<td style="text-align: center;">0.52</td>
+<td style="text-align: center;">0.54</td>
+</tr>
+</tbody>
+</table>
+<p>When clustering was performed independently on each representation,
+the resulting cluster assignments showed essentially no agreement with
+an Adjusted Rand Index of 0.01 at k=4. Individuals clustered together by
+kernel parameters are not clustered together by event patterns.</p>
+<h1 id="app:enhancements">Statistical Enhancement Details</h1>
+<h2 id="power-analysis">Power Analysis</h2>
+<p>The simulation-based power analysis answered how many events per
+larva are needed to reliably detect a fast responder. Power increased
+monotonically with event count: at 25 events (current data) power was
+approximately 20–30%, at 100 events power reached 75–85%, and at 150
+events power exceeded 90%. Type I error remained controlled near the
+nominal 5% level across all event counts tested.</p>
+<h2 id="posterior-predictive-checks">Posterior Predictive Checks</h2>
+<p>The hierarchical Bayesian model passed PPC with <span
+class="math inline">\(&gt;\)</span>90% of tracks showing observed event
+patterns consistent with posterior predictions for event count, mean
+ISI, and PSTH shape.</p>
+<h2 id="model-comparison">Model Comparison</h2>
+<p>Model comparison between the full 6-parameter and reduced 2-parameter
+models demonstrated that the reduced model is preferred for the majority
+of tracks. The reduced model achieved lower BIC in <span
+class="math inline">\(&gt;\)</span>60% of tracks.</p>
+<h2 id="cross-experiment-generalization">Cross-Experiment
+Generalization</h2>
+<p>Leave-one-experiment-out cross-validation assessed population
+parameter stability across 14 experiments. The coefficient of variation
+for <span class="math inline">\(\tau_1\)</span> across folds was <span
+class="math inline">\(&lt;\)</span>15%.</p>
+<h1 class="unnumbered" id="acknowledgments">Acknowledgments</h1>
+<p>We thank the members of the laboratory for helpful discussions and
+feedback on the manuscript.</p>
+<h1 class="unnumbered" id="data-availability">Data Availability</h1>
+<p>All data and analysis code are available in the project repository.
+Processed data are stored in HDF5 format. Analysis scripts are written
+in Python with NumPy, SciPy, scikit-learn, and NumPyro dependencies.</p>
+<h1 id="references">References</h1>
+<div class="thebibliography">
+<p><span>9</span></p>
+<p>Tibshirani, R., Walther, G., &amp; Hastie, T. (2001). Estimating the
+number of clusters in a data set via the gap statistic. <em>Journal of
+the Royal Statistical Society: Series B (Statistical Methodology)</em>,
+63(2), 411-423.</p>
+<p>Hubert, L., &amp; Arabie, P. (1985). Comparing partitions.
+<em>Journal of Classification</em>, 2(1), 193-218.</p>
+<p>Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the
+interpretation and validation of cluster analysis. <em>Journal of
+Computational and Applied Mathematics</em>, 20, 53-65.</p>
+<p>Pulver, S. R., Bayraktar, E., Petrossian, B., &amp; Kaiser, M.
+(2018). Monitoring brain activity and behavior in freely behaving
+Drosophila larvae using bioluminescence. <em>Scientific Reports</em>,
+8(1), 10410.</p>
+<p>Szuperak, M., Churgin, M. A., Borja, A. J., Raizen, D. M., Bhatt, A.
+S., Kayser, M. S., &amp; Bhatt, P. J. (2018). A sleep state in
+Drosophila larvae required for neural stem cell proliferation.
+<em>eLife</em>, 7, e33220.</p>
+<p>Gelman, A., &amp; Hill, J. (2006). <em>Data Analysis Using Regression
+and Multilevel/Hierarchical Models</em>. Cambridge University Press.</p>
+<p>Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte
+Carlo. <em>arXiv preprint arXiv:1701.02434</em>.</p>
+<p>Shimazaki, H., &amp; Shinomoto, S. (2007). A method for selecting the
+bin size of a time histogram. <em>Neural Computation</em>, 19(6),
+1503-1527.</p>
+<p>Gerstein, G. L., &amp; Kiang, N. Y. (1960). An approach to the
+quantitative analysis of electrophysiological data from single neurons.
+<em>Biophysical Journal</em>, 1(1), 15-28.</p>
+<p>Perkel, D. H., Gerstein, G. L., &amp; Moore, G. P. (1967). Neuronal
+spike trains and stochastic point processes: I. The single spike train.
+<em>Biophysical Journal</em>, 7(4), 391-418.</p>
+<p>Daley, D. J., &amp; Vere-Jones, D. (2003). <em>An Introduction to the
+Theory of Point Processes, Volume I: Elementary Theory and Methods</em>.
+Springer.</p>
+<p>Heckman, J., &amp; Singer, B. (1984). The identifiability of the
+proportional hazard model. <em>The Review of Economic Studies</em>,
+51(2), 231-241.</p>
+<p>Rebora, P., Salim, A., &amp; Reilly, M. (2014). bshazard: A flexible
+tool for nonparametric smoothing of the hazard function. <em>The R
+Journal</em>, 6(2), 114-122.</p>
+<p>Salehi, F., Trouleau, W., Grossglauser, M., &amp; Thiran, P. (2019).
+Learning Hawkes processes from a handful of events. <em>Advances in
+Neural Information Processing Systems</em>, 32.</p>
+<p>Du, N., Dai, H., Trivedi, R., Upadhyay, U., Gomez-Rodriguez, M.,
+&amp; Song, L. (2016). Recurrent marked temporal point processes:
+Embedding event history to vector. <em>Proceedings of the 22nd ACM
+SIGKDD International Conference on Knowledge Discovery and Data
+Mining</em>, 1555-1564.</p>
+<p>Wang, J.-L., Müller, H.-G., &amp; Eubank, R. L. (1996). Hazard rate
+regression using ordinary nonparametric regression smoothers.
+<em>Journal of Computational and Graphical Statistics</em>, 5(3),
+195-212.</p>
+</div>
+</body>
+</html>

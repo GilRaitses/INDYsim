@@ -1,0 +1,21 @@
+\section{Conclusions}
+
+\subsection{Recommendations for Future Experiments}
+
+For researchers seeking individual-level phenotyping of larval stimulus-response dynamics, several modifications to standard protocols are recommended. Continuous 10s ON pulses should be replaced with burst trains of 10 pulses at 0.5s ON with 0.5s gaps; burst designs provide higher Fisher Information for $\tau_1$ and reduce estimation bias substantially. Recordings should be extended to achieve 50 or more events per larva with burst stimulation, or 100 or more events with continuous stimulation. At 1.3 events per minute, reaching 50 events requires approximately 40 minutes of recording. Model simplification helps: fixing $\tau_2$, $A$, and $B$ at population values and estimating only $\tau_1$ per individual reduces the per-larva parameter count from 6 to 1, improving identifiability proportionally. Phenotyping should be conducted within a single, well-defined stimulus condition because between-condition variance confounds individual-level inference.
+
+\subsection{Recommended Phenotyping Approach}
+
+Given experimental constraints, composite phenotypes offer a practical alternative to kernel parameter estimation. The recommended approach involves computing seven behavioral measures per larva, including ON/OFF event rate ratio, first-event latency, IEI-CV, Fano factor, response reliability, habituation slope, and phase coherence. Factor analysis then extracts two latent dimensions: Precision for timing accuracy and Burstiness for temporal irregularity. The resulting factor scores serve as continuous phenotypes for downstream analysis, including heritability estimation, genetic association, and neural correlate mapping.
+
+Simulation validation confirms that Precision is recoverable with approximately 25 events per larva under current protocols. Burstiness requires higher event counts or burst stimulation designs.
+
+\subsection{Validation Requirements}
+
+Any putative phenotype identified through clustering or hierarchical modeling requires validation. Round-trip validation ARI should be reported, with values below 0.5 indicating unreliable recovery. Power analysis determines whether the study can detect true differences; power below 50\% means most true phenotypes are missed. Gap statistic reveals whether clustering is justified, with optimal $k=1$ suggesting continuous rather than discrete variation. Independent replication should be required before treating candidates as established phenotypes.
+
+\subsection{Methodological Contribution}
+
+The present study establishes quantitative guidelines for larval phenotyping, including minimum event counts, optimal stimulation designs, and validation metrics. Population-level analysis remains robust under current protocols. Individual-level analysis requires either protocol modifications such as burst stimulation and longer recordings, or alternative phenotyping strategies such as composite scores rather than kernel parameters.
+
+The analytical framework developed here, including Fisher Information analysis, design sweeps, power curves, and validation cascades, is applicable to other sparse point-process phenotyping problems in behavioral neuroscience.
