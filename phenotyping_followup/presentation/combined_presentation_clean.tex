@@ -1,0 +1,207 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+\title{Sensorimotor Habituation in \textit{Drosophila} Larvae}
+\subtitle{Population-Level Modeling and Individual Phenotyping Validation}
+\author{Gil Raitses}
+\institute{Syracuse University}
+\date{December 22, 2025}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+%% ===========================================
+%% PART 1: ORIGINAL STUDY
+%% ===========================================
+
+\begin{frame}{Executive Summary -- Original Study}
+\textbf{Population-Level Sensorimotor Habituation Model}
+
+\begin{itemize}
+    \item Larval reorientation behavior follows a \textbf{gamma-difference kernel} with two timescales
+    \item Fast excitatory component with $\tau_1 \approx 0.3$ seconds drives the initial response
+    \item Slow inhibitory component with $\tau_2 \approx 4$ seconds produces delayed suppression
+    \item Model validated across 14 experiments with 701 tracks
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{Key Result} \quad The gamma-difference kernel accurately predicts population-level reorientation dynamics.
+\end{frame}
+
+\begin{frame}{Kernel Structure}
+\centering
+\includegraphics[height=0.8\textheight]{../../figures/figure1_kernel.png}
+\end{frame}
+
+\begin{frame}{Habituation Dynamics}
+\centering
+\includegraphics[height=0.8\textheight]{../../figures/figure_habituation.png}
+\end{frame}
+
+\begin{frame}{Leave-One-Experiment-Out Validation}
+\centering
+\includegraphics[height=0.8\textheight]{../../figures/loeo_permutation_null.png}
+\end{frame}
+
+%% ===========================================
+%% PART 2: FOLLOW-UP STUDY
+%% ===========================================
+
+\begin{frame}{Executive Summary -- Follow-Up Study}
+\textbf{Individual-Level Phenotyping Validation}
+
+\begin{itemize}
+    \item \textbf{Question} \quad Can individual larvae be phenotyped using kernel parameters?
+    \item \textbf{Challenge} \quad Sparse data with only 18 to 25 events per track
+    \item \textbf{Finding} \quad Apparent phenotypic clusters are artifacts of sparse data
+    \item Only 8.6\% of tracks show genuine individual differences
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{Key Result} \quad Individual-level phenotyping requires protocol modifications.
+\end{frame}
+
+%% Clustering Illusion - CLEAN PANELS
+\begin{frame}{PCA Distribution}
+\centering
+\includegraphics[height=0.85\textheight]{figures/clustering_panel_A.pdf}
+\end{frame}
+
+\begin{frame}{Validation Failures}
+\centering
+\includegraphics[height=0.85\textheight]{figures/clustering_panel_B.pdf}
+\end{frame}
+
+\begin{frame}{Gap Statistic}
+\centering
+\includegraphics[height=0.85\textheight]{figures/clustering_panel_C.pdf}
+\end{frame}
+
+%% Data Sparsity - CLEAN PANELS
+\begin{frame}{Event Distribution}
+\centering
+\includegraphics[height=0.85\textheight]{figures/sparsity_panel_A.pdf}
+\end{frame}
+
+\begin{frame}{MLE Estimate Instability}
+\centering
+\includegraphics[height=0.85\textheight]{figures/sparsity_panel_B.pdf}
+\end{frame}
+
+\begin{frame}{Shrinkage Effect}
+\centering
+\includegraphics[height=0.85\textheight]{figures/sparsity_panel_C.pdf}
+\end{frame}
+
+\begin{frame}{More Data Reduces Uncertainty}
+\centering
+\includegraphics[height=0.85\textheight]{figures/sparsity_panel_D.pdf}
+\end{frame}
+
+%% Identifiability - CLEAN PANELS
+\begin{frame}{Same Events, Different Information}
+\centering
+\includegraphics[height=0.85\textheight]{figures/identifiability_panel_A.pdf}
+\end{frame}
+
+\begin{frame}{Fisher Information Comparison}
+\centering
+\includegraphics[height=0.85\textheight]{figures/identifiability_panel_B.pdf}
+\end{frame}
+
+\begin{frame}{MLE Recovery by Design}
+\centering
+\includegraphics[height=0.85\textheight]{figures/identifiability_panel_C.pdf}
+\end{frame}
+
+\begin{frame}{Why Continuous Design Fails}
+\centering
+\includegraphics[height=0.85\textheight]{figures/identifiability_panel_D.pdf}
+\end{frame}
+
+%% Stimulation Protocols - CLEAN PANELS
+\begin{frame}{Current Protocol -- Continuous 10s}
+\centering
+\includegraphics[width=0.95\textwidth]{figures/stimulation_panel_A.pdf}
+\end{frame}
+
+\begin{frame}{Recommended Protocol -- Burst 10x0.5s}
+\centering
+\includegraphics[width=0.95\textwidth]{figures/stimulation_panel_B.pdf}
+\end{frame}
+
+\begin{frame}{Alternative -- Medium 4x1s}
+\centering
+\includegraphics[width=0.95\textwidth]{figures/stimulation_panel_C.pdf}
+\end{frame}
+
+\begin{frame}{Alternative -- Long 2x2s}
+\centering
+\includegraphics[width=0.95\textwidth]{figures/stimulation_panel_D.pdf}
+\end{frame}
+
+%% Kernel Comparison
+\begin{frame}{Kernel Model Comparison}
+\centering
+\includegraphics[height=0.8\textheight]{../figures/fig_kernel_comparison.pdf}
+
+The gamma-difference kernel with 6 parameters achieves $R^2 = 0.968$ compared to the raised cosine basis with 12 parameters.
+\end{frame}
+
+%% ===========================================
+%% CONCLUSIONS
+%% ===========================================
+
+\begin{frame}{Conclusions -- Original Study}
+\textbf{Population-Level Modeling Success}
+
+\begin{itemize}
+    \item Gamma-difference kernel accurately models population-level reorientation dynamics
+    \item Two timescales govern behavior
+    \begin{itemize}
+        \item Fast excitation $\tau_1 \approx 0.3$ seconds for initial sensory response
+        \item Slow suppression $\tau_2 \approx 4$ seconds for habituation
+    \end{itemize}
+    \item Robust across 14 experiments via LOEO cross-validation
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusions -- Follow-Up Study}
+\textbf{Individual Phenotyping Challenges}
+
+\begin{itemize}
+    \item Individual phenotyping fails with current protocols due to sparse data
+    \item Apparent clusters are statistical artifacts rather than genuine phenotypes
+    \item Only 8.6\% of tracks show genuine individual differences
+    \item Current protocols achieve only 20 to 30\% power for phenotype detection
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{Bottom Line} \quad Population-level analysis is robust. Individual phenotyping requires experimental redesign.
+\end{frame}
+
+\begin{frame}{Recommendations}
+\begin{enumerate}
+    \item \textbf{Protocol modification} \quad Replace continuous 10s ON with burst trains using 10 pulses of 0.5s each
+    \item \textbf{Extended recording} \quad Target 40 or more minutes to achieve at least 50 events per track
+    \item \textbf{Model simplification} \quad Fix $\tau_2$, $A$, and $B$ at population values then estimate only $\tau_1$
+    \item \textbf{Alternative phenotypes} \quad Use ON/OFF ratio and first-event latency which are robust with sparse data
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\centering
+\Huge Thank You
+
+\vspace{1cm}
+\Large Questions?
+\end{frame}
+
+\end{document}
+
