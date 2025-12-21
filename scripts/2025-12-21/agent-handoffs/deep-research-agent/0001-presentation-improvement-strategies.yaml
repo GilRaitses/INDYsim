@@ -1,0 +1,217 @@
+# Deep Research Agent Handoff
+# Task: Investigate approaches to fix presentation problems
+# Date: 2025-12-21
+# Priority: Medium
+
+---
+
+handoff_metadata:
+  from_agent: cursor-coding-agent
+  to_agent: deep-research-agent
+  task_id: presentation-improvement-strategies
+  created: 2025-12-21T18:30:00Z
+
+---
+
+# CONTEXT
+
+background: |
+  A scientific presentation on sensorimotor habituation in Drosophila larvae
+  has been created with 27 slides. A comprehensive assessment identified
+  several visual and structural problems that reduce presentation quality.
+  
+  The presentation uses LaTeX Beamer with the Metropolis theme and includes
+  figures generated from Python matplotlib/seaborn scripts.
+  
+  The assessment graded the presentation B+ overall with specific issues
+  categorized by priority.
+
+repository:
+  url: https://github.com/GilRaitses/indysim
+  branch: main
+  
+key_files:
+  presentation_source:
+    path: phenotyping_followup/presentation/combined_presentation_v3.tex
+    url: https://raw.githubusercontent.com/GilRaitses/indysim/main/phenotyping_followup/presentation/combined_presentation_v3.tex
+    description: LaTeX Beamer source file for the presentation
+    
+  assessment_yaml:
+    path: scripts/2025-12-21/presentation_summary_for_drafting_notes.yaml
+    url: https://raw.githubusercontent.com/GilRaitses/indysim/main/scripts/2025-12-21/presentation_summary_for_drafting_notes.yaml
+    description: Comprehensive assessment with grades and recommendations
+    
+  manuscript_methods:
+    path: phenotyping_followup/sections/02_methods.tex
+    url: https://raw.githubusercontent.com/GilRaitses/indysim/main/phenotyping_followup/sections/02_methods.tex
+    description: Methods section with kernel parameter explanations
+    
+  manuscript_style_protocol:
+    path: scripts/agents/manuscript_style_protocol.yaml
+    url: https://raw.githubusercontent.com/GilRaitses/indysim/main/scripts/agents/manuscript_style_protocol.yaml
+    description: Writing style guidelines to follow
+
+---
+
+# PROBLEMS TO RESEARCH
+
+problem_1_caption_cutoff:
+  description: |
+    Several slide captions are cut off at the bottom of slides 3, 4, 5, and 6.
+    The figures use height=0.68\textheight or similar which leaves insufficient
+    space for multi-line captions in Beamer with Metropolis theme.
+    
+  current_approach: |
+    Captions are placed using \vspace{0.15cm} followed by \small text.
+    The figure height is set to 0.68\textheight.
+    
+  research_questions:
+    - What is the recommended figure-to-caption ratio in Beamer presentations?
+    - How does Metropolis theme handle footer space compared to default Beamer?
+    - What are best practices for multi-line captions in scientific presentations?
+    - Should captions be abbreviated or should figures be smaller?
+    
+  reference_file: https://raw.githubusercontent.com/GilRaitses/indysim/main/phenotyping_followup/presentation/combined_presentation_v3.tex
+
+problem_2_legend_readability:
+  description: |
+    Legends in multi-panel matplotlib figures are too small to read when
+    projected. This affects slides 5, 6, 9, and 13 which use figures
+    generated from Python scripts.
+    
+  current_approach: |
+    Figures are generated with default matplotlib legend sizes and then
+    included in Beamer at reduced height. The double reduction makes
+    legends nearly illegible.
+    
+  research_questions:
+    - What font sizes are recommended for projected presentations?
+    - Should legends be moved outside the figure panel area?
+    - What matplotlib rcParams settings optimize for presentation figures?
+    - Are there Beamer packages that can overlay larger legends?
+    
+  relevant_context: |
+    Original figures were created for manuscript use where they appear
+    at larger sizes. Presentation reuse requires different parameters.
+
+problem_3_faq_text_walls:
+  description: |
+    FAQ slides 23-27 are text-only with no visual aids. Each slide has
+    4-5 paragraphs of text which is difficult to follow in a presentation.
+    
+  current_approach: |
+    FAQ content uses \textbf{} headers with \vspace for separation.
+    No figures or icons are included.
+    
+  research_questions:
+    - What are best practices for FAQ sections in scientific presentations?
+    - Should FAQ slides use a two-column layout with icons?
+    - How many FAQ items should appear per slide?
+    - Are there LaTeX packages for simple scientific icons?
+    - Should FAQ content be reduced and moved to supplementary materials?
+    
+  reference_file: https://raw.githubusercontent.com/GilRaitses/indysim/main/phenotyping_followup/presentation/combined_presentation_v3.tex
+
+problem_4_repeated_figures:
+  description: |
+    The same figures are used in multiple slides which reduces visual impact.
+    Specifically fig1_clustering_illusion appears in slides 9 and 19.
+    fig3_hierarchical_shrinkage appears in slides 11 and 17.
+    
+  current_approach: |
+    Recommendation slides reuse earlier figures with different captions
+    to illustrate different points.
+    
+  research_questions:
+    - Is figure repetition acceptable in scientific presentations?
+    - Should repeated uses show zoomed or highlighted versions?
+    - What LaTeX/TikZ techniques can overlay annotations on repeated figures?
+    - Should unique figures be created for each recommendation slide?
+    
+  relevant_context: |
+    The original figure scripts were deleted because they used synthetic
+    placeholder data. Only the authentic multi-panel figures remain.
+
+problem_5_transition_between_studies:
+  description: |
+    The transition from original study (slide 7) to follow-up study (slide 8)
+    is abrupt. There is no bridge slide explaining what worked, what remains,
+    and why the follow-up study was needed.
+    
+  current_approach: |
+    Slide 7 ends with LOEO validation showing limitations.
+    Slide 8 immediately presents Executive Summary of follow-up study.
+    
+  research_questions:
+    - How should multi-study presentations handle transitions?
+    - What content should appear on a bridge slide?
+    - Should the bridge summarize both studies or just preview the follow-up?
+    - Are there examples of two-study presentations in neuroscience?
+
+problem_6_quantitative_emphasis:
+  description: |
+    Key numerical results are buried in paragraph text rather than
+    visually emphasized. Important values include tau_1 = 0.3s,
+    tau_2 = 4s, 100 events required, 10x information gain.
+    
+  current_approach: |
+    Numbers appear inline with surrounding text using standard LaTeX
+    math mode for Greek symbols.
+    
+  research_questions:
+    - What techniques exist for emphasizing key statistics in Beamer?
+    - Should callout boxes be used for important numbers?
+    - How do other neuroscience presentations highlight key findings?
+    - Are there Beamer templates with built-in callout styles?
+
+---
+
+# RESEARCH SCOPE
+
+scope_boundaries:
+  in_scope:
+    - LaTeX Beamer best practices for scientific presentations
+    - Matplotlib figure optimization for projection
+    - Presentation design principles for neuroscience talks
+    - Specific solutions that can be implemented in the current framework
+    
+  out_of_scope:
+    - Complete presentation redesign
+    - Alternative presentation tools like PowerPoint or Keynote
+    - Content changes to the scientific narrative
+    - Regenerating figures with new analysis
+
+---
+
+# EXPECTED OUTPUT
+
+deliverables:
+  
+  primary:
+    title: Presentation Improvement Guide
+    format: Markdown document
+    content:
+      - Specific LaTeX code changes for each problem
+      - Matplotlib configuration recommendations
+      - Priority ordering of fixes
+      - Estimated implementation time for each fix
+      
+  secondary:
+    title: Best Practices Summary
+    format: YAML or Markdown
+    content:
+      - General principles for scientific presentation design
+      - Beamer-specific tips for Metropolis theme
+      - Figure sizing guidelines
+
+---
+
+# CONSTRAINTS
+
+constraints:
+  - All solutions must work within LaTeX Beamer
+  - Figures cannot be regenerated with new analysis since original scripts were deleted
+  - Solutions should be implementable in under 2 hours total
+  - Must maintain scientific accuracy and consistency with manuscript
+  - Follow manuscript_style_protocol.yaml guidelines for any text changes
+
