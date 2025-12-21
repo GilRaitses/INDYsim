@@ -1,0 +1,28 @@
+\contentsline {section}{\numberline {1}Slide 1: Title}{3}{}%
+\contentsline {section}{\numberline {2}Slide 2: Original Study Overview}{3}{}%
+\contentsline {section}{\numberline {3}Slide 3: Kernel Structure}{3}{}%
+\contentsline {section}{\numberline {4}Slide 4: PSTH Computation Methods}{3}{}%
+\contentsline {section}{\numberline {5}Slide 5: Simulation Track Generation}{4}{}%
+\contentsline {section}{\numberline {6}Slide 6: Parameter Sweep for Simulation Calibration}{4}{}%
+\contentsline {section}{\numberline {7}Slide 7: Simulated vs Empirical Event Counts}{4}{}%
+\contentsline {section}{\numberline {8}Slide 8: Habituation Dynamics}{5}{}%
+\contentsline {section}{\numberline {9}Slide 9: Behavioral State Analysis}{5}{}%
+\contentsline {section}{\numberline {10}Slide 10: Leave-One-Experiment-Out Validation}{5}{}%
+\contentsline {section}{\numberline {11}Slide 11: Follow-Up Study Overview}{5}{}%
+\contentsline {section}{\numberline {12}Slide 12: The Clustering Illusion}{6}{}%
+\contentsline {section}{\numberline {13}Slide 13: Data Sparsity Explains Instability}{6}{}%
+\contentsline {section}{\numberline {14}Slide 14: Hierarchical Shrinkage}{6}{}%
+\contentsline {section}{\numberline {15}Slide 15: The Identifiability Problem}{6}{}%
+\contentsline {section}{\numberline {16}Slide 16: Stimulation Protocol Comparison}{7}{}%
+\contentsline {section}{\numberline {17}Slide 17: Kernel Model Comparison}{7}{}%
+\contentsline {section}{\numberline {18}Slide 18: Protocol Modification}{7}{}%
+\contentsline {section}{\numberline {19}Slide 19: Extended Recording}{7}{}%
+\contentsline {section}{\numberline {20}Slide 20: Model Simplification}{8}{}%
+\contentsline {section}{\numberline {21}Slide 21: Alternative Phenotypes}{8}{}%
+\contentsline {section}{\numberline {22}Slide 22: Within-Condition Analysis}{8}{}%
+\contentsline {section}{\numberline {23}Slide 23: Original Study Summary}{8}{}%
+\contentsline {section}{\numberline {24}Slide 24: Follow-Up Study Summary}{9}{}%
+\contentsline {section}{\numberline {25}Slide 25: Thank You}{9}{}%
+\contentsline {section}{\numberline {26}Slides 26 to 30: FAQ}{9}{}%
+\contentsline {section}{\numberline {27}Timing Guide}{9}{}%
+\contentsline {section}{\numberline {28}Technical Terms}{10}{}%

@@ -3,10 +3,20 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{fontspec}
+
+% Set Didot font for footer page numbers
+\newfontfamily\didotfont{Didot}
 
 % Reduce bottom margin for captions
 \setbeamertemplate{frametitle}[default][left]
 \addtobeamertemplate{frametitle}{}{\vspace{-0.3em}}
+
+% Add centered page numbers in Didot font
+\setbeamertemplate{footline}{%
+  \hfill\usebeamercolor[fg]{page number in head/foot}%
+  {\didotfont\insertframenumber}\hfill\vskip2pt%
+}
 
 \title{Sensorimotor Habituation in \textit{Drosophila} Larvae}
 \subtitle{Population-Level Modeling and Individual Phenotyping Validation}
@@ -24,7 +34,7 @@
 %% PART 1: ORIGINAL STUDY
 %% ===========================================
 
-\begin{frame}{Executive Summary -- Original Study}
+\begin{frame}{Original Study Overview}
 \textbf{Population-Level Sensorimotor Habituation Model}
 
 \vspace{0.3cm}
@@ -143,17 +153,17 @@ A grid search over simulation parameters found the combination that best matches
 %% PART 2: FOLLOW-UP STUDY
 %% ===========================================
 
-\begin{frame}{Executive Summary -- Follow-Up Study}
+\begin{frame}{Follow-Up Study Overview}
 \textbf{Individual-Level Phenotyping Validation}
 
 \vspace{0.3cm}
 The follow-up study asked whether individual larvae can be phenotyped using kernel parameters. The answer is negative with current protocols.
 
 \vspace{0.3cm}
-Challenge: Sparse data with only 18 to 25 events per 10 to 20 minute track makes 6-parameter kernel estimation unreliable.
+\textbf{Challenge} \quad Sparse data with only 18 to 25 events per 10 to 20 minute track makes 6-parameter kernel estimation unreliable.
 
 \vspace{0.3cm}
-Finding: Apparent phenotypic clusters identified by K-means are statistical artifacts of sparse data. Gap statistic optimization suggests k=1 is optimal indicating no discrete phenotypes exist.
+\textbf{Finding} \quad Apparent phenotypic clusters identified by K-means are statistical artifacts of sparse data. Gap statistic optimization suggests k=1 is optimal indicating no discrete phenotypes exist.
 
 \vspace{0.3cm}
 Only 8.6\% of tracks show genuine individual differences that exceed measurement noise.
@@ -220,7 +230,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 %% RECOMMENDATIONS - 5 SLIDES WITH FIGURES
 %% ===========================================
 
-\begin{frame}{Recommendation 1 -- Protocol Modification}
+\begin{frame}{Protocol Modification}
 \centering
 \includegraphics[height=0.65\textheight]{../figures/fig4_recommendations_v2.pdf}
 
@@ -228,7 +238,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 \small Replace continuous 10-second ON periods with burst trains. Burst design samples the early excitatory window where $\tau_1$ is identifiable. Each burst event carries 10 times more Fisher information than continuous events. This modification alone could reduce the number of events required for reliable estimation from 100 to 30.
 \end{frame}
 
-\begin{frame}{Recommendation 2 -- Extended Recording}
+\begin{frame}{Extended Recording}
 \centering
 \includegraphics[height=0.65\textheight]{../figures/fig5_power_analysis.pdf}
 
@@ -236,7 +246,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 \small Target 40 minutes or more of recording to achieve at least 50 reorientation events per track. Current 10 to 20 minute recordings yield only 18 to 25 events which is insufficient for 6-parameter estimation. Power analysis indicates that 100 events are required for 80\% power to detect a 0.2 second difference in $\tau_1$ at the individual level.
 \end{frame}
 
-\begin{frame}{Recommendation 3 -- Model Simplification}
+\begin{frame}{Model Simplification}
 \centering
 \includegraphics[height=0.65\textheight]{../figures/core/fig3_hierarchical_shrinkage.pdf}
 
@@ -244,7 +254,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 \small Reduce the parameter space by fixing population-derived parameters. Fix $\tau_2$ at the population estimate of 3.8 seconds and fix the amplitude ratio B/A at the population value of 8. Estimate only the fast timescale $\tau_1$ per individual track. Hierarchical Bayesian estimation provides natural regularization toward the population mean.
 \end{frame}
 
-\begin{frame}{Recommendation 4 -- Alternative Phenotypes}
+\begin{frame}{Alternative Phenotypes}
 \centering
 \includegraphics[height=0.65\textheight]{../figures/core/fig4_fast_responders.pdf}
 
@@ -252,7 +262,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 \small Use robust composite phenotypes that avoid kernel fitting entirely. The ON/OFF event ratio measures whether larvae respond preferentially during LED-ON versus LED-OFF periods and requires only event counts not full kernel estimation. First-event latency measures the time from LED onset to first reorientation and captures response speed directly.
 \end{frame}
 
-\begin{frame}{Recommendation 5 -- Within-Condition Analysis}
+\begin{frame}{Within-Condition Analysis}
 \centering
 \includegraphics[height=0.65\textheight]{../figures/core/fig1_clustering_illusion.pdf}
 
@@ -264,7 +274,7 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 %% CONCLUSIONS
 %% ===========================================
 
-\begin{frame}{Conclusions -- Original Study}
+\begin{frame}{Original Study Summary}
 \textbf{Population-Level Modeling Success}
 
 \vspace{0.3cm}
@@ -280,7 +290,7 @@ The model is robust across experimental conditions as demonstrated by leave-one-
 The gamma-difference form provides biological interpretability that flexible basis function models lack while achieving equivalent goodness of fit.
 \end{frame}
 
-\begin{frame}{Conclusions -- Follow-Up Study}
+\begin{frame}{Follow-Up Study Summary}
 \textbf{Individual Phenotyping Challenges}
 
 \vspace{0.3cm}
@@ -311,7 +321,7 @@ Current protocols achieve only 20 to 30\% statistical power for detecting fast r
 %% FAQ SECTION
 %% ===========================================
 
-\begin{frame}{FAQ -- Original Study Methods}
+\begin{frame}{Original Study Methods}
 \textbf{What is the sequence of processes in the original study?}
 
 \vspace{0.3cm}
@@ -330,7 +340,7 @@ Current protocols achieve only 20 to 30\% statistical power for detecting fast r
 \textbf{Validation} \quad Leave-one-experiment-out cross-validation and bootstrap confidence intervals assess generalization and parameter uncertainty.
 \end{frame}
 
-\begin{frame}{FAQ -- Follow-Up Study Methods}
+\begin{frame}{Follow-Up Study Methods}
 \textbf{What processes were used in the follow-up study?}
 
 \vspace{0.3cm}
@@ -349,7 +359,7 @@ Current protocols achieve only 20 to 30\% statistical power for detecting fast r
 \textbf{Identifiability analysis} \quad Fisher Information quantifies how much information each event contains about kernel parameters under different stimulation designs.
 \end{frame}
 
-\begin{frame}{FAQ -- Why does population modeling succeed but individual fails?}
+\begin{frame}{Why Population Modeling Succeeds}
 \textbf{The key is the data-to-parameter ratio}
 
 \vspace{0.3cm}
@@ -365,7 +375,7 @@ The gamma-difference kernel is overparameterized for individual-level sparse dat
 Hierarchical Bayesian estimation provides partial mitigation by shrinking individual estimates toward the population mean but cannot create information that is not present in the data.
 \end{frame}
 
-\begin{frame}{FAQ -- What is hierarchical shrinkage?}
+\begin{frame}{Hierarchical Shrinkage Explained}
 \textbf{Regularization through shared population structure}
 
 \vspace{0.3cm}
@@ -384,7 +394,7 @@ Shrinkage is not a bias correction. It is optimal regularization under the assum
 In the data sparsity regime of this study almost all individual estimates are shrunk heavily toward the population mean confirming that individual phenotyping is not feasible without protocol changes.
 \end{frame}
 
-\begin{frame}{FAQ -- How should clustering results be interpreted?}
+\begin{frame}{Interpreting Clustering Results}
 \textbf{Clusters in sparse high-dimensional data are usually artifacts}
 
 \vspace{0.3cm}
