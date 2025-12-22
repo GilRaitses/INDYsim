@@ -413,6 +413,25 @@ The continuous unimodal PCA distribution confirms that kernel parameter variatio
 Future clustering should be attempted only after protocol modifications increase event counts to 100 or more per track and reduce the parameter space to 1 or 2 dimensions.
 \end{frame}
 
+\begin{frame}{Data Structures and Extraction Methods}
+\textbf{MAGAT Analyzer}
+
+Marc Gershow's MAGAT Analyzer extracts larval trajectories from video and segments behavioral states. The segmentation identifies runs, reorientations, and head swings based on heading angle changes and movement patterns. Reorientation onset events are detected as transitions from RUN to TURN state. These discrete events serve as the dependent variable for hazard modeling.
+
+\vspace{0.3cm}
+\textbf{Run Tables}
+
+Run tables structure run-level statistics using reorientation events as boundaries. Each row represents a forward movement period between two reorientations. Fields include run duration, run distance, mean speed, heading change, and LED state at run start. Mason Klein developed the run table methodology for organizing behavioral segments into analyzable units.
+
+\vspace{0.3cm}
+\textbf{Events Group}
+
+The events group records reorientation start events detected by MAGAT segmentation. Each row is a discrete reorientation onset with timestamp, position, LED state, and preceding run statistics. The events group contains 7,867 reorientations across 414 tracks while the run table contains 8,822 runs across 424 tracks. The difference arises because run tables count all runs including final runs that may not end in reorientations.
+
+\vspace{0.3cm}
+\textbf{Usage} \quad Kernel fitting uses the events group because it directly counts reorientation events. Run tables provide complementary run-level statistics for quality filtering and behavioral characterization.
+\end{frame}
+
 \begin{frame}{From Counting to Simulation}
 \textbf{Traditional Methods}
 

@@ -537,6 +537,35 @@ modifications increase event counts to 100 or more per track and reduce
 the parameter space to 1 or 2 dimensions.</p>
 </div>
 <div class="frame">
+<p><span>Data Structures and Extraction Methods</span> <strong>MAGAT
+Analyzer</strong></p>
+<p>Marc Gershow’s MAGAT Analyzer extracts larval trajectories from video
+and segments behavioral states. The segmentation identifies runs,
+reorientations, and head swings based on heading angle changes and
+movement patterns. Reorientation onset events are detected as
+transitions from RUN to TURN state. These discrete events serve as the
+dependent variable for hazard modeling.</p>
+<p><strong>Run Tables</strong></p>
+<p>Run tables structure run-level statistics using reorientation events
+as boundaries. Each row represents a forward movement period between two
+reorientations. Fields include run duration, run distance, mean speed,
+heading change, and LED state at run start. Mason Klein developed the
+run table methodology for organizing behavioral segments into analyzable
+units.</p>
+<p><strong>Events Group</strong></p>
+<p>The events group records reorientation start events detected by MAGAT
+segmentation. Each row is a discrete reorientation onset with timestamp,
+position, LED state, and preceding run statistics. The events group
+contains 7,867 reorientations across 414 tracks while the run table
+contains 8,822 runs across 424 tracks. The difference arises because run
+tables count all runs including final runs that may not end in
+reorientations.</p>
+<p><strong>Usage</strong> Kernel fitting uses the events group because
+it directly counts reorientation events. Run tables provide
+complementary run-level statistics for quality filtering and behavioral
+characterization.</p>
+</div>
+<div class="frame">
 <p><span>From Counting to Simulation</span> <strong>Traditional
 Methods</strong></p>
 <p>Behavioral analysis typically relies on counting events, computing

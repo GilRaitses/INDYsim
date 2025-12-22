@@ -407,7 +407,25 @@ Slides & Section & Target Time \\
 
 \textbf{LOEO} Leave-one-experiment-out cross-validation.
 
-\section{Slide 31: From Counting to Simulation}
+\section{Slide 31: Data Structures and Extraction Methods}
+
+\textbf{MAGAT Analyzer}
+
+Marc Gershow developed MAGAT Analyzer for extracting larval trajectories from video recordings. The software performs behavioral state segmentation, identifying when larvae are running, turning, or performing head swings. Reorientation events are detected as state transitions from RUN to TURN. These discrete event times are the primary input for hazard modeling.
+
+\textbf{Run Tables}
+
+Mason Klein developed the run table methodology for organizing behavioral data. Each row represents one run segment between two reorientations. Key fields include run duration in seconds, run distance in millimeters, mean speed during the run, total heading change, and LED state at run onset. Run tables enable analysis of how behavioral parameters change across experimental conditions.
+
+\textbf{Events Group}
+
+The events group is a complementary data structure that records each reorientation onset as a discrete event. Fields include timestamp, position coordinates, LED state, and summary statistics from the preceding run. The events group is used for kernel fitting because it directly counts reorientation events without the run-level aggregation.
+
+\textbf{Why Both Exist}
+
+Run tables and events groups serve different analytical purposes. Run tables characterize the structure of forward movement periods. Events groups characterize the timing of reorientation decisions. Kernel fitting requires event times, so the events group is the primary input. Run tables provide quality filtering by identifying tracks with successful MAGAT segmentation.
+
+\section{Slide 32: From Counting to Simulation}
 
 \textbf{Connecting to Traditional Methods}
 
