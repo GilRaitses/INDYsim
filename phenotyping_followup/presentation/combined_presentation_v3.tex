@@ -453,5 +453,112 @@ Fisher Information analysis identifies which stimulation designs maximize parame
 Simulation enables round-trip validation of clustering, ground-truth testing of phenotyping pipelines, and exploration of parameter space without animal use.
 \end{frame}
 
+%% ===========================================
+%% TOOLING: MAGATFAIRY
+%% ===========================================
+
+\begin{frame}{MagatFairy Overview}
+\centering
+\includegraphics[height=0.55\textheight]{figures/magatfairy-cover.png}
+
+\vspace{0.15cm}
+\small MagatFairy converts MAGAT Analyzer experiments from MATLAB format to clean H5 files for Python workflows. The tool bundles the essential MAGAT core classes and uses the MATLAB Engine for Python to perform the conversion. A single command processes entire genotype directories containing multiple experiment sets.
+\end{frame}
+
+\begin{frame}{MagatFairy Pipeline}
+\textbf{Input}
+
+MAGAT Analyzer experiments stored as MATLAB .mat files in ESET directory structures. Each experiment contains track data, contours, derived quantities, and global measurements including LED timing.
+
+\vspace{0.3cm}
+\textbf{Conversion Process}
+
+The MATLAB Engine loads each experiment using the DataManager class. Track-level data including positions, velocities, heading vectors, and behavioral states are extracted. Global quantities such as LED values and camera calibration are preserved. The ExportManager writes structured H5 files with standardized schema.
+
+\vspace{0.3cm}
+\textbf{Output}
+
+Clean H5 files ready for Python analysis. Each file contains complete track arrays, derived quantities, LED timing at the ETI level, and camera calibration data. The standardized format enables consistent downstream processing across experiments.
+
+\vspace{0.3cm}
+\textbf{Usage} \quad Run \texttt{magatfairy convert auto /path/to/data} to process an entire genotype directory. The tool auto-detects data structure and handles batch conversion.
+\end{frame}
+
+\begin{frame}{MagatFairy in This Project}
+\textbf{Role in Data Pipeline}
+
+MagatFairy converted all 14 experiments comprising 701 larval tracks from the original MATLAB format to H5 files. The consolidated dataset used for kernel fitting and phenotyping analysis was assembled from these H5 outputs.
+
+\vspace{0.3cm}
+\textbf{Fields Extracted}
+
+Track positions in millimeters, heading vectors, velocity components, SpeedRunVel, behavioral state flags including is\_reorientation and is\_run, LED state at each frame, and experiment timing. These fields feed directly into the hazard model.
+
+\vspace{0.3cm}
+\textbf{Going Forward}
+
+New experiments can be processed with the same pipeline to ensure consistent data format. The H5 schema is documented at \texttt{docs/field-mapping.md}. Validation scripts verify that derived quantities match MATLAB reference implementations.
+
+\vspace{0.3cm}
+\textbf{Repository} \quad \texttt{github.com/GilRaitses/magatfairy}
+\end{frame}
+
+%% ===========================================
+%% TOOLING: RETROVIBEZ
+%% ===========================================
+
+\begin{frame}{RetroVibez Overview}
+\centering
+\includegraphics[height=0.55\textheight]{figures/retrovibez-cover.png}
+
+\vspace{0.15cm}
+\small RetroVibez is an automated pipeline for detecting and analyzing reverse crawling behavior in \textit{Drosophila} larvae. It implements the reversal detection methods from Mason Klein's work and generates structured reports using Quarto for PDF and HTML output.
+\end{frame}
+
+\begin{frame}{RetroVibez Pipeline}
+\textbf{Stage 1: MATLAB Analysis}
+
+Headless MATLAB execution computes SpeedRunVel from heading and velocity vectors. Reversal events are detected when SpeedRunVel remains negative for at least 3 seconds. Results are saved as track-level H5 files.
+
+\vspace{0.3cm}
+\textbf{Stage 2: Figure Generation}
+
+Parallel Python processing generates trajectory plots with speed-colored paths and reversals marked in purple. Dot product time series show the heading-velocity relationship. Close-up plots highlight individual reversal events.
+
+\vspace{0.3cm}
+\textbf{Stage 3: QMD Report}
+
+A Quarto document is auto-generated from the analysis results. All figures are embedded with captions. Summary statistics are computed and formatted as tables.
+
+\vspace{0.3cm}
+\textbf{Stage 4: Rendering}
+
+Quarto renders the QMD to both PDF and HTML formats. The PDF uses TinyTeX for clean typography. The HTML version enables interactive viewing.
+\end{frame}
+
+\begin{frame}{RetroVibez in This Project}
+\textbf{Attribution}
+
+RetroVibez implements the reverse crawling detection algorithm described in Klein et al. 2015. The core detection uses SpeedRunVel computed as the dot product of heading and velocity vectors. Negative values indicate backward movement.
+
+\vspace{0.3cm}
+\textbf{Role in Analysis}
+
+Reverse crawl events were detected and quantified for data quality assessment. The Klein run table uses reversal boundaries for run segmentation. The detection algorithm is bundled within the MATLAB analysis script at \texttt{matlab/mason\_analysis.m}.
+
+\vspace{0.3cm}
+\textbf{Report Generation}
+
+RetroVibez generates standardized analysis reports for each experiment. These reports document reversal counts, durations, and spatial distributions. The Quarto-based workflow enables reproducible report generation from raw data.
+
+\vspace{0.3cm}
+\textbf{Going Forward}
+
+New experiments can be processed through the same pipeline. Reports are generated automatically with consistent formatting. The modular design allows extension to additional behavioral metrics.
+
+\vspace{0.3cm}
+\textbf{Repository} \quad \texttt{github.com/GilRaitses/retrovibez}
+\end{frame}
+
 \end{document}
 

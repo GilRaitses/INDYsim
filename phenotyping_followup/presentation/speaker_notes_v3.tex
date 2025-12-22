@@ -447,5 +447,45 @@ Simulation allows testing of analysis pipelines with known ground truth. Cluster
 
 Simulation modeling transforms descriptive behavioral science into predictive science. It bridges the gap between what was observed and what will happen, enabling rational experiment design and rigorous validation.
 
+\section{Slides 33-35: MagatFairy}
+
+\textbf{What It Does}
+
+MagatFairy converts MAGAT Analyzer experiments from MATLAB format to clean H5 files. The tool bundles essential MAGAT core classes and uses the MATLAB Engine for Python to perform batch conversion. A single command can process entire genotype directories.
+
+\textbf{Why It Matters}
+
+MATLAB files are difficult to work with in Python. H5 provides a standardized, portable format that enables consistent downstream analysis. MagatFairy ensures that track positions, velocities, behavioral states, and LED timing are extracted correctly.
+
+\textbf{In This Project}
+
+All 14 experiments were converted using MagatFairy. The consolidated dataset containing 701 tracks was assembled from the H5 outputs. The same pipeline can process new experiments to ensure format consistency.
+
+\textbf{Repository}
+
+github.com/GilRaitses/magatfairy
+
+\section{Slides 36-38: RetroVibez}
+
+\textbf{What It Does}
+
+RetroVibez detects reverse crawling behavior in larval trajectories. The detection uses SpeedRunVel, computed as the dot product of heading and velocity vectors. Negative values sustained for at least 3 seconds indicate reversal events.
+
+\textbf{The Four-Stage Pipeline}
+
+Stage 1 runs MATLAB analysis headlessly to compute SpeedRunVel and detect reversals. Stage 2 generates figures in parallel using Python. Stage 3 builds a Quarto document with embedded figures. Stage 4 renders to PDF and HTML.
+
+\textbf{Attribution}
+
+The reversal detection algorithm implements methods from Klein et al. 2015. The core MATLAB script is at matlab/mason\_analysis.m. RetroVibez packages this into an automated, reproducible pipeline.
+
+\textbf{Going Forward}
+
+New experiments can be processed with the same pipeline. Reports are generated automatically with consistent formatting. The modular design allows adding new behavioral metrics.
+
+\textbf{Repository}
+
+github.com/GilRaitses/retrovibez
+
 \end{document}
 

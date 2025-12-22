@@ -28,3 +28,5 @@
 \contentsline {section}{\numberline {28}Technical Terms}{10}{}%
 \contentsline {section}{\numberline {29}Slide 31: Data Structures and Extraction Methods}{10}{}%
 \contentsline {section}{\numberline {30}Slide 32: From Counting to Simulation}{10}{}%
+\contentsline {section}{\numberline {31}Slides 33-35: MagatFairy}{11}{}%
+\contentsline {section}{\numberline {32}Slides 36-38: RetroVibez}{11}{}%
