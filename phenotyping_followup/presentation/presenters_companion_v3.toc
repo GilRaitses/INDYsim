@@ -46,3 +46,12 @@
 \contentsline {section}{\numberline {A}Timing Summary}{21}{}%
 \contentsline {section}{\numberline {B}Technical Glossary}{21}{}%
 \contentsline {section}{\numberline {C}Anticipated Questions}{22}{}%
+\contentsline {section}{\numberline {D}Supplemental Slides (S1--S8)}{23}{}%
+\contentsline {subsection}{\numberline {D.1}S1. Population-Level Data Summary}{23}{}%
+\contentsline {subsection}{\numberline {D.2}S2. Early vs Late Habituation}{23}{}%
+\contentsline {subsection}{\numberline {D.3}S3. PSTH to Kernel Fitting}{23}{}%
+\contentsline {subsection}{\numberline {D.4}S4. Posterior Predictive Checks}{23}{}%
+\contentsline {subsection}{\numberline {D.5}S5. Simulated Larval Trajectories}{24}{}%
+\contentsline {subsection}{\numberline {D.6}S6. Factorial Design Analysis}{24}{}%
+\contentsline {subsection}{\numberline {D.7}S7. Validation Journey}{24}{}%
+\contentsline {subsection}{\numberline {D.8}S8. Design Comparison Summary}{24}{}%

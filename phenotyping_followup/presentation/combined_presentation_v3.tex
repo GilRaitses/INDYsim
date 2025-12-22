@@ -52,23 +52,23 @@ The model was validated across 14 experiments comprising 701 unique larval track
 
 \begin{frame}{Kernel Structure}
 \centering
-\includegraphics[height=0.68\textheight]{../../figures/figure1_kernel.png}
+\includegraphics[height=0.58\textheight]{../../figures/figure1_kernel.png}
 
-\vspace{0.15cm}
-\small The gamma-difference kernel $K(t) = A \cdot \Gamma(t;\alpha_1,\beta_1) - B \cdot \Gamma(t;\alpha_2,\beta_2)$ modulates reorientation hazard rate following LED onset. The left panel shows the combined kernel with peak excitation at 0.3 seconds followed by suppression reaching minimum at 3 seconds. The right panel decomposes this into fast excitatory gamma in green with $\tau_1 = 0.29$s and slow suppressive gamma in red with $\tau_2 = 3.81$s.
+\vspace{0.1cm}
+\footnotesize The gamma-difference kernel $K(t) = A \cdot \Gamma(t;\alpha_1,\beta_1) - B \cdot \Gamma(t;\alpha_2,\beta_2)$ modulates reorientation hazard rate following LED onset. Left panel shows combined kernel with peak excitation at 0.3s followed by suppression minimum at 3s. Right panel decomposes into fast excitatory gamma (green, $\tau_1 = 0.29$s) and slow suppressive gamma (red, $\tau_2 = 3.81$s).
 \end{frame}
 
 \begin{frame}{PSTH Computation Methods}
 \textbf{Empirical vs Parametric Approaches}
 
-\vspace{0.3cm}
-\textbf{Empirical PSTH} \quad The peri-stimulus time histogram bins event times relative to LED onset into 100ms intervals. Each bin contains the fraction of events occurring at that latency across all trials. The empirical PSTH is computed directly from data using histogram binning without assuming any functional form.
+\vspace{0.25cm}
+\textbf{Empirical PSTH} \quad The peri-stimulus time histogram bins event times relative to LED onset into 100ms intervals. Each bin contains the fraction of events at that latency. Computed directly from data using histogram binning without assuming any functional form.
 
-\vspace{0.3cm}
-\textbf{Parametric PSTH} \quad The Bernoulli event probability is derived from the fitted kernel. At each timestep, event probability $p(t) = 1 - \exp(-\lambda(t) \cdot \Delta t)$ where $\lambda(t) = \lambda_0 \exp(K(t))$ is the hazard rate modulated by kernel $K(t)$. The parametric PSTH evaluates this probability function at each time point.
+\vspace{0.25cm}
+\textbf{Parametric PSTH} \quad Bernoulli event probability derived from fitted kernel. At each timestep, $p(t) = 1 - \exp(-\lambda(t) \cdot \Delta t)$ where $\lambda(t) = \lambda_0 \exp(K(t))$ is hazard rate modulated by kernel $K(t)$.
 
-\vspace{0.3cm}
-\textbf{Model Fitting} \quad The kernel is fitted by maximizing the likelihood that empirical event times arise from the Bernoulli process. The empirical PSTH is used for visualization and validation. The parametric model enables prediction and simulation.
+\vspace{0.25cm}
+\textbf{Model Fitting} \quad Kernel fitted by maximizing likelihood that empirical event times arise from Bernoulli process. Empirical PSTH used for visualization; parametric model enables prediction and simulation.
 \end{frame}
 
 \begin{frame}{Simulation Track Generation}
@@ -119,34 +119,34 @@ A grid search over simulation parameters found the combination that best matches
 
 \begin{frame}{Simulated vs Empirical Event Counts}
 \centering
-\includegraphics[height=0.68\textheight]{../figures/fig_simulation_design.pdf}
+\includegraphics[height=0.58\textheight]{../figures/fig_simulation_design.pdf}
 
-\vspace{0.15cm}
-\small Validation of the simulation model against empirical data. Panel A shows overlapping histograms of event counts per track for 260 empirical tracks in cyan and 300 simulated tracks in pink. Panel B shows box plots comparing the distributions. The simulated tracks were generated using the fitted population kernel with intercept $= -6.54$ and track std $= 0.38$ and match the empirical distribution with median 15 events per track.
+\vspace{0.1cm}
+\footnotesize Validation of simulation against empirical data. Panel A shows overlapping histograms of event counts for 260 empirical tracks (cyan) and 300 simulated tracks (pink). Panel B shows box plots comparing distributions. Simulated tracks use intercept $= -6.54$ and track std $= 0.38$, matching empirical median of 15 events per track.
 \end{frame}
 
 \begin{frame}{Habituation Dynamics}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/figure_habituation.png}
+\includegraphics[height=0.55\textheight]{../../figures/figure_habituation.png}
 
-\vspace{0.15cm}
-\small Fraction of time spent turning increases across successive LED pulses in all four experimental conditions. Orange and green lines show 0-250 PWM conditions while pink and purple show 50-250 PWM conditions. Steeper slopes indicate faster habituation. The 0-250 Cycling condition shows the strongest habituation effect with slope +0.031 per pulse. Shaded bands indicate 95\% confidence intervals. Asterisks mark pulses significantly different from pulse 0.
+\vspace{0.1cm}
+\footnotesize Turning fraction increases across LED pulses in all four conditions. Orange/green show 0-250 PWM; pink/purple show 50-250 PWM. Steeper slopes indicate faster habituation. The 0-250 Cycling condition shows strongest effect with slope +0.031 per pulse. Shaded bands are 95\% CI; asterisks mark significant differences from pulse 0.
 \end{frame}
 
 \begin{frame}{Behavioral State Analysis}
 \centering
-\includegraphics[height=0.65\textheight]{figures/figure_behavior_stacked_cinnamoroll.png}
+\includegraphics[height=0.55\textheight]{figures/figure_behavior_stacked_cinnamoroll.png}
 
-\vspace{0.15cm}
-\small Fractional behavioral state usage across LED pulses for all four experimental conditions. Gray indicates forward running. Pink indicates turning behavior. Blue indicates pausing. Orange indicates reverse crawling. Turning fraction increases dramatically across pulses in all conditions while running fraction decreases. Pausing remains below 5\% throughout. The 50-250 Cycling condition shows the largest shift from running to turning behavior by pulse 17.
+\vspace{0.1cm}
+\footnotesize Fractional behavioral state usage across LED pulses. Gray is running; pink is turning; blue is pausing; orange is reverse crawling. Turning increases dramatically while running decreases across all conditions. Pausing remains below 5\%. The 50-250 Cycling condition shows the largest shift from running to turning by pulse 17.
 \end{frame}
 
 \begin{frame}{Leave-One-Experiment-Out Validation}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/loeo_permutation_null.png}
+\includegraphics[height=0.55\textheight]{../../figures/loeo_permutation_null.png}
 
-\vspace{0.15cm}
-\small LOEO cross-validation assesses whether kernel parameters generalize across experiments. The histogram shows the null distribution generated from 1000 permutations of experiment labels. The observed pass rate of 50\% falls within the null distribution with p=0.618 indicating that cross-experiment generalization is no better than chance. Model performs reliably at the population level but individual experiments show high variability.
+\vspace{0.1cm}
+\footnotesize LOEO cross-validation tests kernel generalization across experiments. Histogram shows null distribution from 1000 permutations. Observed pass rate of 50\% falls within null (p=0.618), indicating cross-experiment generalization is no better than chance. Model performs reliably at population level but individual experiments show high variability.
 \end{frame}
 
 %% ===========================================
@@ -175,55 +175,55 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 %% Clustering Illusion - Use ORIGINAL multi-panel figure (Dec 21 12:52)
 \begin{frame}{The Clustering Illusion}
 \centering
-\includegraphics[height=0.72\textheight]{../figures/core/fig1_clustering_illusion.pdf}
+\includegraphics[height=0.62\textheight]{../figures/core/fig1_clustering_illusion.pdf}
 
 \vspace{0.1cm}
-\small Panel A shows true PCA distribution revealing unimodal structure with some outliers. Panel B shows all four validation methods failed with ARI below 0.13. Panel C shows gap statistic is minimized at k=1 indicating no discrete clusters exist.
+\footnotesize Panel A shows PCA distribution revealing unimodal structure with outliers. Panel B shows all four validation methods failed with ARI below 0.13. Panel C shows gap statistic minimized at k=1, indicating no discrete clusters exist.
 \end{frame}
 
 %% Data Sparsity - Use ORIGINAL multi-panel figure (Dec 21 12:52)
 \begin{frame}{Data Sparsity Explains Instability}
 \centering
-\includegraphics[height=0.72\textheight]{../figures/core/fig2_data_sparsity.pdf}
+\includegraphics[height=0.62\textheight]{../figures/core/fig2_data_sparsity.pdf}
 
 \vspace{0.1cm}
-\small Panel A shows mean 25 events per track versus the 100 required for stable estimation. Panel B shows many MLE estimates fall in the implausible range above 1.5 seconds. Panel C shows the math problem: 4 parameters divided by 25 events equals a 6:1 ratio which is underdetermined.
+\footnotesize Panel A shows mean 25 events versus 100 required for stable estimation. Panel B shows many MLE estimates in implausible range above 1.5s. Panel C shows the math: 4 parameters / 25 events = 6:1 ratio, underdetermined.
 \end{frame}
 
 %% Hierarchical Shrinkage - Use ORIGINAL multi-panel figure (Dec 21 12:52)
 \begin{frame}{Hierarchical Shrinkage}
 \centering
-\includegraphics[height=0.72\textheight]{../figures/core/fig3_hierarchical_shrinkage.pdf}
+\includegraphics[height=0.62\textheight]{../figures/core/fig3_hierarchical_shrinkage.pdf}
 
 \vspace{0.1cm}
-\small Bayesian estimates shrink toward population mean proportionally to data sparsity. Tracks with extreme MLE values show the most shrinkage while tracks with abundant data retain individual estimates.
+\footnotesize Bayesian estimates shrink toward population mean proportionally to data sparsity. Tracks with extreme MLE values show most shrinkage; tracks with abundant data retain individual estimates.
 \end{frame}
 
 %% Identifiability - Use ORIGINAL multi-panel figure (Dec 21 12:52)
 \begin{frame}{The Identifiability Problem}
 \centering
-\includegraphics[height=0.72\textheight]{../figures/fig2_identifiability_v3.pdf}
+\includegraphics[height=0.62\textheight]{../figures/fig2_identifiability_v3.pdf}
 
 \vspace{0.1cm}
-\small Panel A shows continuous design produces high bias and RMSE. Panel B shows burst design extracts 10x more Fisher Information. Panel C shows MLE recovery differs by design. Panel D explains why continuous fails: inhibition dominates.
+\footnotesize Panel A shows continuous design produces high bias/RMSE. Panel B shows burst design extracts 10x more Fisher Information. Panel C shows MLE recovery differs by design. Panel D explains why continuous fails: inhibition dominates.
 \end{frame}
 
 %% Stimulation Protocols - Use ORIGINAL multi-panel figure (Dec 21 12:52)
 \begin{frame}{Stimulation Protocol Comparison}
 \centering
-\includegraphics[height=0.72\textheight]{../figures/fig_stimulation_schematic.pdf}
+\includegraphics[height=0.62\textheight]{../figures/fig_stimulation_schematic.pdf}
 
 \vspace{0.1cm}
-\small Four LED stimulation designs showing the 30-second cycle structure. Panel A shows current continuous 10s design with low power. Panel B shows recommended burst 10x0.5s with 8x more information. Panels C and D show intermediate alternatives.
+\footnotesize Four LED stimulation designs showing 30-second cycle structure. Panel A shows current continuous 10s design (low power). Panel B shows recommended burst 10x0.5s (8x more information). Panels C/D show intermediate alternatives.
 \end{frame}
 
 %% Kernel Comparison - Use ORIGINAL figure (Dec 21 12:52)
 \begin{frame}{Kernel Model Comparison}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig7_model_comparison.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig7_model_comparison.pdf}
 
-\vspace{0.15cm}
-\small Model comparison shows the gamma-difference kernel achieves R$^2$ = 0.968 with 6 parameters. The raised cosine basis achieves R$^2$ = 0.974 but requires 12 parameters. The gamma-difference form provides biological interpretability with equivalent fit quality.
+\vspace{0.1cm}
+\footnotesize Model comparison shows gamma-difference kernel achieves R$^2$ = 0.968 with 6 parameters. Raised cosine basis achieves R$^2$ = 0.974 but requires 12 parameters. Gamma-difference provides biological interpretability with equivalent fit quality.
 \end{frame}
 
 %% ===========================================
@@ -232,42 +232,42 @@ Only 8.6\% of tracks show genuine individual differences that exceed measurement
 
 \begin{frame}{Protocol Modification}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig4_recommendations_v2.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig4_recommendations_v2.pdf}
 
-\vspace{0.15cm}
-\small Replace continuous 10-second ON periods with burst trains. Burst design samples the early excitatory window where $\tau_1$ is identifiable. Each burst event carries 10 times more Fisher information than continuous events. This modification alone could reduce the number of events required for reliable estimation from 100 to 30.
+\vspace{0.1cm}
+\footnotesize Replace continuous 10s ON periods with burst trains. Burst design samples early excitatory window where $\tau_1$ is identifiable. Each burst event carries 10x more Fisher information. This modification could reduce required events from 100 to 30.
 \end{frame}
 
 \begin{frame}{Extended Recording}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig5_power_analysis.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig5_power_analysis.pdf}
 
-\vspace{0.15cm}
-\small Target 40 minutes or more of recording to achieve at least 50 reorientation events per track. Current 10 to 20 minute recordings yield only 18 to 25 events which is insufficient for 6-parameter estimation. Power analysis indicates that 100 events are required for 80\% power to detect a 0.2 second difference in $\tau_1$ at the individual level.
+\vspace{0.1cm}
+\footnotesize Target 40+ minutes to achieve 50+ events per track. Current 10-20 minute recordings yield only 18-25 events, insufficient for 6-parameter estimation. Power analysis shows 100 events needed for 80\% power to detect 0.2s difference in $\tau_1$.
 \end{frame}
 
 \begin{frame}{Model Simplification}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/core/fig3_hierarchical_shrinkage.pdf}
+\includegraphics[height=0.55\textheight]{../figures/core/fig3_hierarchical_shrinkage.pdf}
 
-\vspace{0.15cm}
-\small Reduce the parameter space by fixing population-derived parameters. Fix $\tau_2$ at the population estimate of 3.8 seconds and fix the amplitude ratio B/A at the population value of 8. Estimate only the fast timescale $\tau_1$ per individual track. Hierarchical Bayesian estimation provides natural regularization toward the population mean.
+\vspace{0.1cm}
+\footnotesize Reduce parameter space by fixing population-derived values. Fix $\tau_2$ at 3.8s and B/A at 8. Estimate only $\tau_1$ per track. Hierarchical Bayesian estimation provides natural regularization toward population mean.
 \end{frame}
 
 \begin{frame}{Alternative Phenotypes}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/core/fig4_fast_responders.pdf}
+\includegraphics[height=0.55\textheight]{../figures/core/fig4_fast_responders.pdf}
 
-\vspace{0.15cm}
-\small Use robust composite phenotypes that avoid kernel fitting entirely. The ON/OFF event ratio measures whether larvae respond preferentially during LED-ON versus LED-OFF periods and requires only event counts not full kernel estimation. First-event latency measures the time from LED onset to first reorientation and captures response speed directly.
+\vspace{0.1cm}
+\footnotesize Use robust composite phenotypes avoiding kernel fitting. ON/OFF event ratio measures response preference during LED-ON vs LED-OFF, requiring only event counts. First-event latency measures time from LED onset to first reorientation, capturing response speed directly.
 \end{frame}
 
 \begin{frame}{Within-Condition Analysis}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/core/fig1_clustering_illusion.pdf}
+\includegraphics[height=0.55\textheight]{../figures/core/fig1_clustering_illusion.pdf}
 
-\vspace{0.15cm}
-\small Analyze individual differences within experimental conditions rather than pooling across conditions. When data from different stimulation intensities and temporal patterns are pooled the condition effects dominate and mask genuine individual variation. The ARI near zero across all validation methods indicates no reproducible structure when pooling.
+\vspace{0.1cm}
+\footnotesize Analyze individual differences within conditions rather than pooling across conditions. Pooling different intensities and temporal patterns causes condition effects to dominate and mask individual variation. ARI near zero across all methods indicates no reproducible structure when pooling.
 \end{frame}
 
 %% ===========================================
@@ -582,74 +582,74 @@ Organized chronologically by analysis stage.
 
 \begin{frame}{S1. Population-Level Data Summary}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/population_eda.png}
+\includegraphics[height=0.55\textheight]{../../figures/population_eda.png}
 
-\vspace{0.15cm}
-\small The dataset comprises 14 experiments with 701 larval tracks across four stimulation conditions. Track completeness analysis shows 19\% of tracks meet all quality thresholds for kernel fitting. Kernel timescales vary 3.9-fold across conditions, with the fast timescale tau1 ranging from 0.3 to 1.2 seconds. The intensity manipulation produces the largest effect size at g=2.4, exceeding the threshold for large effects. Mean R-squared values remain above 0.9 for all conditions except 50-250 Cycling, which shows reduced model fit at R-squared 0.73.
+\vspace{0.1cm}
+\footnotesize Dataset: 14 experiments, 701 tracks, four conditions. 19\% meet quality thresholds. Timescales vary 3.9-fold; $\tau_1$ ranges 0.3-1.2s. Intensity produces largest effect (g=2.4). R$^2$ above 0.9 except 50-250 Cycling (R$^2$=0.73).
 \end{frame}
 
 \begin{frame}{S2. Early vs Late Habituation}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/figure_habituation_early_late.png}
+\includegraphics[height=0.55\textheight]{../../figures/figure_habituation_early_late.png}
 
-\vspace{0.15cm}
-\small Turn fraction increases substantially from early pulses 0-2 to late pulses 15-17 across all four experimental conditions. The 0-250 Constant condition shows the strongest habituation effect, rising from 44\% to 77\% turn fraction. All conditions display the same pattern of increased turning in later pulses, confirming that habituation develops progressively throughout the stimulation protocol. The cycling conditions show similar magnitude increases despite their more complex temporal structure.
+\vspace{0.1cm}
+\footnotesize Turn fraction increases from early pulses 0-2 to late pulses 15-17 across all conditions. 0-250 Constant shows strongest effect (44\% to 77\%). All conditions show increased turning in later pulses, confirming progressive habituation. Cycling conditions show similar increases despite complex temporal structure.
 \end{frame}
 
 %% --- Model Fitting and Validation ---
 
 \begin{frame}{S3. PSTH to Kernel Fitting}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig3_psth_kernel_v2.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig3_psth_kernel_v2.pdf}
 
-\vspace{0.15cm}
-\small Panel A shows the empirical peri-stimulus time histogram computed by binning reorientation events relative to LED onset. Panel B displays the fitted gamma-difference kernel with tau1 at 2.5 seconds indicating peak suppression timing. Panel C demonstrates how the Bernoulli process converts kernel values to event probabilities. The fitted kernel captures the empirical pattern of initial excitation followed by sustained suppression.
+\vspace{0.1cm}
+\footnotesize Panel A shows empirical PSTH by binning events relative to LED onset. Panel B displays fitted kernel with $\tau_1$ at 2.5s. Panel C shows Bernoulli conversion of kernel to event probabilities. Kernel captures initial excitation followed by sustained suppression.
 \end{frame}
 
 \begin{frame}{S4. Posterior Predictive Checks}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig6_posterior_predictive.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig6_posterior_predictive.pdf}
 
-\vspace{0.15cm}
-\small Posterior predictive checks evaluate whether the fitted model generates data consistent with observations. Panel A shows pass rates for three metrics at event count 53.6\%, mean inter-stimulus interval 53.6\%, and PSTH shape at only 4.4\%. Panel B summarizes overall model adequacy with 37.2\% of simulated datasets passing all checks. The low PSTH shape pass rate indicates the model captures event timing but not the detailed temporal structure of individual responses.
+\vspace{0.1cm}
+\footnotesize Posterior predictive checks test model-data consistency. Panel A: pass rates for event count (53.6\%), ISI (53.6\%), PSTH shape (4.4\%). Panel B: 37.2\% pass all checks. Low PSTH shape rate indicates model captures timing but not detailed temporal structure.
 \end{frame}
 
 %% --- Trajectories and Simulation ---
 
 \begin{frame}{S5. Simulated Larval Trajectories}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/figure3_trajectories.png}
+\includegraphics[height=0.55\textheight]{../../figures/figure3_trajectories.png}
 
-\vspace{0.15cm}
-\small Three example simulated trajectories demonstrate the stochastic Bernoulli point process generating reorientation events. Track 1 shows 39 events at 2.0 per minute, Track 2 shows 24 events at 1.2 per minute, and Track 3 shows 56 events at 2.8 per minute. Red markers indicate turn locations along the movement path. Yellow shading in the lower panels shows LED-ON periods. Event timing follows the fitted kernel with higher probability during LED-ON suppression windows.
+\vspace{0.1cm}
+\footnotesize Three simulated trajectories from Bernoulli point process. Track 1: 39 events (2.0/min); Track 2: 24 events (1.2/min); Track 3: 56 events (2.8/min). Red markers show turns; yellow shading shows LED-ON. Event timing follows fitted kernel.
 \end{frame}
 
 %% --- Factorial Design ---
 
 \begin{frame}{S6. Factorial Design Analysis}
 \centering
-\includegraphics[height=0.65\textheight]{../../figures/figure5_factorial.png}
+\includegraphics[height=0.55\textheight]{../../figures/figure5_factorial.png}
 
-\vspace{0.15cm}
-\small The 2x2 factorial design manipulates intensity step from 0 to 250 versus 50 to 250 PWM and background pattern constant versus cycling. Panel A shows suppression amplitude across conditions with the 0-250 Cycling condition producing the strongest suppression at 1.16. Panel B displays coefficient estimates with 95\% confidence intervals. Intensity modulation produces a significant negative effect on alpha, indicating faster suppression onset. The cycling-by-intensity interaction reaches statistical significance at p less than 0.05.
+\vspace{0.1cm}
+\footnotesize 2x2 factorial: intensity (0-250 vs 50-250 PWM) and pattern (constant vs cycling). Panel A shows suppression amplitude; 0-250 Cycling strongest at 1.16. Panel B shows coefficients with 95\% CI. Intensity produces significant negative effect on alpha. Cycling-by-intensity interaction reaches p$<$0.05.
 \end{frame}
 
 \begin{frame}{S7. Validation Journey}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig1_validation_journey_v2.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig1_validation_journey_v2.pdf}
 
-\vspace{0.15cm}
-\small The validation journey traces the progression from apparent phenotypes to continuous variation. Panel A shows initial clustering with silhouette 0.54 and 99.6\% classification accuracy suggesting four distinct phenotypes. Panel B reveals that round-trip validation fails with ARI below 0.2 for all cluster numbers. Panel C shows the method agreement matrix with cross-method ARI values below 0.3 indicating each method produces different clusters. Panel D identifies only 8.6\% of tracks as genuine outliers, with the remaining 91.4\% showing variation indistinguishable from measurement noise.
+\vspace{0.1cm}
+\footnotesize Validation journey from apparent to continuous variation. Panel A: initial clustering (silhouette 0.54, 99.6\% accuracy). Panel B: round-trip fails (ARI$<$0.2). Panel C: methods disagree (ARI$<$0.3). Panel D: only 8.6\% genuine outliers; 91.4\% indistinguishable from noise.
 \end{frame}
 
 %% --- Design Optimization ---
 
 \begin{frame}{S8. Design Comparison Summary}
 \centering
-\includegraphics[height=0.65\textheight]{../figures/fig_design_comparison_summary.pdf}
+\includegraphics[height=0.55\textheight]{../figures/fig_design_comparison_summary.pdf}
 
-\vspace{0.15cm}
-\small Panel A compares event yield across stimulation designs with the current continuous protocol producing only 1.9 events per track. Burst stimulation with ten 0.5-second pulses increases yield 8-fold to 14.9 events. Panel B shows estimation error reduction with burst design achieving 3-fold lower RMSE at 0.036 seconds versus 0.108 for continuous. Panel C plots Fisher Information per event against event yield, demonstrating that burst design maximizes both metrics. The recommended protocol change would substantially improve individual phenotyping feasibility.
+\vspace{0.1cm}
+\footnotesize Panel A: event yield comparison; continuous produces 1.9 events/track, burst 10x0.5s increases yield 8-fold to 14.9. Panel B: burst achieves 3-fold lower RMSE (0.036s vs 0.108s). Panel C: burst maximizes both Fisher Information and yield. Recommended protocol change improves phenotyping feasibility.
 \end{frame}
 
 \end{document}

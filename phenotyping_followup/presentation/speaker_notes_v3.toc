@@ -30,3 +30,12 @@
 \contentsline {section}{\numberline {30}Slide 32: From Counting to Simulation}{10}{}%
 \contentsline {section}{\numberline {31}Slides 33-35: MagatFairy}{11}{}%
 \contentsline {section}{\numberline {32}Slides 36-38: RetroVibez}{11}{}%
+\contentsline {section}{\numberline {33}Supplemental Slides}{12}{}%
+\contentsline {subsection}{\numberline {33.1}S1. Population-Level Data Summary}{12}{}%
+\contentsline {subsection}{\numberline {33.2}S2. Early vs Late Habituation}{12}{}%
+\contentsline {subsection}{\numberline {33.3}S3. PSTH to Kernel Fitting}{12}{}%
+\contentsline {subsection}{\numberline {33.4}S4. Posterior Predictive Checks}{13}{}%
+\contentsline {subsection}{\numberline {33.5}S5. Simulated Larval Trajectories}{13}{}%
+\contentsline {subsection}{\numberline {33.6}S6. Factorial Design Analysis}{13}{}%
+\contentsline {subsection}{\numberline {33.7}S7. Validation Journey}{13}{}%
+\contentsline {subsection}{\numberline {33.8}S8. Design Comparison Summary}{13}{}%
