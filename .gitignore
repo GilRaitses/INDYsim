@@ -44,3 +44,10 @@ __pycache__/
 # Old cleanup scripts
 clean_git_history*.sh
 
+
+# Embedded git repos (not submodules)
+deliverables/sensorimotor-habituation-model/
+external/larvatagger.jl/
+external/larvaworld/
+external/retrovibez/
+scripts/2025-12-04/magatfairy/
