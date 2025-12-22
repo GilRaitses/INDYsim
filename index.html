@@ -101,35 +101,60 @@
             border-radius: 2px;
         }
         
-        .study-grid {
+        /* Study Cards with Preview Images */
+        .studies-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
-            margin-top: 1rem;
         }
         
         .study-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.5rem;
+            overflow: hidden;
             transition: transform 0.2s, border-color 0.2s;
         }
         
         .study-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-4px);
             border-color: var(--accent-cyan);
         }
         
+        .card-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card-content {
+            padding: 1.25rem;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-green);
+            margin-bottom: 0.75rem;
+        }
+        
+        .tag.presentation { color: var(--accent-purple); }
+        .tag.followup { color: var(--accent-orange); }
+        
         .study-card h3 {
             font-size: 1.1rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             color: var(--text-primary);
         }
         
         .study-card p {
-            color: var(--text-secondary);
             font-size: 0.9rem;
+            color: var(--text-secondary);
             margin-bottom: 1rem;
         }
         
@@ -140,10 +165,7 @@
         }
         
         .doc-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.8rem;
+            padding: 0.4rem 0.75rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -151,41 +173,179 @@
             text-decoration: none;
             font-size: 0.8rem;
             font-family: 'JetBrains Mono', monospace;
-            transition: background 0.2s, border-color 0.2s;
+            transition: all 0.2s;
         }
         
         .doc-link:hover {
-            background: var(--bg-primary);
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
             border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
         }
         
-        .doc-link.pdf { border-left: 3px solid var(--accent-orange); }
         .doc-link.html { border-left: 3px solid var(--accent-green); }
+        .doc-link.pdf { border-left: 3px solid var(--accent-orange); }
         .doc-link.slides { border-left: 3px solid var(--accent-purple); }
         
-        .tag {
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            background: var(--bg-tertiary);
+        /* Slideshow Carousel */
+        .slideshow-container {
+            position: relative;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .slideshow-main {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            min-height: 500px;
+        }
+        
+        .slide {
+            display: none;
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        .slide-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            font-size: 1.5rem;
             border-radius: 4px;
-            font-size: 0.7rem;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        
+        .slide-nav:hover {
+            background: var(--accent-cyan);
+        }
+        
+        .slide-nav.prev { left: 1rem; }
+        .slide-nav.next { right: 1rem; }
+        
+        .slideshow-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .slide-counter {
             font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-purple);
-            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .slideshow-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .slideshow-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .slideshow-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+        
+        .slideshow-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .slideshow-links a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        
+        .slideshow-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Fullscreen */
+        .slideshow-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            border-radius: 0;
+            background: #000;
+        }
+        
+        .slideshow-container.fullscreen .slideshow-main {
+            height: calc(100vh - 60px);
+            min-height: auto;
+        }
+        
+        .slideshow-container.fullscreen .slide {
+            max-height: calc(100vh - 80px);
+        }
+        
+        /* Thumbnail strip */
+        .thumbnail-strip {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            overflow-x: auto;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .thumbnail {
+            width: 80px;
+            height: 45px;
+            object-fit: cover;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .thumbnail:hover {
+            opacity: 1;
+        }
+        
+        .thumbnail.active {
+            border-color: var(--accent-cyan);
+            opacity: 1;
         }
         
         /* Figure Gallery */
-        .gallery-section {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 1rem;
-        }
-        
         .gallery-tabs {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
         }
@@ -202,53 +362,17 @@
             transition: all 0.2s;
         }
         
-        .gallery-tab:hover, .gallery-tab.active {
+        .gallery-tab:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-cyan);
+        }
+        
+        .gallery-tab.active {
             background: var(--accent-cyan);
             color: var(--bg-primary);
             border-color: var(--accent-cyan);
         }
         
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-        
-        .gallery-item {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        
-        .gallery-item:hover {
-            transform: scale(1.02);
-            border-color: var(--accent-purple);
-        }
-        
-        .gallery-item img {
-            width: 100%;
-            height: 180px;
-            object-fit: contain;
-            background: #fff;
-            padding: 0.5rem;
-        }
-        
-        .gallery-item .caption {
-            padding: 0.75rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .gallery-item .caption strong {
-            color: var(--text-primary);
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-        
-        /* Hidden galleries */
         .gallery-content {
             display: none;
         }
@@ -257,11 +381,74 @@
             display: block;
         }
         
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .gallery-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-purple);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .caption {
+            padding: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .caption strong {
+            display: block;
+            color: var(--accent-purple);
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Key Findings */
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .finding {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+        
+        .finding h4 {
+            color: var(--accent-orange);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .finding p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
         footer {
             text-align: center;
             padding: 2rem;
             color: var(--text-secondary);
             font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
         }
         
         footer a {
@@ -273,273 +460,425 @@
             text-decoration: underline;
         }
         
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
-            .container { padding: 1rem; }
-            header { padding: 2rem 1rem; }
-            .study-grid { grid-template-columns: 1fr; }
+            .studies-grid { grid-template-columns: 1fr; }
+            .slide-nav { padding: 0.75rem 1rem; font-size: 1.2rem; }
+            .thumbnail { width: 60px; height: 34px; }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Sensorimotor Habituation in Drosophila Larvae</h1>
-        <p class="subtitle">Population-Level Modeling and Individual Phenotyping Validation</p>
+        <h1>Where Interpretability Works and Where It Breaks</h1>
+        <p class="subtitle">Sensorimotor Modeling from Population to Individual Scale</p>
         <p class="author">Gil Raitses</p>
         <p class="institution">Syracuse University</p>
     </header>
     
     <div class="container">
-        
         <!-- Studies Section -->
         <section>
             <h2>Studies</h2>
-            <div class="study-grid">
-                
+            <div class="studies-grid">
                 <div class="study-card">
-                    <span class="tag">ORIGINAL STUDY</span>
-                    <h3>An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation</h3>
-                    <p>Population-level modeling of sensorimotor dynamics using a gamma-difference kernel with two timescales. Validated across 14 experiments and 701 larval tracks.</p>
-                    <div class="doc-links">
-                        <a href="manuscript_original.html" class="doc-link html">HTML Manuscript</a>
-                        <a href="manuscript/main.pdf" class="doc-link pdf">PDF</a>
-                        <a href="manuscript/supplement.pdf" class="doc-link pdf">Supplement</a>
+                    <img src="figures/figure1_kernel.png" alt="Kernel Structure" class="card-preview">
+                    <div class="card-content">
+                        <span class="tag">ORIGINAL STUDY</span>
+                        <h3>An Analytic Hazard Kernel for Optogenetically-Driven Larval Reorientation</h3>
+                        <p>Population-level modeling of sensorimotor dynamics using a gamma-difference kernel with two timescales.</p>
+                        <div class="doc-links">
+                            <a href="manuscript_original.html" class="doc-link html">HTML</a>
+                            <a href="manuscript/main.pdf" class="doc-link pdf">PDF</a>
+                            <a href="manuscript/supplement.pdf" class="doc-link pdf">Supplement</a>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="study-card">
-                    <span class="tag">FOLLOW-UP STUDY</span>
-                    <h3>Individual-Level Phenotyping Validation</h3>
-                    <p>Validation of kernel-based phenotyping at the individual level. Identifies data sparsity as the root cause of clustering artifacts and provides protocol recommendations.</p>
-                    <div class="doc-links">
-                        <a href="phenotyping_followup/main.html" class="doc-link html">HTML Manuscript</a>
-                        <a href="phenotyping_followup/main.pdf" class="doc-link pdf">PDF</a>
-                        <a href="phenotyping_followup/supplement.html" class="doc-link html">Supplement HTML</a>
-                        <a href="phenotyping_followup/supplement.pdf" class="doc-link pdf">Supplement PDF</a>
+                    <img src="phenotyping_followup/figures/core/fig1_clustering_illusion.png" alt="Clustering Illusion" class="card-preview">
+                    <div class="card-content">
+                        <span class="tag followup">FOLLOW-UP STUDY</span>
+                        <h3>Individual-Level Phenotyping Validation</h3>
+                        <p>Why phenotyping fails at the individual level and what experimental changes would fix it.</p>
+                        <div class="doc-links">
+                            <a href="phenotyping_followup/main.html" class="doc-link html">HTML</a>
+                            <a href="phenotyping_followup/main.pdf" class="doc-link pdf">PDF</a>
+                            <a href="phenotyping_followup/supplement.html" class="doc-link html">Suppl HTML</a>
+                            <a href="phenotyping_followup/supplement.pdf" class="doc-link pdf">Suppl PDF</a>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="study-card">
-                    <span class="tag">PRESENTATION</span>
-                    <h3>Combined Study Presentation</h3>
-                    <p>31-slide presentation covering both studies with executive summaries, key figures, recommendations, and FAQ section.</p>
-                    <div class="doc-links">
-                        <a href="phenotyping_followup/presentation/combined_presentation_v3.html" class="doc-link html">HTML Slides</a>
-                        <a href="phenotyping_followup/presentation/combined_presentation_v3.pdf" class="doc-link slides">PDF Slides</a>
-                        <a href="phenotyping_followup/presentation/speaker_notes_v3.pdf" class="doc-link pdf">Speaker Notes</a>
-                        <a href="phenotyping_followup/presentation/presenters_companion_v3.pdf" class="doc-link pdf">Arc Notes</a>
-                        <a href="phenotyping_followup/presentation/speaker_screenplay.pdf" class="doc-link pdf">Screenplay</a>
+                    <img src="phenotyping_followup/presentation/slides_v3_png/slide_00.png" alt="Presentation Title" class="card-preview">
+                    <div class="card-content">
+                        <span class="tag presentation">PRESENTATION</span>
+                        <h3>Mirna Lab General Meeting</h3>
+                        <p>47-slide presentation with supplemental materials, speaker notes, and screenplay.</p>
+                        <div class="doc-links">
+                            <a href="#slideshow" class="doc-link slides">View Slides</a>
+                            <a href="phenotyping_followup/presentation/combined_presentation_v3.pdf" class="doc-link pdf">PDF</a>
+                            <a href="phenotyping_followup/presentation/speaker_screenplay.pdf" class="doc-link pdf">Screenplay</a>
+                        </div>
                     </div>
                 </div>
-                
             </div>
         </section>
         
-        <!-- Embedded Presentation Section -->
-        <section>
-            <h2>Presentation</h2>
-            <div class="gallery-section" style="padding: 1rem;">
-                <iframe 
-                    src="phenotyping_followup/presentation/combined_presentation_v3.html" 
-                    style="width: 100%; height: 600px; border: 1px solid var(--border-color); border-radius: 8px;"
-                    title="Combined Study Presentation">
-                </iframe>
-                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.85rem;">
-                    <a href="phenotyping_followup/presentation/combined_presentation_v3.html" target="_blank" style="color: var(--accent-cyan);">Open in new tab</a> · 
-                    <a href="phenotyping_followup/presentation/combined_presentation_v3.pdf" style="color: var(--accent-cyan);">Download PDF</a> · 
-                    <a href="phenotyping_followup/presentation/speaker_notes_v3.pdf" style="color: var(--accent-cyan);">Speaker Notes</a> · 
-                    <a href="phenotyping_followup/presentation/presenters_companion_v3.pdf" style="color: var(--accent-cyan);">Arc Notes</a> · 
-                    <a href="phenotyping_followup/presentation/speaker_screenplay.pdf" style="color: var(--accent-cyan);">Screenplay</a>
-                </p>
+        <!-- Interactive Slideshow -->
+        <section id="slideshow">
+            <h2>Presentation Slides</h2>
+            <div class="slideshow-container" id="slideshowContainer">
+                <div class="slideshow-main">
+                    <button class="slide-nav prev" onclick="changeSlide(-1)">&#10094;</button>
+                    
+                    <img class="slide active" src="phenotyping_followup/presentation/slides_v3_png/slide_00.png" alt="Slide 1">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_01.png" alt="Slide 2">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_02.png" alt="Slide 3">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_03.png" alt="Slide 4">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_04.png" alt="Slide 5">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_05.png" alt="Slide 6">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_06.png" alt="Slide 7">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_07.png" alt="Slide 8">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_08.png" alt="Slide 9">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_09.png" alt="Slide 10">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_10.png" alt="Slide 11">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_11.png" alt="Slide 12">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_12.png" alt="Slide 13">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_13.png" alt="Slide 14">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_14.png" alt="Slide 15">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_15.png" alt="Slide 16">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_16.png" alt="Slide 17">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_17.png" alt="Slide 18">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_18.png" alt="Slide 19">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_19.png" alt="Slide 20">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_20.png" alt="Slide 21">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_21.png" alt="Slide 22">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_22.png" alt="Slide 23">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_23.png" alt="Slide 24">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_24.png" alt="Slide 25">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_25.png" alt="Slide 26">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_26.png" alt="Slide 27">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_27.png" alt="Slide 28">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_28.png" alt="Slide 29">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_29.png" alt="Slide 30">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_30.png" alt="Slide 31">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_31.png" alt="Slide 32">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_32.png" alt="Slide 33">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_33.png" alt="Slide 34">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_34.png" alt="Slide 35">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_35.png" alt="Slide 36">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_36.png" alt="Slide 37">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_37.png" alt="Slide 38">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_38.png" alt="Slide 39">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_39.png" alt="Slide 40">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_40.png" alt="Slide 41">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_41.png" alt="Slide 42">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_42.png" alt="Slide 43">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_43.png" alt="Slide 44">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_44.png" alt="Slide 45">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_45.png" alt="Slide 46">
+                    <img class="slide" src="phenotyping_followup/presentation/slides_v3_png/slide_46.png" alt="Slide 47">
+                    
+                    <button class="slide-nav next" onclick="changeSlide(1)">&#10095;</button>
+                </div>
+                
+                <div class="thumbnail-strip" id="thumbnailStrip">
+                    <!-- Thumbnails generated by JS -->
+                </div>
+                
+                <div class="slideshow-controls">
+                    <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">47</span></span>
+                    
+                    <div class="slideshow-buttons">
+                        <button class="slideshow-btn" onclick="goToSlide(0)">First</button>
+                        <button class="slideshow-btn" onclick="goToSlide(totalSlides - 1)">Last</button>
+                        <button class="slideshow-btn" onclick="toggleFullscreen()">Fullscreen</button>
+                    </div>
+                    
+                    <div class="slideshow-links">
+                        <a href="phenotyping_followup/presentation/combined_presentation_v3.pdf">Download PDF</a>
+                        <a href="phenotyping_followup/presentation/speaker_notes_v3.pdf">Speaker Notes</a>
+                        <a href="phenotyping_followup/presentation/speaker_screenplay.pdf">Screenplay</a>
+                    </div>
+                </div>
             </div>
         </section>
         
         <!-- Figure Gallery Section -->
         <section>
             <h2>Figure Gallery</h2>
-            <div class="gallery-section">
-                <div class="gallery-tabs">
-                    <button class="gallery-tab active" onclick="showGallery('original')">Original Study</button>
-                    <button class="gallery-tab" onclick="showGallery('followup')">Follow-Up Study</button>
-                    <button class="gallery-tab" onclick="showGallery('core')">Core Validation</button>
-                </div>
-                
-                <!-- Original Study Figures -->
-                <div id="gallery-original" class="gallery-content active">
-                    <div class="gallery-grid">
-                        <div class="gallery-item">
-                            <img src="figures/figure1_kernel.png" alt="Kernel Structure">
-                            <div class="caption">
-                                <strong>Kernel Structure</strong>
-                                Gamma-difference kernel with fast excitatory and slow suppressive components
-                            </div>
+            <div class="gallery-tabs">
+                <button class="gallery-tab active" onclick="showGallery('original')">Original Study</button>
+                <button class="gallery-tab" onclick="showGallery('followup')">Follow-Up Study</button>
+                <button class="gallery-tab" onclick="showGallery('core')">Core Validation</button>
+            </div>
+            
+            <!-- Original Study Figures -->
+            <div id="gallery-original" class="gallery-content active">
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="figures/figure1_kernel.png" alt="Kernel Structure">
+                        <div class="caption">
+                            <strong>Kernel Structure</strong>
+                            Gamma-difference kernel with fast excitatory and slow suppressive components
                         </div>
-                        <div class="gallery-item">
-                            <img src="figures/figure_habituation.png" alt="Habituation Dynamics">
-                            <div class="caption">
-                                <strong>Habituation Dynamics</strong>
-                                Turn fraction increases across LED pulses in all four conditions
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="figures/figure_habituation.png" alt="Habituation Dynamics">
+                        <div class="caption">
+                            <strong>Habituation Dynamics</strong>
+                            Turn fraction increases across LED pulses in all four conditions
                         </div>
-                        <div class="gallery-item">
-                            <img src="figures/figure_behavior_stacked_cinnamoroll.png" alt="Behavioral States">
-                            <div class="caption">
-                                <strong>Behavioral State Analysis</strong>
-                                Fractional state usage showing shift from running to turning
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="figures/figure_behavior_stacked_cinnamoroll.png" alt="Behavioral States">
+                        <div class="caption">
+                            <strong>Behavioral State Analysis</strong>
+                            Fractional state usage showing shift from running to turning
                         </div>
-                        <div class="gallery-item">
-                            <img src="figures/figure2_validation.png" alt="Validation">
-                            <div class="caption">
-                                <strong>Model Validation</strong>
-                                Cross-validation and bootstrap confidence intervals
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="figures/loeo_permutation_null.png" alt="LOEO Validation">
+                        <div class="caption">
+                            <strong>LOEO Validation</strong>
+                            Leave-one-experiment-out cross-validation results
                         </div>
-                        <div class="gallery-item">
-                            <img src="figures/loeo_permutation_null.png" alt="LOEO Validation">
-                            <div class="caption">
-                                <strong>LOEO Validation</strong>
-                                Leave-one-experiment-out cross-validation results
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="figures/figure5_factorial.png" alt="Factorial Design">
+                        <div class="caption">
+                            <strong>Factorial Analysis</strong>
+                            Effects of intensity and temporal pattern on kernel parameters
                         </div>
-                        <div class="gallery-item">
-                            <img src="figures/figure5_factorial.png" alt="Factorial Design">
-                            <div class="caption">
-                                <strong>Factorial Analysis</strong>
-                                Effects of intensity and temporal pattern on kernel parameters
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="figures/population_eda.png" alt="Population EDA">
+                        <div class="caption">
+                            <strong>Population Summary</strong>
+                            Dataset overview with track completeness and effect sizes
                         </div>
                     </div>
                 </div>
-                
-                <!-- Follow-Up Study Figures -->
-                <div id="gallery-followup" class="gallery-content">
-                    <div class="gallery-grid">
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig2_identifiability_v3.png" alt="Identifiability">
-                            <div class="caption">
-                                <strong>Identifiability Problem</strong>
-                                Fisher Information analysis showing burst design advantage
-                            </div>
+            </div>
+            
+            <!-- Follow-Up Study Figures -->
+            <div id="gallery-followup" class="gallery-content">
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig2_identifiability_v3.png" alt="Identifiability">
+                        <div class="caption">
+                            <strong>Identifiability Problem</strong>
+                            Fisher Information analysis showing burst design advantage
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig_stimulation_schematic.png" alt="Stimulation Protocols">
-                            <div class="caption">
-                                <strong>Stimulation Protocols</strong>
-                                Comparison of continuous vs burst LED designs
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig_stimulation_schematic.png" alt="Stimulation Protocols">
+                        <div class="caption">
+                            <strong>Stimulation Protocols</strong>
+                            Comparison of continuous vs burst LED designs
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig_simulation_design.png" alt="Simulation Design">
-                            <div class="caption">
-                                <strong>Simulated vs Empirical</strong>
-                                Validation of generative model against empirical data
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig_simulation_design.png" alt="Simulation Design">
+                        <div class="caption">
+                            <strong>Simulated vs Empirical</strong>
+                            Validation of generative model against empirical data
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig4_recommendations_v2.png" alt="Recommendations">
-                            <div class="caption">
-                                <strong>Protocol Recommendations</strong>
-                                Data gap analysis and protocol modification options
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig4_recommendations_v2.png" alt="Recommendations">
+                        <div class="caption">
+                            <strong>Protocol Recommendations</strong>
+                            Data gap analysis and protocol modification options
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig5_power_analysis.png" alt="Power Analysis">
-                            <div class="caption">
-                                <strong>Power Analysis</strong>
-                                Statistical power as function of event count
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig5_power_analysis.png" alt="Power Analysis">
+                        <div class="caption">
+                            <strong>Power Analysis</strong>
+                            Required events per track for reliable phenotyping
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/fig7_model_comparison.png" alt="Model Comparison">
-                            <div class="caption">
-                                <strong>Model Comparison</strong>
-                                Gamma-difference vs raised cosine kernel forms
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig_design_comparison_summary.png" alt="Design Comparison">
+                        <div class="caption">
+                            <strong>Design Comparison</strong>
+                            Event yield and estimation error across protocols
                         </div>
                     </div>
                 </div>
-                
-                <!-- Core Validation Figures -->
-                <div id="gallery-core" class="gallery-content">
-                    <div class="gallery-grid">
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/core/fig1_clustering_illusion.png" alt="Clustering Illusion">
-                            <div class="caption">
-                                <strong>The Clustering Illusion</strong>
-                                PCA shows unimodal distribution; all validation methods fail
-                            </div>
+            </div>
+            
+            <!-- Core Validation Figures -->
+            <div id="gallery-core" class="gallery-content">
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/core/fig1_clustering_illusion.png" alt="Clustering Illusion">
+                        <div class="caption">
+                            <strong>The Clustering Illusion</strong>
+                            PCA shows apparent clusters that fail round-trip validation
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/core/fig2_data_sparsity.png" alt="Data Sparsity">
-                            <div class="caption">
-                                <strong>Data Sparsity</strong>
-                                Mean 25 events per track vs 100 required for stable estimation
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/core/fig2_data_sparsity.png" alt="Data Sparsity">
+                        <div class="caption">
+                            <strong>Data Sparsity</strong>
+                            Event counts per track are insufficient for 6-parameter estimation
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/core/fig3_hierarchical_shrinkage.png" alt="Hierarchical Shrinkage">
-                            <div class="caption">
-                                <strong>Hierarchical Shrinkage</strong>
-                                Bayesian estimates shrink toward population mean
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/core/fig3_hierarchical_shrinkage.png" alt="Hierarchical Shrinkage">
+                        <div class="caption">
+                            <strong>Hierarchical Shrinkage</strong>
+                            Bayesian regularization pulls individuals toward population mean
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/core/fig4_fast_responders.png" alt="Fast Responders">
-                            <div class="caption">
-                                <strong>Alternative Phenotypes</strong>
-                                ON/OFF ratio and first-event latency as simpler metrics
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/core/fig4_fast_responders.png" alt="Fast Responders">
+                        <div class="caption">
+                            <strong>Genuine Outliers</strong>
+                            Only 8.6% of tracks show variation exceeding measurement noise
                         </div>
-                        <div class="gallery-item">
-                            <img src="phenotyping_followup/figures/core/fig_combined_summary.png" alt="Combined Summary">
-                            <div class="caption">
-                                <strong>Combined Summary</strong>
-                                Overview of validation findings and recommendations
-                            </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig1_validation_journey_v2.png" alt="Validation Journey">
+                        <div class="caption">
+                            <strong>Validation Journey</strong>
+                            From apparent phenotypes to continuous variation
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="phenotyping_followup/figures/fig7_model_comparison.png" alt="Model Comparison">
+                        <div class="caption">
+                            <strong>Model Comparison</strong>
+                            Gamma-difference vs raised cosine kernel forms
                         </div>
                     </div>
                 </div>
-                
             </div>
         </section>
         
-        <!-- Key Findings Section -->
+        <!-- Key Findings -->
         <section>
             <h2>Key Findings</h2>
-            <div class="study-grid">
-                <div class="study-card">
-                    <h3>Original Study</h3>
-                    <p><strong>τ₁ ≈ 0.3s</strong> — Fast excitatory timescale capturing initial sensory response</p>
-                    <p><strong>τ₂ ≈ 4s</strong> — Slow suppressive timescale underlying habituation</p>
-                    <p><strong>R² = 0.968</strong> — Gamma-difference kernel fit quality</p>
+            <div class="findings-grid">
+                <div class="finding">
+                    <h4>Population Success</h4>
+                    <p>Gamma-difference kernel accurately models population-level reorientation dynamics with fast excitation at 0.3s and slow suppression at 4s.</p>
                 </div>
-                <div class="study-card">
-                    <h3>Follow-Up Study</h3>
-                    <p><strong>25 events/track</strong> — Current data vs 100 required for phenotyping</p>
-                    <p><strong>8.6%</strong> — Fraction of tracks showing genuine individual variation</p>
-                    <p><strong>10×</strong> — Information gain from burst vs continuous protocol</p>
+                <div class="finding">
+                    <h4>Individual Failure</h4>
+                    <p>Individual phenotyping fails due to sparse data averaging 25 events per track versus 100 required for reliable estimation.</p>
+                </div>
+                <div class="finding">
+                    <h4>Design Insight</h4>
+                    <p>Burst stimulation extracts 10 times more Fisher Information per event than continuous protocols.</p>
+                </div>
+                <div class="finding">
+                    <h4>Path Forward</h4>
+                    <p>Protocol modification with burst trains and extended recording would enable individual phenotyping.</p>
                 </div>
             </div>
         </section>
-        
     </div>
     
     <footer>
-        <p>INDYsim Project · <a href="https://github.com/GilRaitses/indysim">GitHub Repository</a> · December 2025</p>
+        INDYsim Project · <a href="https://github.com/GilRaitses/indysim">GitHub Repository</a> · December 2025
     </footer>
     
     <script>
-        function showGallery(id) {
-            // Hide all galleries
-            document.querySelectorAll('.gallery-content').forEach(g => g.classList.remove('active'));
-            document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
-            
-            // Show selected
-            document.getElementById('gallery-' + id).classList.add('active');
-            event.target.classList.add('active');
+        // Slideshow functionality
+        let currentSlideIndex = 0;
+        const totalSlides = 47;
+        const slides = document.querySelectorAll('.slide');
+        
+        // Generate thumbnails
+        const thumbnailStrip = document.getElementById('thumbnailStrip');
+        for (let i = 0; i < totalSlides; i++) {
+            const thumb = document.createElement('img');
+            thumb.src = `phenotyping_followup/presentation/slides_v3_png/slide_${String(i).padStart(2, '0')}.png`;
+            thumb.className = 'thumbnail' + (i === 0 ? ' active' : '');
+            thumb.onclick = () => goToSlide(i);
+            thumb.alt = `Slide ${i + 1}`;
+            thumbnailStrip.appendChild(thumb);
         }
+        
+        function showSlide(index) {
+            if (index >= totalSlides) index = 0;
+            if (index < 0) index = totalSlides - 1;
+            currentSlideIndex = index;
+            
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+            
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            // Scroll thumbnail into view
+            const thumbs = document.querySelectorAll('.thumbnail');
+            if (thumbs[index]) {
+                thumbs[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }
+        
+        function changeSlide(direction) {
+            showSlide(currentSlideIndex + direction);
+        }
+        
+        function goToSlide(index) {
+            showSlide(index);
+        }
+        
+        function toggleFullscreen() {
+            const container = document.getElementById('slideshowContainer');
+            container.classList.toggle('fullscreen');
+            
+            if (container.classList.contains('fullscreen')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeSlide(-1);
+            } else if (e.key === 'Escape') {
+                const container = document.getElementById('slideshowContainer');
+                if (container.classList.contains('fullscreen')) {
+                    toggleFullscreen();
+                }
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            } else if (e.key === 'Home') {
+                goToSlide(0);
+            } else if (e.key === 'End') {
+                goToSlide(totalSlides - 1);
+            }
+        });
+        
+        // Gallery tabs
+        function showGallery(tab) {
+            document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.gallery-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('gallery-' + tab).classList.add('active');
+        }
+        
+        // Update total slides display
+        document.getElementById('totalSlides').textContent = totalSlides;
     </script>
 </body>
 </html>
-
