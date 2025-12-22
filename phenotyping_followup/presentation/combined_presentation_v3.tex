@@ -4,18 +4,25 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{fontspec}
+\usepackage{tikz}
 
-% Set Didot font for footer page numbers
+% Set Didot font for page numbers
 \newfontfamily\didotfont{Didot}
 
 % Reduce bottom margin for captions
 \setbeamertemplate{frametitle}[default][left]
 \addtobeamertemplate{frametitle}{}{\vspace{-0.3em}}
 
-% Add centered page numbers in Didot font
-\setbeamertemplate{footline}{%
-  \hfill\usebeamercolor[fg]{page number in head/foot}%
-  {\didotfont\insertframenumber}\hfill\vskip2pt%
+% Remove default footline
+\setbeamertemplate{footline}{}
+
+% Add frame number to upper right of header bar
+\addtobeamertemplate{frametitle}{}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=north east,xshift=-0.5cm,yshift=0.35cm] at (current page.north east) {%
+      {\color{white}\didotfont\insertframenumber}%
+    };
+  \end{tikzpicture}%
 }
 
 \title{Where Interpretability Works and Where It Breaks}
