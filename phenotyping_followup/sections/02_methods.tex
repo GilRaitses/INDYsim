@@ -101,7 +101,7 @@ Empirical larval trajectories were processed using methods established in the ma
 
 The consolidated dataset contains reorientation start events detected by MAGAT Analyzer segmentation in the \textit{events group}. Each row represents a discrete reorientation onset (False$\to$True transition in the reorientation state), providing direct event counts suitable for point-process modeling. The events group contains 7,867 reorientation starts across 414 tracks (mean 19.0 reorientations per track). The dataset also contains run-level statistics in a separate table, which were used for data quality validation (identifying tracks with successful MAGAT segmentation) but not for kernel fitting or phenotyping analyses.
 
-For kernel fitting, the events group with \texttt{is\_reorientation\_start} was used because it directly counts reorientation events, which serve as the dependent variable in the hazard model. The segmentation step defines reorientation onset events that the hazard model uses as its dependent variable.
+For kernel fitting, the events group with \texttt{is\_reorientation\_start} was used because it directly counts reorientation events, which serve as the dependent variable in the hazard model. This segmentation step is required for kernel fitting because it defines the reorientation onset events used as the dependent variable in the hazard model.
 
 A critical data quality issue was identified. Of 701 unique experiment-track pairs in the consolidated dataset, only 424 (60.5\%) successfully passed MAGAT segmentation. The remaining 277 tracks (39.5\%) have zero reorientation events in the events table, indicating complete segmentation failure rather than biological low-activity phenotypes.
 
@@ -109,7 +109,7 @@ A critical data quality issue was identified. Of 701 unique experiment-track pai
 
 Tracks were filtered hierarchically for phenotyping analysis. First, duration was required to be at least 10 minutes to ensure sufficient LED-ON cycles for kernel estimation. Second, successful MAGAT segmentation was confirmed by presence of reorientation events in the events group (tracks with zero reorientation events were excluded). Third, at least 10 reorientation events were required for adequate statistical power. After filtering, 260 tracks remained for analysis (Table~\ref{tab:track_filtering}).
 
-All kernel fitting and phenotyping analyses, including model comparison and leave-one-experiment-out cross-validation, used the events group with \texttt{is\_reorientation\_start} as the source of reorientation event times, ensuring consistency across all analyses.
+All kernel fitting and phenotyping analyses, including model comparison and leave-one-experiment-out cross-validation, used the events group with \texttt{is\_reorientation\_start} as the source of reorientation event times. This ensures consistency across all analyses.
 
 \begin{table}[h]
 \centering
@@ -242,7 +242,7 @@ Model comparison was performed between the full 6-parameter model with A, $\alph
 \end{align}
 where $k$ is the number of parameters, $n$ is the number of events, and $\hat{L}$ is the maximum likelihood.
 
-The model with lower total BIC across tracks was preferred. BIC penalizes model complexity more strongly than AIC through the $\ln(n)$ term, favoring simpler models when data are sparse. For each track, BIC was computed for both the full 6-parameter model and the reduced 2-parameter model. The difference $\Delta\text{BIC} = \text{BIC}_{\text{full}} - \text{BIC}_{\text{reduced}}$ was calculated per track. Positive $\Delta\text{BIC}$ indicates the reduced model is preferred for that track, while negative values favor the full model. The total BIC across all tracks was summed for each model, and the model with lower total BIC was selected. The per-track selection accounts for heterogeneity, where some tracks benefit from the full model's flexibility while others are adequately described by the reduced model (Figure~\ref{fig:model_comparison}).
+The model with lower total BIC across tracks was preferred. BIC penalizes model complexity more strongly than AIC through the $\ln(n)$ term, favoring simpler models when data are sparse. For each track, BIC was computed for both the full 6-parameter model and the reduced 2-parameter model. The difference $\Delta\text{BIC} = \text{BIC}_{\text{full}} - \text{BIC}_{\text{reduced}}$ was calculated per track. Positive $\Delta\text{BIC}$ indicates the reduced model is preferred for that track, while negative values favor the full model. The total BIC across all tracks was summed for each model, and the model with lower total BIC was selected. This approach accounts for heterogeneity across tracks, where some tracks may benefit from the full model's flexibility while others are adequately described by the reduced model (Figure~\ref{fig:model_comparison}).
 
 \begin{figure}[H]
 \centering
